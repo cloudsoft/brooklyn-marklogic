@@ -13,6 +13,9 @@ import brooklyn.util.flags.SetFromFlag;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * A node in a MarkLogic cluster, where it will be the master if {@code getConfig(IS_MASTER)}.
+ */
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {
 

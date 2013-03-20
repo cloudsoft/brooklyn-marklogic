@@ -11,6 +11,9 @@ import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * A customizer that calls a sequence of other customizers.
+ */
 public class CompoundJcloudsLocationCustomizer implements JcloudsLocationCustomizer {
 
 	private final List<JcloudsLocationCustomizer> delegates;

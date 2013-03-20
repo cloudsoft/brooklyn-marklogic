@@ -41,6 +41,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 		return MarkLogicDriver.class;
 	}
 
+	/**
+	 * Sets up the polling of sensors.
+	 */
 	@Override
 	protected void connectSensors() {
         super.connectSensors();
@@ -61,10 +64,17 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         
         if (httpFeed != null) httpFeed.stop();
 	}
+	
+	/**
+	 * The ports to be opened in the VM (e.g. in the aws-ec2 security group created by jclouds).
+	 */
 	@Override
 	protected Collection<Integer> getRequiredOpenPorts() {
 		// TODO What ports need to be open?
 		// I got these from `sudo netstat -antp` for the MarkLogic daemon
+		// TODO If want to use a pre-existing security group instead, can add to
+		//      obtainProvisioningFlags() something like:
+		//      .put("securityGroups", groupName)
 		return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(8000, 8001, 8002)));
 	}
 	
@@ -164,8 +174,13 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return result;
 	}
 	
+	/**
+	 * Returns a customizer that will either attach an existing volume (if volumeId is non-null) or create a
+	 * new volume of the given size.
+	 */
     private JcloudsLocationCustomizer createOrAttachVolumeCustomizer(JcloudsLocation location, String volumeId, String mountPoint, int sizeInGib) {
     	// TODO Need to get correct ec2DeviceName and osDeviceName, I presume?
+    	// TODO Don't hard-code availability zone suffix
     	String region = location.getRegion();
         String availabilityZone = region+"c";
         String deviceSuffix = nextDeviceSuffix();

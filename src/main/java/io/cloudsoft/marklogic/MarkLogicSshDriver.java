@@ -78,6 +78,11 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .execute();
 	}
 
+    @Override
+    public void postLaunch() {
+        entity.setAttribute(MarkLogicNode.URL, String.format("http://%s:%s", getHostname(), 8001));
+    }
+
 	public boolean isRunning() {
 		// TODO Aled made this up: is this right?
         int exitStatus = newScript(LAUNCHING)
