@@ -1,0 +1,190 @@
+package io.cloudsoft.marklogic;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import brooklyn.entity.basic.SoftwareProcessImpl;
+import brooklyn.event.feed.http.HttpFeed;
+import brooklyn.event.feed.http.HttpPollConfig;
+import brooklyn.event.feed.http.HttpValueFunctions;
+import brooklyn.location.MachineProvisioningLocation;
+import brooklyn.location.jclouds.JcloudsLocation;
+import brooklyn.location.jclouds.JcloudsLocationCustomizer;
+import brooklyn.util.MutableMap;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
+
+	// TODO What is the difference between starting a master 
+	
+    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeImpl.class);
+    
+    // FIXME int hex_val = 104;
+	private final AtomicInteger deviceNameSuffix = new AtomicInteger(104);
+	private final AtomicInteger mountPointSuffix = new AtomicInteger(104);
+
+	private HttpFeed httpFeed;
+	
+	public Class getDriverInterface() {
+		return MarkLogicDriver.class;
+	}
+
+	@Override
+	protected void connectSensors() {
+        super.connectSensors();
+
+        httpFeed = HttpFeed.builder()
+                .entity(this)
+                .period(500, TimeUnit.MILLISECONDS)
+                .baseUri(getAttribute(URL))
+                .poll(new HttpPollConfig<Boolean>(SERVICE_UP)
+                        .onSuccess(HttpValueFunctions.responseCodeEquals(200))
+                        .onError(Functions.constant(false)))
+                .build();
+	}
+	
+	@Override
+	protected void disconnectSensors() {
+        super.disconnectSensors();
+        
+        if (httpFeed != null) httpFeed.stop();
+	}
+	@Override
+	protected Collection<Integer> getRequiredOpenPorts() {
+		// TODO What ports need to be open?
+		// I got these from `sudo netstat -antp` for the MarkLogic daemon
+		return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(8000, 8001, 8002)));
+	}
+	
+	@Override
+    protected Map<String,Object> obtainProvisioningFlags(MachineProvisioningLocation location) {
+    	if (location instanceof JcloudsLocation) {
+	    	return MutableMap.<String, Object>builder()
+	    			.putAll(super.obtainProvisioningFlags(location))
+	    			.put("customizer", getEbsVolumeCustomizer((JcloudsLocation)location))
+	    			.build();
+    	} else {
+    		LOG.warn("Location {} is not a jclouds-location, so cannot setup EBS volumes for {}", location, this);
+    		return super.obtainProvisioningFlags(location);
+    	}
+    }
+    
+    /**
+     * Configures the location so that any instances will have the required EBS volumes attached.
+     * Also sets up the datadir for the given instance, to use that EBS volume.
+     * 
+	 * Algorithm
+	 *                                Lock the ASG meta Lock
+	 * 
+	 *                   Do I exist in the ASG List
+	 *            Yes                                No
+	 *       Reattach                       Any free slots in the ASG List
+	 *                                Yes                    No
+	 *                         Create Node             Any Dead nodes in the ASG List
+	 *                         Create Volumes       No                        yes
+	 *                         Attach             Start Standalone      Takeover Node
+	 *                                                                  Attach volumes
+	 * 
+	 *                              Unlock the ASG meta lock
+	 * 
+	 *                              Lock Cluster Lock
+	 *                              Check Cluster Master
+	 *                         1. none?   Become Master - Database Created?  Create DB
+	 *                         2. Dead?   Did I take over his node?  Yes I am Master, No wait for master
+	 *                         3  Alive?  Nothing to do
+	 *                              UnLock Cluster Lock
+	 *              
+	 *              Same node? Nothing to do
+	 *              New node?  Join cluster
+	 *              Takeover node?  Fix host, become master if I am master
+     */
+    protected JcloudsLocationCustomizer getEbsVolumeCustomizer(JcloudsLocation location) {
+    	// TODO Currently only new node, and semi-handling replacing a node if configured with appropriate volume ids
+    	
+        List<JcloudsLocationCustomizer> customizers = Lists.newArrayList();
+        
+    	// TODO Use hex_val to get proper mount points
+        String varOptVolumeId = getConfig(VAR_OPT_VOLUME);
+        customizers.add(createOrAttachVolumeCustomizer(location, varOptVolumeId, nextMountPoint(), getConfig(VOLUME_SIZE)));
+        
+        if (getConfig(IS_BACKUP_EBS)) {
+        	// TODO Get the volumeId for the volume created here, so can set the attribute accordingly; same for other volume attributes
+        	String backupVolumeId = getConfig(BACKUP_VOLUME);
+        	customizers.add(createOrAttachVolumeCustomizer(location, backupVolumeId, nextMountPoint(), getConfig(BACKUP_VOLUME_SIZE)));
+        }
+        
+        if (getConfig(IS_STORAGE_EBS)) {
+        	int numMountPoints = getConfig(NUM_MOUNT_POINTS);
+        	
+	        Map<String,String> regularVolumes = toVolumeMountsMap(getConfig(REGULAR_VOLUMES), numMountPoints);
+        	customizers.addAll(createOrAttachVolumeCustomizers(location, regularVolumes, getConfig(VOLUME_SIZE)));
+        	
+            if (getConfig(IS_FASTDIR_EBS)) {
+    	        Map<String,String> fastdirVolumes = toVolumeMountsMap(getConfig(FASTDIR_VOLUMES), numMountPoints);
+            	customizers.addAll(createOrAttachVolumeCustomizers(location, fastdirVolumes, getConfig(VOLUME_SIZE)));
+            }
+            
+            if (getConfig(IS_REPLICA_EBS)) {
+    	        Map<String,String> replicaVolumes = toVolumeMountsMap(getConfig(REPLICA_VOLUMES), numMountPoints);
+            	customizers.addAll(createOrAttachVolumeCustomizers(location, replicaVolumes, getConfig(VOLUME_SIZE)));
+            }
+        }
+        
+        return new CompoundJcloudsLocationCustomizer(customizers);
+    }
+    
+	private String nextMountPoint() {
+		return "/dev/mountsomewhere"+String.format("%02X", mountPointSuffix.getAndIncrement()).toLowerCase();
+	}
+	
+	private String nextDeviceSuffix() {
+    	return String.format("%02X", deviceNameSuffix.getAndIncrement()).toLowerCase();
+	}
+	
+	private Map<String,String> toVolumeMountsMap(Collection<String> volumeIds, int numVolumes) {
+        Map<String,String> result = Maps.newLinkedHashMap();
+        for (String volumeId : volumeIds) {
+        	result.put(volumeId, nextMountPoint());
+        }
+        for (int i = result.size(); i < numVolumes; i++) {
+        	result.put(null, nextMountPoint());
+        }
+        return result;
+	}
+	
+    private JcloudsLocationCustomizer createOrAttachVolumeCustomizer(JcloudsLocation location, String volumeId, String mountPoint, int sizeInGib) {
+    	// TODO Need to get correct ec2DeviceName and osDeviceName, I presume?
+    	String region = location.getRegion();
+        String availabilityZone = region+"c";
+        String deviceSuffix = nextDeviceSuffix();
+        String ec2DeviceName = "/dev/sd"+deviceSuffix;
+        String osDeviceName = "/dev/xvd"+deviceSuffix;
+        String filesystemType = "ext4";
+        
+        return (volumeId != null) ? 
+        		EbsVolumeCustomizer.withExistingVolume(ec2DeviceName, osDeviceName, mountPoint, region, availabilityZone, volumeId) :
+                EbsVolumeCustomizer.withNewVolume(ec2DeviceName, osDeviceName, mountPoint, filesystemType, availabilityZone, sizeInGib, false);
+    }
+    
+    private List<JcloudsLocationCustomizer> createOrAttachVolumeCustomizers(JcloudsLocation location, Map<String, String> volumes, int sizeInGib) {
+    	List<JcloudsLocationCustomizer> result = Lists.newArrayList();
+    	for (Map.Entry<String, String> entry : volumes.entrySet()) {
+    		String volumeId = entry.getKey();
+    		String mountPoint = entry.getValue();
+    		result.add(createOrAttachVolumeCustomizer(location, volumeId, mountPoint, sizeInGib));
+    	}
+    	return result;
+    }
+}
