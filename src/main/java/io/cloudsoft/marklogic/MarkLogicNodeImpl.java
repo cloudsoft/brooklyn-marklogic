@@ -27,13 +27,14 @@ import com.google.common.collect.Maps;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
-	// TODO What is the difference between starting a master 
+	// TODO What custom stuff is needed for master versus joining? Extract more commands from startup_script
 	
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeImpl.class);
     
-    // FIXME int hex_val = 104;
-	private final AtomicInteger deviceNameSuffix = new AtomicInteger(104);
-	private final AtomicInteger mountPointSuffix = new AtomicInteger(104);
+	// TODO What $node_name - what does `./get_node_name` do?
+	private static final String NODE_NAME = "mynodename";
+	
+	private final AtomicInteger deviceNameSuffix = new AtomicInteger('h');
 
 	private HttpFeed httpFeed;
 	
@@ -127,27 +128,32 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         
     	// TODO Use hex_val to get proper mount points
         String varOptVolumeId = getConfig(VAR_OPT_VOLUME);
-        customizers.add(createOrAttachVolumeCustomizer(location, varOptVolumeId, nextMountPoint(), getConfig(VOLUME_SIZE)));
+        customizers.add(createOrAttachVolumeCustomizer(location, varOptVolumeId, "/var/opt", getConfig(VOLUME_SIZE)));
         
         if (getConfig(IS_BACKUP_EBS)) {
         	// TODO Get the volumeId for the volume created here, so can set the attribute accordingly; same for other volume attributes
         	String backupVolumeId = getConfig(BACKUP_VOLUME);
-        	customizers.add(createOrAttachVolumeCustomizer(location, backupVolumeId, nextMountPoint(), getConfig(BACKUP_VOLUME_SIZE)));
+        	customizers.add(createOrAttachVolumeCustomizer(location, backupVolumeId, "/var/opt/backup", getConfig(BACKUP_VOLUME_SIZE)));
         }
         
         if (getConfig(IS_STORAGE_EBS)) {
+        	// TODO In startup_script, mount points are:
+        	//   /var/opt/mldata/$sdb_bucket_name-$node_name-fastdir-$vol_count
+        	//   /var/opt/mldata/$sdb_bucket_name-$node_name-replica-$vol_count
+        	//   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
+        	
         	int numMountPoints = getConfig(NUM_MOUNT_POINTS);
         	
-	        Map<String,String> regularVolumes = toVolumeMountsMap(getConfig(REGULAR_VOLUMES), numMountPoints);
+	        Map<String,String> regularVolumes = toVolumeMountsMap(getConfig(REGULAR_VOLUMES), "/var/opt/mldata/"+NODE_NAME+"-", numMountPoints);
         	customizers.addAll(createOrAttachVolumeCustomizers(location, regularVolumes, getConfig(VOLUME_SIZE)));
         	
             if (getConfig(IS_FASTDIR_EBS)) {
-    	        Map<String,String> fastdirVolumes = toVolumeMountsMap(getConfig(FASTDIR_VOLUMES), numMountPoints);
+    	        Map<String,String> fastdirVolumes = toVolumeMountsMap(getConfig(FASTDIR_VOLUMES), "/var/opt/mldata/"+NODE_NAME+"-fastdir-", numMountPoints);
             	customizers.addAll(createOrAttachVolumeCustomizers(location, fastdirVolumes, getConfig(VOLUME_SIZE)));
             }
             
             if (getConfig(IS_REPLICA_EBS)) {
-    	        Map<String,String> replicaVolumes = toVolumeMountsMap(getConfig(REPLICA_VOLUMES), numMountPoints);
+    	        Map<String,String> replicaVolumes = toVolumeMountsMap(getConfig(REPLICA_VOLUMES), "/var/opt/mldata/"+NODE_NAME+"-fastdir-", numMountPoints);
             	customizers.addAll(createOrAttachVolumeCustomizers(location, replicaVolumes, getConfig(VOLUME_SIZE)));
             }
         }
@@ -155,21 +161,18 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return new CompoundJcloudsLocationCustomizer(customizers);
     }
     
-	private String nextMountPoint() {
-		return "/dev/mountsomewhere"+String.format("%02X", mountPointSuffix.getAndIncrement()).toLowerCase();
-	}
-	
 	private String nextDeviceSuffix() {
-    	return String.format("%02X", deviceNameSuffix.getAndIncrement()).toLowerCase();
+    	return Character.toString((char)deviceNameSuffix.getAndIncrement()).toLowerCase();
 	}
 	
-	private Map<String,String> toVolumeMountsMap(Collection<String> volumeIds, int numVolumes) {
+	private Map<String,String> toVolumeMountsMap(Collection<String> volumeIds, String mountPointPrefix, int numVolumes) {
         Map<String,String> result = Maps.newLinkedHashMap();
+        int count = 0;
         for (String volumeId : volumeIds) {
-        	result.put(volumeId, nextMountPoint());
+        	result.put(volumeId, mountPointPrefix+(count++));
         }
         for (int i = result.size(); i < numVolumes; i++) {
-        	result.put(null, nextMountPoint());
+        	result.put(null, mountPointPrefix+(count++));
         }
         return result;
 	}
@@ -182,7 +185,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     	// TODO Need to get correct ec2DeviceName and osDeviceName, I presume?
     	// TODO Don't hard-code availability zone suffix
     	String region = location.getRegion();
-        String availabilityZone = region+"c";
+        String availabilityZone = region+getConfig(AVAILABILITY_ZONE);
         String deviceSuffix = nextDeviceSuffix();
         String ec2DeviceName = "/dev/sd"+deviceSuffix;
         String osDeviceName = "/dev/xvd"+deviceSuffix;

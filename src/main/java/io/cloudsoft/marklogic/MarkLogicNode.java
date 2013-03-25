@@ -36,6 +36,10 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<String> MASTER_ADDRESS = new BasicConfigKey<String>(
             String.class, "marklogic.node.masterAddress", "If this is not the master, specifies the master address to use", null);
     
+    @SetFromFlag("availabilityZone")
+    ConfigKey<String> AVAILABILITY_ZONE = new BasicConfigKey<String>(
+            String.class, "marklogic.node.availabilityZone", "Availability zone to use (appended to the region name - e.g. could be \"c\")", "c");
+    
     @SetFromFlag("isStorageEbs")
     ConfigKey<Boolean> IS_STORAGE_EBS = new BasicConfigKey<Boolean>(
             Boolean.class, "marklogic.node.isStorageEbs", "Whether the storage should use EBS Volumes", true);
@@ -55,14 +59,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     @SetFromFlag("autoScaleGroup")
     BasicAttributeSensorAndConfigKey<String> MARKLOGIC_AUTO_SCALE_GROUP = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.autoScaleGroup", "<description goes here>", null);
-    
-    @SetFromFlag("sdbBucketName")
-    ConfigKey<String> SDB_BUCKET_NAME = new BasicConfigKey<String>(
-            String.class, "marklogic.node.sdbBucketName", "<description goes here>", null);
-    
-    @SetFromFlag("sdbClusterName")
-    ConfigKey<String> SDB_CLUSTER_NAME = new BasicConfigKey<String>(
-            String.class, "marklogic.node.sdbClusterName", "<description goes here>", null);
     
     @SetFromFlag("numMountPoints")
     ConfigKey<Integer> NUM_MOUNT_POINTS = new BasicConfigKey<Integer>(
@@ -88,12 +84,12 @@ public interface MarkLogicNode extends SoftwareProcess {
     BasicAttributeSensorAndConfigKey<Collection<String>> REPLICA_VOLUMES = new BasicAttributeSensorAndConfigKey(
     		Collection.class, "marklogic.node.volumes.replicas", "EBS Volume IDs for the replica volumes (or empty if does not already exist)", ImmutableList.<String>of());
 
-    // FIXME Should be 100GB, but set to 5GB for now
+    // FIXME Should be 100GB, but set to 5GB for now, for cheaper testing!
     @SetFromFlag("volumeSize")
     ConfigKey<Integer> VOLUME_SIZE = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.node.volumes.size", "The size of each EBS Volume for /var/opt, regular, fastdir and replica (if being created from scratch)", 5);
 
-    // FIXME Should be 200GB, but set to 5GB for now
+    // FIXME Should be 200GB, but set to 5GB for now, for cheaper testing!
     @SetFromFlag("backupVolumeSize")
     ConfigKey<Integer> BACKUP_VOLUME_SIZE = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.node.volumes.backupSize", "The size of backup EBS Volume (if being created from scratch)", 5);
