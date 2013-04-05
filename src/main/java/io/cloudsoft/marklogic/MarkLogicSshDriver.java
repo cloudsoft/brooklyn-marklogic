@@ -44,12 +44,12 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add("echo 4");
         commands.add(sudo("sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic"));
         commands.add("echo 5");
-        commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
-        commands.add("echo 6");
-        commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
-        commands.add("echo 7");
-        commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
-        commands.add("echo 8");
+        //commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
+       // commands.add("echo 6");
+       // commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
+       // commands.add("echo 7");
+       // commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
+       // commands.add("echo 8");
 
         newScript(INSTALLING)
                 .failOnNonZeroResultCode()
