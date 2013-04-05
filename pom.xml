@@ -123,18 +123,40 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                    <!-- 'release' is not used; easier just to checkout, tag, `mvn deploy` manually
-                         with -Dbrooklyn.deployTo=TARGET ... and note we need to update docs and examples, 
-                         which is a non-maven task!) -->
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.1</version>
-                    <configuration>
-                        <mavenExecutorId>forked-path</mavenExecutorId>
-                        <useReleaseProfile>false</useReleaseProfile>
-                        <arguments>-Dbrooklyn.deployTo=sonatype</arguments>
-                    </configuration>
-                </plugin>
+                <!-- 'release' is not used; easier just to checkout, tag, `mvn deploy` manually
+                     with -Dbrooklyn.deployTo=TARGET ... and note we need to update docs and examples,
+                     which is a non-maven task!) -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <arguments>-Dbrooklyn.deployTo=sonatype</arguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
+                    <fork>true</fork>
+                    <verbose>false</verbose>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-compiler</artifactId>
+                        <version>2.6.0-01</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-batch</artifactId>
+                        <version>1.8.6-01</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
