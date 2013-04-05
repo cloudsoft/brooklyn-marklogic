@@ -7,6 +7,7 @@ import brooklyn.entity.basic.ApplicationBuilder;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.basic.StartableApplication;
 import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpecs;
 import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.launcher.BrooklynServerDetails;
 import brooklyn.location.Location;
@@ -26,45 +27,67 @@ import com.google.common.collect.Lists;
  */
 public class MarkLogicApp extends AbstractApplication {
 
-	@Override
-	public void postConstruct() {
-		super.postConstruct();
-		
-		// TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
-		MarkLogicCluster cluster = (MarkLogicCluster) addChild(getEntityManager().createEntity(BasicEntitySpec.newInstance(MarkLogicCluster.class)
-				.configure(MarkLogicCluster.INITIAL_SIZE, 1)));
-	}
+    MarkLogicCluster cluster;
 
-	/**
-	 * Launches the application, along with the brooklyn web-console.
-	 * 
-	 * TODO Presumably want a CentOS or RHEL AMI
+    @Override
+    public void init() {
+        super.init();
+
+        // TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
+        cluster = (MarkLogicCluster) addChild(getEntityManager().createEntity(BasicEntitySpec.newInstance(MarkLogicCluster.class)
+                .configure(MarkLogicCluster.INITIAL_SIZE, 1)));
+    }
+
+    /**
+     * Launches the application, along with the brooklyn web-console.
+     *
+     * TODO Presumably want a CentOS or RHEL AMI
      *   ami-800d86b0, rightscale-us-west-2/RightImage_CentOS_6.3_x64_v5.8.8.8.manifest.xml, 411009282317, Public, available, Cent OS, instance store, paravirtual
      *
      * Include in your brooklyn.properties:
      *   brooklyn.location.named.marklogic-uswest2=jclouds:aws-ec2:us-west-2
      *   brooklyn.location.named.marklogic-uswest2.imageId=us-west-2/ami-800d86b0
      *   brooklyn.location.named.marklogic-uswest2.user=root
-	 */
-	public static void main(String[] argv) {
-		// TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
-		
-		List<String> args = Lists.newArrayList(argv);
-        String port =  CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
+     */
+    public static void main(String[] argv)throws Exception {
+        // TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
+
+        List<String> args = Lists.newArrayList(argv);
+        String port = CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
         String location = CommandLineUtil.getCommandLineOption(args, "--location", "named:marklogic-uswest2");
 
-        BrooklynServerDetails server = BrooklynLauncher.newLauncher()
+        BrooklynLauncher launcher = BrooklynLauncher.newInstance()
+                .application(EntitySpecs.appSpec(MarkLogicApp.class))
                 .webconsolePort(port)
-                .launch();
+                .location(location)
+                .start();
 
-        Location loc = server.getManagementContext().getLocationRegistry().resolve(location);
-
-        StartableApplication app = ApplicationBuilder.builder(MarkLogicApp.class)
-                .displayName("MarkLogic app")
-                .manage(server.getManagementContext());
-
-        app.start(ImmutableList.of(loc));
-
+        StartableApplication app = (StartableApplication) launcher.getApplications().get(0);
         Entities.dumpInfo(app);
+
+        LOG.info("Press return to shut down the cluster");
+        System.in.read(); //wait for the user to type a key
+        app.stop();
+
+
+//        BrooklynServerDetails server = BrooklynLauncher.newLauncher()
+//                .webconsolePort(port)
+//                .launch();
+//
+//        Location loc = server.getManagementContext().getLocationRegistry().resolve(location);
+//
+//        //StartableApplication app = new BasicWordpressApp()
+//        //        .appDisplayName("Simple wordpress app")
+//        //        .manage(server.getManagementContext());
+//
+//
+//        MarkLogicApp app = new MarkLogicApp();
+//        app.setDisplayName("MarkLogic app");
+//        app.manage()
+//                .manage(server.getManagementContext());
+//
+//        app.start(ImmutableList.of(loc));
+//
+//        Entities.dumpInfo(app);
 	}
 }

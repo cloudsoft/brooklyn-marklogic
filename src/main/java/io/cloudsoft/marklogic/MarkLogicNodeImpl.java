@@ -84,7 +84,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     	if (location instanceof JcloudsLocation) {
 	    	return MutableMap.<String, Object>builder()
 	    			.putAll(super.obtainProvisioningFlags(location))
-	    			.put("customizer", getEbsVolumeCustomizer((JcloudsLocation)location))
+	    	//		.put("customizer", getEbsVolumeCustomizer((JcloudsLocation)location))
 	    			.build();
     	} else {
     		LOG.warn("Location {} is not a jclouds-location, so cannot setup EBS volumes for {}", location, this);

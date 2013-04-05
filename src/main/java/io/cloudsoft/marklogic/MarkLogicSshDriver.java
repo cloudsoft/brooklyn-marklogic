@@ -27,7 +27,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 	public void install() {
 		// TODO Where do we get join-cluster.xqy etc from?
 		
-        DownloadResolver resolver = entity.getManagementContext().getEntityDownloadsRegistry().resolve(this);
+        DownloadResolver resolver = entity.getApplication().getManagementContext().getEntityDownloadsManager().newDownloader(this);
         List<String> urls = resolver.getTargets();
         String saveAs = resolver.getFilename();
         
@@ -42,6 +42,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
         commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
         commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
+        commands.add("echo ===================");
+        commands.add("echo install was a success");
+        commands.add("echo ===================");
 
         newScript(INSTALLING)
                 .failOnNonZeroResultCode()
