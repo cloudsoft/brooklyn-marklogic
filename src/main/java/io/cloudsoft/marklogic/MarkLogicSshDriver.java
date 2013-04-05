@@ -1,6 +1,8 @@
 package io.cloudsoft.marklogic;
 
-import static brooklyn.entity.basic.lifecycle.CommonCommands.sudo;
+import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.CommonCommands.ok;
+import static brooklyn.util.ssh.CommonCommands.sudo;
 import static java.lang.String.format;
 
 import java.util.LinkedList;
@@ -8,7 +10,6 @@ import java.util.List;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
-import brooklyn.entity.basic.lifecycle.CommonCommands;
 import brooklyn.entity.drivers.downloads.DownloadResolver;
 import brooklyn.location.basic.SshMachineLocation;
 
@@ -22,24 +23,24 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     	// TODO To support other platforms, need to customize this based on OS
     	return "MarkLogic-"+getVersion()+".x86_64.rpm";
     }
-	
+
 	@Override
 	public void install() {
 		// TODO Where do we get join-cluster.xqy etc from?
-		
+
         DownloadResolver resolver = entity.getApplication().getManagementContext().getEntityDownloadsManager().newDownloader(this);
         List<String> urls = resolver.getTargets();
         String saveAs = resolver.getFilename();
-        
+
         List<String> commands = new LinkedList<String>();
         // TODO Could use this if wasn't password protected:
         //      commands.addAll(CommonCommands.downloadUrlAs(urls, saveAs));
-        commands.add(CommonCommands.dontRequireTtyForSudo());
-        commands.add("echo 1");
-        commands.add(format("curl -o %s -O -XPOST -d'email=aled.sage@gmail.com&pass=djJ17VXDw1dyFbT' -f -L \"https://developer.marklogic.com/download/binaries/6.0/MarkLogic-6.0-2.x86_64.rpm\" ", saveAs));
-        commands.add("echo 2");
-        //commands.add(sudo("rpm -e MarkLogic"));
-        commands.add("echo 3");
+        commands.add(dontRequireTtyForSudo());
+        commands.add(format("curl -o %s -O -XPOST -d'email=aled.sage@gmail.com&pass=djJ17VXDw1dyFbT' -f -L " +
+                "\"https://developer.marklogic.com/download/binaries/6.0/%s\"",
+                getDownloadFilename(),
+                saveAs));
+        commands.add(ok(sudo("rpm -e MarkLogic")));
         commands.add(sudo("rpm -i "+saveAs));
         commands.add("echo 4");
         commands.add(sudo("sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic"));
