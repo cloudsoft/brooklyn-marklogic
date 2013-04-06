@@ -3,6 +3,7 @@ package io.cloudsoft.marklogic;
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.ok;
 import static brooklyn.util.ssh.CommonCommands.sudo;
+import static com.jcraft.jsch.JSch.setConfig;
 import static java.lang.String.format;
 
 import java.net.URI;
@@ -11,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
+import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.drivers.downloads.DownloadResolver;
 import brooklyn.location.basic.SshMachineLocation;
@@ -74,14 +76,51 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(sudo("./reset_ml_on_startup"));
         commands.add("popd");
 
-        String curlPrefixCommand = String.format("curl --digest -u %s:%s ", getUser(), getPassword());
-        String fillLicense = String.format("/license-go.xqy?license-key=%s\\&licensee=%s\\&ok", getLicenseKey(),
+        String curlWithAuthentication = String.format("curl --digest -u %s:%s ", getUser(), "admin");
+        String fillLicenseQuery = String.format("license-key=%s&licensee=%s&ok", getLicenseKey(),
                 getLicensee());
-        commands.add(curlPrefixCommand + createASCIIString(fillLicense));
+
+        String request = curlWithAuthentication + createASCIIString("/license-go.xqy", fillLicenseQuery);
+        log.info(request);
+        commands.add(request);
         commands.add("sleep 2");
-        commands.add(curlPrefixCommand + createASCIIString("agree-go.xqy?accepted-agreement=development"));
+
+        request = curlWithAuthentication + createASCIIString("/agree-go.xqy", "accepted-agreement=development");
+        log.info(request);
+        commands.add(request);
         commands.add("sleep 2");
-        commands.add(curlPrefixCommand + createASCIIString("/initialize-go.xqy"));
+        request = curlWithAuthentication + createASCIIString("/initialize-go.xqy", null);
+        log.info(request);
+        commands.add(request);
+        commands.add("sleep 2");
+        request = curlWithAuthentication + createASCIIString("/qa-restart.xqy", null);
+        commands.add(request);
+        commands.add("sleep 2");
+        String securityInstallQuery = String.format(
+                "auto=true&" +
+                "user=%s&" +
+                "password1=%s&" +
+                "password2=%s&" +
+                "realm=public", getUser(), getPassword(), getPassword());
+
+        request = curlWithAuthentication + createASCIIString("/security-install-go.xqy", securityInstallQuery);
+        log.info(request);
+        commands.add(request);
+        commands.add("sleep 2");
+
+        curlWithAuthentication = String.format("curl --digest -u %s:%s ", getUser(), getPassword());
+        // only needed for S3
+        String credentialAdminQuery = String.format("/sec:credentials/sec:aws-access-key=%s&" +
+                "/sec:credentials/sec:aws-secret-key=%s",
+                "", "");
+
+        request = curlWithAuthentication + createASCIIString("/credentials-admin-go.xqy", credentialAdminQuery);
+        log.info(request);
+        commands.add(request);
+        commands.add("sleep 2");
+        request = curlWithAuthentication + createASCIIString("/qa-restart.xqy", null);
+        log.info(request);
+        commands.add(request);
         commands.add("sleep 2");
 
         newScript(INSTALLING)
@@ -144,10 +183,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 		        .execute();
 	}
 
-
-   private String createASCIIString(String path) {
+   private String createASCIIString(String path, String query) {
       try {
-         return new URI("http", null, getHostname(), 8001, path, null, null).toASCIIString();
+         return "'" + new URI("http", null, getHostname(), 8001, path, query, null).toASCIIString() + "'";
       } catch (URISyntaxException e) {
          throw Throwables.propagate(e);
       }

@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {
 
-    @SetFromFlag("version")
-    ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
-    		SoftwareProcess.SUGGESTED_VERSION, "6.0-2.3");
+   @SetFromFlag("version")
+   ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
+      		SoftwareProcess.SUGGESTED_VERSION, "6.0-2.3");
 
    @SetFromFlag("user")
    ConfigKey<String> USER = new BasicConfigKey<String>(
@@ -31,7 +31,7 @@ public interface MarkLogicNode extends SoftwareProcess {
    @SetFromFlag("password")
    ConfigKey<String> PASSWORD = new BasicConfigKey<String>(
            String.class, "marklogic.password",
-           "The password to access MarkLogic Server Web UI", "admin");
+           "The password to access MarkLogic Server Web UI", "hap00p");
 
    @SetFromFlag("licenseKey")
    ConfigKey<String> LICENSE_KEY = new BasicConfigKey<String>(
