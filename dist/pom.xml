@@ -20,6 +20,22 @@
             <groupId>io.cloudsoft.marklogic</groupId>
             <artifactId>brooklyn-marklogic</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.brooklyn</groupId>
+                    <artifactId>brooklyn-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.4</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -28,21 +44,6 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
-                    <!-- execution>
-                        <id>build-distribution-dir</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>true</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/main/config/build-distribution-dir.xml</descriptor>
-                            </descriptors>
-                            <finalName>brooklyn</finalName>
-                            <useProjectArtifact>false</useProjectArtifact>
-                        </configuration>
-                    </execution -->
                     <execution>
                         <id>build-distribution-archive</id>
                         <phase>process-resources</phase>

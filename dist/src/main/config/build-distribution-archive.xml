@@ -9,10 +9,10 @@
     </formats>
     <fileSets>
         <!-- fileSet>
-            <directory>${project.basedir}/../..</directory>
+            <directory>${project.basedir}/../</directory>
             <outputDirectory>/</outputDirectory>
             <includes>
-                <include>README*</include>
+                <include>README.md</include>
                 <include>LICENSE*</include>
                 <include>NOTICE*</include>
             </includes>

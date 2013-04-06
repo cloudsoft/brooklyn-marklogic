@@ -19,6 +19,7 @@
             <groupId>io.brooklyn</groupId>
             <artifactId>brooklyn-all</artifactId>
             <version>${brooklyn.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
