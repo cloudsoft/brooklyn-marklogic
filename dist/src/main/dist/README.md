@@ -18,9 +18,9 @@ Configuring Marklogic in Brooklyn:
 
 The following properties need to added to ~/.brooklyn/brooklyn.properties
 
-brooklyn.location.named.marklogic-useast1=jclouds:aws-ec2:us-east-1
-brooklyn.location.named.marklogic-useast1.imageId=us-east-1/ami-4e2ab027
-brooklyn.location.named.marklogic-useast1.user=ec2-user
+brooklyn.location.named.marklogic-us-east-1=jclouds:aws-ec2:us-east-1
+brooklyn.location.named.marklogic-us-east-1.imageId=us-east-1/ami-4e2ab027
+brooklyn.location.named.marklogic-us-east-1.user=ec2-user
 
 Starting the examples:
 ==================
