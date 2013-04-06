@@ -21,8 +21,13 @@ The following properties need to added to ~/.brooklyn/brooklyn.properties
 brooklyn.location.named.marklogic-us-east-1=jclouds:aws-ec2:us-east-1
 brooklyn.location.named.marklogic-us-east-1.imageId=us-east-1/ami-4e2ab027
 brooklyn.location.named.marklogic-us-east-1.user=ec2-user
+
 brooklyn.jclouds.aws-ec2.identity=<your amazon identity>
 brooklyn.jclouds.aws-ec2.credential=<your amazon credentials>
+brooklyn.jclouds.aws-ec2.minRam=2500
+
+brooklyn.markLogic.licenseKey = <your marklogic license key>
+brooklyn.markLogic.licensee = <your marklogic licensee name>
 
 Since we are relying on EC2 for the examples, the brooklyn.jclouds.aws-ec2.* properties need to be provided.
 

@@ -23,6 +23,24 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
     		SoftwareProcess.SUGGESTED_VERSION, "6.0-2.3");
 
+   @SetFromFlag("user")
+   ConfigKey<String> USER = new BasicConfigKey<String>(
+           String.class, "marklogic.user",
+           "The user to access MarkLogic Server Web UI", "admin");
+
+   @SetFromFlag("password")
+   ConfigKey<String> PASSWORD = new BasicConfigKey<String>(
+           String.class, "marklogic.password",
+           "The password to access MarkLogic Server Web UI", "admin");
+
+   @SetFromFlag("licenseKey")
+   ConfigKey<String> LICENSE_KEY = new BasicConfigKey<String>(
+           String.class, "marklogic.licenseKey", "The license key to register the MarkLogic Server", null);
+
+   @SetFromFlag("licensee")
+   ConfigKey<String> LICENSEE = new BasicConfigKey<String>(
+           String.class, "marklogic.licensee", "The licensee to register the MarkLogic Server", null);
+
     // FIXME This doesn't work because gives 403 unless you include username/password in curl
     @SetFromFlag("downloadUrl")
     BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey<String>(
