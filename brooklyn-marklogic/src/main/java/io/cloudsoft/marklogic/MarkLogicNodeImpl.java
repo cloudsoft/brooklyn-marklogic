@@ -43,6 +43,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     public void init(){
         //we give it a bit longer timeout for starting up
         setConfig(ConfigKeys.START_TIMEOUT,120);
+        setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
+        setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
     }
 
 	public Class getDriverInterface() {
