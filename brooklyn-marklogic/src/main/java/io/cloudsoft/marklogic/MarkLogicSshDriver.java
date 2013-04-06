@@ -43,6 +43,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(ok(sudo("rpm -e MarkLogic")));
         commands.add(sudo("cp /home/ec2-user/marklogic_install/MarkLogic-7.0-ea1_20130315.x86_64.rpm ."));
         commands.add(sudo("rpm -i MarkLogic-7.0-ea1_20130315.x86_64.rpm"));
+
+        //commands.add(sudo("rpm -i "+saveAs));
+
         commands.add(sudo("sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic"));
 
         commands.add("pushd .");
@@ -52,7 +55,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
         //todo: create_appserver.xqy is removed from the next list of files to be copied since it doesn't exist.
         commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy  create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
-        commands.add(sudo("./reset_ml_on_startup"));
+         commands.add(sudo("./reset_ml_on_startup"));
         commands.add("popd");
 
         newScript(INSTALLING)
