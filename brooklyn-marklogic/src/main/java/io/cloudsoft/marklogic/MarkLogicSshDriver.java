@@ -5,6 +5,8 @@ import static brooklyn.util.ssh.CommonCommands.ok;
 import static brooklyn.util.ssh.CommonCommands.sudo;
 import static java.lang.String.format;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.drivers.downloads.DownloadResolver;
 import brooklyn.location.basic.SshMachineLocation;
+import com.google.common.base.Throwables;
 
 public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicDriver {
 
@@ -22,7 +25,23 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 	public String getDownloadFilename() {
     	// TODO To support other platforms, need to customize this based on OS
     	return "MarkLogic-"+getVersion()+".x86_64.rpm";
-    }
+   }
+
+   public String getUser() {
+      return entity.getConfig(MarkLogicNode.USER);
+   }
+
+   public String getPassword() {
+      return entity.getConfig(MarkLogicNode.PASSWORD);
+   }
+
+   public String getLicenseKey() {
+      return entity.getConfig(MarkLogicNode.LICENSE_KEY);
+   }
+
+   public String getLicensee() {
+      return entity.getConfig(MarkLogicNode.LICENSEE);
+   }
 
 	@Override
 	public void install() {
@@ -52,11 +71,21 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add("cd /home/ec2-user/marklogic_install/");
         commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
         commands.add(sudo("mkdir /var/opt/xqy"));
-        commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
+        commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
         //todo: create_appserver.xqy is removed from the next list of files to be copied since it doesn't exist.
         commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy  create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
          commands.add(sudo("./reset_ml_on_startup"));
         commands.add("popd");
+
+        String curlPrefixCommand = String.format("curl --digest -u %s:%s ", getUser(), getPassword());
+        String fillLicense = String.format("/license-go.xqy?license-key=%s\\&licensee=%s\\&ok", getLicenseKey(),
+                getLicensee());
+        commands.add(curlPrefixCommand + createASCIIString(fillLicense));
+        commands.add("sleep 2");
+        commands.add(curlPrefixCommand + createASCIIString("agree-go.xqy?accepted-agreement=development"));
+        commands.add("sleep 2");
+        commands.add(curlPrefixCommand + createASCIIString("/initialize-go.xqy"));
+        commands.add("sleep 2");
 
         newScript(INSTALLING)
                 .failOnNonZeroResultCode()
@@ -71,13 +100,12 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 	}
 
 	@Override
-	public void launch() {
+   public void launch() {
         List<String> commands = new LinkedList<String>();
         commands.add(sudo("/etc/init.d/MarkLogic start"));
         commands.add("sleep 10"); // Have seen cases where startup takes some time
 
-        // TODO Do stuff like:
-        //      curl --digest -u admin:hap00p http://$master_instance:8001/rewrite-hostname.xqy?oldhost=$node_ip\&newhost=$instance_name
+
         // TODO Where does clusterJoin.py etc come from?
         if (entity.getConfig(MarkLogicNode.IS_MASTER)) {
         	// TODO 
@@ -98,7 +126,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         entity.setAttribute(MarkLogicNode.URL, String.format("http://%s:%s", getHostname(), 8001));
         //todo: remove me
         log.info("---------------------------------------------------------");
-        log.info("connect url: "+entity.getAttribute(MarkLogicNode.URL));
+        log.info("connect url: "+ entity.getAttribute(MarkLogicNode.URL));
         log.info("---------------------------------------------------------");
     }
 
@@ -118,4 +146,14 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 		        .body.append(sudo("/etc/init.d/MarkLogic stop"))
 		        .execute();
 	}
+
+
+   private String createASCIIString(String path) {
+      try {
+         return new URI("http", null, getHostname(), 8001, path, null, null).toASCIIString();
+      } catch (URISyntaxException e) {
+         throw Throwables.propagate(e);
+      }
+   }
+
 }
