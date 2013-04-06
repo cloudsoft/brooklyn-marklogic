@@ -36,25 +36,28 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         // TODO Could use this if wasn't password protected:
         //      commands.addAll(CommonCommands.downloadUrlAs(urls, saveAs));
         commands.add(dontRequireTtyForSudo());
-        commands.add(format("curl -o %s -O -XPOST -d'email=aled.sage@gmail.com&pass=djJ17VXDw1dyFbT' -f -L " +
-                "\"https://developer.marklogic.com/download/binaries/6.0/%s\"",
-                getDownloadFilename(),
-                saveAs));
+        //commands.add(format("curl -o %s -O -XPOST -d'email=aled.sage@gmail.com&pass=djJ17VXDw1dyFbT' -f -L " +
+        //        "\"https://developer.marklogic.com/download/binaries/6.0/%s\"",
+        //        getDownloadFilename(),
+        //        saveAs));
         commands.add(ok(sudo("rpm -e MarkLogic")));
-        commands.add(sudo("rpm -i "+saveAs));
-        commands.add("echo 4");
+        commands.add(sudo("cp /home/ec2-user/marklogic_install/MarkLogic-7.0-ea1_20130315.x86_64.rpm ."));
+        commands.add(sudo("rpm -i MarkLogic-7.0-ea1_20130315.x86_64.rpm"));
         commands.add(sudo("sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic"));
-        commands.add("echo 5");
-        //commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
-       // commands.add("echo 6");
-       // commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
-       // commands.add("echo 7");
-       // commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
-       // commands.add("echo 8");
+
+        commands.add("pushd .");
+        commands.add("cd /home/ec2-user/marklogic_install/");
+        commands.add(sudo("cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin"));
+        commands.add(sudo("mkdir /var/opt/xqy"));
+        commands.add(sudo("cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy"));
+        //todo: create_appserver.xqy is removed from the next list of files to be copied since it doesn't exist.
+        commands.add(sudo("cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_database.xqy attach_markmail_forests.xqy  create_httpserver.xqy create_role.xqy rewrite-hostname.xqy rewrite-assignments.xqy  /opt/MarkLogic/Admin"));
+        commands.add(sudo("./reset_ml_on_startup"));
+        commands.add("popd");
 
         newScript(INSTALLING)
                 .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
+               .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 	}
@@ -67,9 +70,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 	@Override
 	public void launch() {
         List<String> commands = new LinkedList<String>();
-        commands.add("echo calling-start");
         commands.add(sudo("/etc/init.d/MarkLogic start"));
-        commands.add("echo start called");
         commands.add("sleep 10"); // Have seen cases where startup takes some time
 
         // TODO Do stuff like:
@@ -92,6 +93,10 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     @Override
     public void postLaunch() {
         entity.setAttribute(MarkLogicNode.URL, String.format("http://%s:%s", getHostname(), 8001));
+        //todo: remove me
+        log.info("---------------------------------------------------------");
+        log.info("connect url: "+entity.getAttribute(MarkLogicNode.URL));
+        log.info("---------------------------------------------------------");
     }
 
 	public boolean isRunning() {
