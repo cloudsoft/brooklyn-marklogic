@@ -62,6 +62,7 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     create_role.xqy \
                     rewrite-hostname.xqy \
                     rewrite-assignments.xqy  \
+                    transfer-cluster-config.xqy \
                     set_metering_on.xqy \
                     /opt/MarkLogic/Admin
 echo Finished copying xqy files
