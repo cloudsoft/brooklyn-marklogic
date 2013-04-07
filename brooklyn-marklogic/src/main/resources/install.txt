@@ -1,0 +1,83 @@
+
+(sudo -E -n -S -- rpm -e MarkLogic) || true
+
+sudo -E -n -S -- cp /home/ec2-user/marklogic_install/MarkLogic-7.0-ea1_20130315.x86_64.rpm .
+
+sudo -E -n -S -- rpm -i MarkLogic-7.0-ea1_20130315.x86_64.rpm
+
+sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
+
+pushd .
+
+cd /home/ec2-user/marklogic_install/
+
+sudo -E -n -S -- cp join-cluster.xqy \
+                     qa-restart.xqy \
+                     transfer-cluster-config.xqy \
+                     /opt/MarkLogic/Admin
+
+sudo -E -n -S -- mkdir /var/opt/xqy
+
+sudo -E -n -S -- cp xqy/bookmark.xqy \
+                    xqy/delete.xqy \
+                    xqy/search-debug.xqy \
+                    xqy/search.xqy \
+                    xqy/update.xqy \
+                    xqy/verify.xqy \
+                    xqy/view.xqy \
+                    /var/opt/xqy
+
+sudo -E -n -S -- cp get_db_id.xqy \
+                    stats.xqy \
+                    http-server-status.xqy \
+                    get-hosts.xqy \
+                    attach_replica.xqy \
+                    detach_replica.xqy \
+                    create_markmail_forests.xqy \
+                    create_forests.xqy \
+                    create_forests_with_fastdir.xqy \
+                    create_s3_forests.xqy \
+                    create_s3_forests_with_fastdir.xqy \
+                    create_s3_replica_forests.xqy \
+                    create_s3_replica_forests_with_fastdir.xqy \
+                    create_replica_forests.xqy \
+                    create_replica_forests_with_fastdir.xqy \
+                    create_markmail_database.xqy \
+                    attach_markmail_forests.xqy \
+                    create_httpserver.xqy \
+                    create_role.xqy \
+                    rewrite-hostname.xqy \
+                    rewrite-assignments.xqy  \
+                    /opt/MarkLogic/Admin
+
+sudo -E -n -S -- ./reset_ml_on_startup
+
+popd
+
+echo license-go.xqy
+curl --digest -u admin:admin 'http://localhost:8001/license-go.xqy?license-key=${driver.licenseKey}&licensee=${driver.licensee}&ok'
+sleep 2
+
+echo agree-go.xqy
+curl --digest -u admin:admin 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
+sleep 2
+
+echo initialize-go.xqy
+curl --digest -u admin:admin 'http://localhost:8001/initialize-go.xqy'
+sleep 2
+
+echo qa-restart.xqy
+curl --digest -u admin:admin 'http://localhost:8001/qa-restart.xqy'
+sleep 2
+
+echo security-install-go
+curl --digest 'http://localhost:8001/security-install-go.xqy?auto=true&user=admin&password1=hap00p&password2=hap00p&realm=public'
+sleep 2
+
+echo credentials-admin-go
+curl --digest -u admin:hap00p 'http://localhost:8001/credentials-admin-go.xqy?/sec:credentials/sec:aws-access-key=&/sec:credentials/sec:aws-secret-key='
+sleep 2
+
+echo qa-echo restart
+curl --digest -u admin:hap00p 'http://localhost:8001/qa-restart.xqy'
+sleep 2
