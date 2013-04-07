@@ -47,6 +47,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         //todo: ugly.. we don't want to get the properties in this way, but for the time being it works.
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
+        setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
+        setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
     }
 
 	public Class getDriverInterface() {
