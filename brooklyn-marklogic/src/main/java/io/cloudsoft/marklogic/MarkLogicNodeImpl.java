@@ -42,7 +42,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void init(){
         //we give it a bit longer timeout for starting up
-        //setConfig(ConfigKeys.START_TIMEOUT,120);
+        setConfig(ConfigKeys.START_TIMEOUT, 120);
 
         //todo: ugly.. we don't want to get the properties in this way, but for the time being it works.
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
