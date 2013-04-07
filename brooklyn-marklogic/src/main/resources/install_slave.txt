@@ -98,10 +98,6 @@ curl 'http://localhost:8001/qa-restart.xqy'
 sleep 60
 echo Finished restarting MarkLogic
 
-echo security-install-go
-curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
-sleep 2
-
 echo Joining cluster
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
 echo Finished joining cluster
