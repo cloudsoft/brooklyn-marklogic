@@ -57,15 +57,32 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return entity.getConfig(MarkLogicNode.CLUSTER).replace(" ", "%20");
     }
 
+    public String getMasterAddress(){
+        return entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
+    }
+
+    public boolean isMaster(){
+        return entity.getConfig(MarkLogicNode.IS_MASTER);
+    }
+
     @Override
     public void install() {
         log.info("---------------------------------------------------------");
         log.info("connect url: "+ getHostname());
+        log.info("isMaster: "+ entity.getConfig(MarkLogicNode.IS_MASTER));
         log.info("---------------------------------------------------------");
 
+        final boolean master = isMaster();
+        if(!master){
+            log.info("Slave waiting for master to be up");
+            //a very nasty hack to wait on the service up from the
+            entity.getConfig(MarkLogicNode.IS_BACKUP_EBS);
+            log.info("Slave got his master!!!!!");
+        }
 
-        String installFile = MarkLogicSshDriver.class.getResource("/install.txt").getFile();
-        String installScript = processTemplate(installFile);
+        String f = master ?"/install_master.txt":"/install_slave.txt";
+
+        String installScript = processTemplate(MarkLogicSshDriver.class.getResource(f).toString());
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
@@ -93,8 +110,8 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         if (entity.getConfig(MarkLogicNode.IS_MASTER)) {
         	// TODO
         } else {
-        	String masterInstance = entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
-        	commands.add(sudo(format("python clusterJoin.py -n hosts.txt -u ec2-user -l license.txt -c %s > init_ml", masterInstance)));
+        	//String masterInstance = entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
+        	//commands.add(sudo(format("python clusterJoin.py -n hosts.txt -u ec2-user -l license.txt -c %s > init_ml", masterInstance)));
         	// TODO More stuff like this
         }
 

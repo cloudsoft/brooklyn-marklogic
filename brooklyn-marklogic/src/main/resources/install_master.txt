@@ -1,4 +1,6 @@
-
+echo ==============================================================================
+echo                INSTALLING MARKLOGIC MASTER
+echo ==============================================================================
 
 export marklogicrpm=MarkLogic-7.0-ea1_20130315.x86_64.rpm
 
@@ -135,4 +137,6 @@ echo Setting metering on
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
 echo Finished setting metering on
 
-echo Single MarkLogic node install is complete!!
+echo ==============================================================================
+echo                FINISHED INSTALLING MARKLOGIC MASTER
+echo ==============================================================================

@@ -1,0 +1,136 @@
+echo ==============================================================================
+echo                INSTALLING MARKLOGIC SLAVE
+echo ==============================================================================
+
+export marklogicrpm=MarkLogic-7.0-ea1_20130315.x86_64.rpm
+
+echo Uninstalling previous MarkLogic
+/etc/init.d/MarkLogic status
+(sudo /etc/init.d/MarkLogic stop) || true
+/etc/init.d/MarkLogic status
+(sudo -E -n -S -- rpm -e MarkLogic) || true
+(sudo rm -rf /opt/MarkLogic) || true
+(sudo rm -rf /var/opt/MarkLogic) || true
+echo Finished uninstalling previous MarkLogic
+
+echo Installing MarkLogic rpm
+sudo -E -n -S -- rpm -i /home/ec2-user/marklogic_install/$marklogicrpm
+echo Finished Installing the MarkLogic rpm
+
+sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
+
+pushd .
+
+cd /home/ec2-user/marklogic_install/
+
+echo Copying xqy files
+sudo -E -n -S -- cp join-cluster.xqy \
+                     qa-restart.xqy \
+                     transfer-cluster-config.xqy \
+                     /opt/MarkLogic/Admin
+
+sudo -E -n -S -- mkdir /var/opt/xqy
+
+sudo -E -n -S -- cp xqy/bookmark.xqy \
+                    xqy/delete.xqy \
+                    xqy/search-debug.xqy \
+                    xqy/search.xqy \
+                    xqy/update.xqy \
+                    xqy/verify.xqy \
+                    xqy/view.xqy \
+                    /var/opt/xqy
+
+sudo -E -n -S -- cp get_db_id.xqy \
+                    stats.xqy \
+                    http-server-status.xqy \
+                    get-hosts.xqy \
+                    attach_replica.xqy \
+                    detach_replica.xqy \
+                    create_markmail_forests.xqy \
+                    create_forests.xqy \
+                    create_forests_with_fastdir.xqy \
+                    create_s3_forests.xqy \
+                    create_s3_forests_with_fastdir.xqy \
+                    create_s3_replica_forests.xqy \
+                    create_s3_replica_forests_with_fastdir.xqy \
+                    create_replica_forests.xqy \
+                    create_replica_forests_with_fastdir.xqy \
+                    create_markmail_appserver.xqy \
+                    create_markmail_database.xqy \
+                    attach_markmail_forests.xqy \
+                    create_httpserver.xqy \
+                    create_role.xqy \
+                    rewrite-hostname.xqy \
+                    rewrite-assignments.xqy  \
+                    set_metering_on.xqy \
+                    /opt/MarkLogic/Admin
+echo Finished copying xqy files
+
+sudo -E -n -S -- ./reset_ml_on_startup
+popd
+
+echo Starting MarkLogic
+sudo -E -n -S -- /etc/init.d/MarkLogic start
+#we are going to wait till we can connect over http
+#todo: we need a smarter way to wait till a service is available. The code below is not working. so currently doing a dumb sleep
+#echo Waiting till MarkLogic is available over http
+#curl --retry 60 --retry-delay 1 'http://localhost:8001'
+sleep 30
+
+echo Installing new license
+curl  'http://localhost:8001/license-go.xqy?license-key=${driver.licenseKey}&licensee=${driver.licensee}&ok'
+sleep 2
+echo Finished installing new license
+
+echo Accepting agreement
+curl 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
+sleep 2
+echo Finished accepting agreement
+
+echo initialize-go.xqy
+curl 'http://localhost:8001/initialize-go.xqy'
+sleep 2
+
+echo Restarting MarkLogic
+curl 'http://localhost:8001/qa-restart.xqy'
+#todo: better mechanism needed to wait till service is available again
+sleep 60
+echo Finished restarting MarkLogic
+
+echo security-install-go
+curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
+sleep 2
+
+echo Joining cluster
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
+echo Finished joining cluster
+
+echo Transferring Cluster Config
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/transfer-cluster-config.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}'
+echo Finished transferring Cluster config
+
+echo Restarting MarkLogic
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+#todo: better mechanism needed to wait till service is available again
+sleep 30
+echo Finished restarting MarkLogic
+
+# Node has now joined cluster, after this it  add its forests to the DB
+
+echo Creating MarkMail forrest
+#todo: we need to fix parameters
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node2&cluster=${driver.cluster}'
+echo Finished creating MarkMail forrest
+
+echo Attaching MarkMail forrest
+#todo: we need to fix parameters
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node2&cluster=${driver.cluster}'
+echo Finished Attaching MarkMail forrest
+
+echo ==============================================================================
+echo                FINISHED INSTALLING MARKLOGIC SLAVE
+echo ==============================================================================
+

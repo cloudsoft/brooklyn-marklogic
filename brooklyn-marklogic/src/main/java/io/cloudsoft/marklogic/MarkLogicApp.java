@@ -30,7 +30,7 @@ public class MarkLogicApp extends AbstractApplication {
     public void init() {
         // TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
         cluster = (MarkLogicCluster) addChild(getEntityManager().createEntity(BasicEntitySpec.newInstance(MarkLogicCluster.class)
-                .configure(MarkLogicCluster.INITIAL_SIZE, 1)));
+                .configure(MarkLogicCluster.INITIAL_SIZE, 2)));
 
 
     }
