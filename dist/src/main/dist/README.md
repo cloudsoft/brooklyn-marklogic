@@ -35,6 +35,16 @@ brooklyn.marklogic.cluster=<clustername>
 
 Since we are relying on EC2 for the examples, the brooklyn.jclouds.aws-ec2.* properties need to be provided.
 
+Copy the 'catalog.xml' from 'brooklyn-marklogic-distribution/conf/catalog.xml' to ~/.brooklyn/
+
+Edit the <classpath> section accordingly:
+
+```xml
+  <classpath>
+    <entry>file://path/to/marklogic/jar</entry>
+  </classpath>
+  ```
+
 Starting the examples:
 ==================
 

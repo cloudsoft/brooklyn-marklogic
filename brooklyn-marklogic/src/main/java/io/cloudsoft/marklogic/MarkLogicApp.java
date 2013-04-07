@@ -43,7 +43,7 @@ public class MarkLogicApp extends AbstractApplication {
 
         List<String> args = Lists.newArrayList(argv);
         String port = CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
-        String location = CommandLineUtil.getCommandLineOption(args, "--location", "named:marklogic-uswest2");
+        String location = CommandLineUtil.getCommandLineOption(args, "--location", "named:marklogic-us-east-1");
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
                 .application(EntitySpecs.appSpec(MarkLogicApp.class))
