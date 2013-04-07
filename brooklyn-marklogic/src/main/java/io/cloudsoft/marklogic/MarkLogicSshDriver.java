@@ -52,19 +52,16 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 
     @Override
     public void install() {
+        log.info("---------------------------------------------------------");
+        log.info("connect url: "+ getHostname());
+        log.info("---------------------------------------------------------");
+
+
         String installFile = MarkLogicSshDriver.class.getResource("/install.txt").getFile();
         String installScript = processTemplate(installFile);
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
-
-        String s = "";
-        for (String line : commands) {
-            s += "\n" + line;
-        }
-
-        log.error(s);
-
         newScript(INSTALLING)
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)

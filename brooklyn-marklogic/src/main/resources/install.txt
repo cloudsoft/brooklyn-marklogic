@@ -53,12 +53,14 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     create_s3_replica_forests_with_fastdir.xqy \
                     create_replica_forests.xqy \
                     create_replica_forests_with_fastdir.xqy \
+                    create_markmail_appserver.xqy \
                     create_markmail_database.xqy \
                     attach_markmail_forests.xqy \
                     create_httpserver.xqy \
                     create_role.xqy \
                     rewrite-hostname.xqy \
                     rewrite-assignments.xqy  \
+                    set_metering_on.xqy \
                     /opt/MarkLogic/Admin
 echo Finished copying xqy files
 
@@ -99,13 +101,38 @@ curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user
 sleep 2
 
 echo credentials-admin-go
-#todo: we need to provide the correct aws-access-key and aws-secret-key
 curl --digest -u ${driver.user}:${driver.password} \
    'http://localhost:8001/credentials-admin-go.xqy?/sec:credentials/sec:aws-access-key=${driver.awsAccessKey}&/sec:credentials/sec:aws-secret-key=${driver.awsSecretKey}'
 sleep 2
 
-#todo: should we restart, or should we just shut it down since it will be started again the in driver.launch()?
 echo Restarting MarkLogic
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-sleep 2
+#todo: better mechanism needed to wait till service is available again
+sleep 30
 echo Finished restarting MarkLogic
+
+echo Creating Markmail database
+curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_markmail_database.xqy
+echo Finished creating MarkMail database
+
+echo Creating MarkMail forrest
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=marklogic__sdbv21_1a'
+echo Finished creating MarkMail forrest
+
+echo Attaching MarkMail forrest
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=4&host=${driver.hostname}&node=node1&cluster=marklogic__sdbv21_1a'
+echo Finished attaching MarkMail forrest
+
+echo Creating role
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_role.xqy'
+echo Finished creating role
+
+echo Creating MarkMail appserver
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_appserver.xqy'
+echo Finished creating MarkMail appserver
+
+echo Setting metering on
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
+echo Finished setting metering on
+
+echo Single MarkLogic node install is complete!!
