@@ -51,6 +51,11 @@ public interface MarkLogicNode extends SoftwareProcess {
    ConfigKey<String> LICENSEE = new BasicConfigKey<String>(
            String.class, "marklogic.licensee", "The licensee to register the MarkLogic Server", null);
 
+    @SetFromFlag("fCount")
+    ConfigKey<Integer> FCOUNT = new BasicConfigKey<Integer>(
+            Integer.class, "marklogic.fcount", "FCount", 4);
+
+
     // FIXME This doesn't work because gives 403 unless you include username/password in curl
     @SetFromFlag("downloadUrl")
     BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey<String>(

@@ -25,17 +25,21 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     	return "MarkLogic-"+getVersion()+".x86_64.rpm";
    }
 
-   public String getUser() {
-      return entity.getConfig(MarkLogicNode.USER);
-   }
+    public int getFcount(){
+        return entity.getConfig(MarkLogicNode.FCOUNT);
+    }
 
-   public String getPassword() {
-      return entity.getConfig(MarkLogicNode.PASSWORD);
-   }
+    public String getUser() {
+        return entity.getConfig(MarkLogicNode.USER);
+    }
 
-   public String getLicenseKey() {
-      return entity.getConfig(MarkLogicNode.LICENSE_KEY);
-   }
+    public String getPassword() {
+        return entity.getConfig(MarkLogicNode.PASSWORD);
+    }
+
+    public String getLicenseKey() {
+        return entity.getConfig(MarkLogicNode.LICENSE_KEY);
+    }
 
 
     public String getAwsAccessKey() {
@@ -46,9 +50,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return entity.getConfig(MarkLogicNode.AWS_SECRET_KEY);
     }
 
-   public String getLicensee() {
-      return entity.getConfig(MarkLogicNode.LICENSEE).replace(" ","%20");
-   }
+    public String getLicensee() {
+        return entity.getConfig(MarkLogicNode.LICENSEE).replace(" ", "%20");
+    }
 
     @Override
     public void install() {
