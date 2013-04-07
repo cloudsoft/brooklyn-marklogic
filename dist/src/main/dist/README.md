@@ -39,3 +39,10 @@ Starting the examples:
 ==================
 
 Go to the bin directory and execute ./start-ec2.sh. This will first spawn a new EC2 machine and then installs MarkLogic.
+
+Accessing the Brooklyn Console
+==================
+
+The Brooklyn Console can be accessed from:
+http://localhost:8081
+And login credentials are admin/password
