@@ -31,7 +31,7 @@ public interface MarkLogicNode extends SoftwareProcess {
    @SetFromFlag("password")
    ConfigKey<String> PASSWORD = new BasicConfigKey<String>(
            String.class, "marklogic.password",
-           "The password to access MarkLogic Server Web UI", "hap00p");
+           "The password to access MarkLogic Server Web UI", "had00p");
 
     @SetFromFlag("awsAccessKey")
     ConfigKey<String> AWS_ACCESS_KEY = new BasicConfigKey<String>(
