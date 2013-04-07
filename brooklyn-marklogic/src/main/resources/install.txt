@@ -116,11 +116,11 @@ curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_
 echo Finished creating MarkMail database
 
 echo Creating MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=marklogic__sdbv21_1a'
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
 echo Finished creating MarkMail forrest
 
 echo Attaching MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=marklogic__sdbv21_1a'
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
 echo Finished attaching MarkMail forrest
 
 echo Creating role

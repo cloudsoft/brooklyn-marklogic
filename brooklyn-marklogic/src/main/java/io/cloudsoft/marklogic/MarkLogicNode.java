@@ -55,6 +55,9 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<Integer> FCOUNT = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.fcount", "FCount", 4);
 
+    @SetFromFlag("cluster")
+    ConfigKey<String> CLUSTER = new BasicConfigKey<String>(
+            String.class, "marklogic.cluster", "The cluster name", null);
 
     // FIXME This doesn't work because gives 403 unless you include username/password in curl
     @SetFromFlag("downloadUrl")

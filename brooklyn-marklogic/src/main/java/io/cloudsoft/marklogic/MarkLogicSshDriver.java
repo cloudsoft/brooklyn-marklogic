@@ -41,7 +41,6 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return entity.getConfig(MarkLogicNode.LICENSE_KEY);
     }
 
-
     public String getAwsAccessKey() {
         return entity.getConfig(MarkLogicNode.AWS_ACCESS_KEY);
     }
@@ -52,6 +51,10 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 
     public String getLicensee() {
         return entity.getConfig(MarkLogicNode.LICENSEE).replace(" ", "%20");
+    }
+
+    public String getCluster() {
+        return entity.getConfig(MarkLogicNode.CLUSTER).replace(" ", "%20");
     }
 
     @Override

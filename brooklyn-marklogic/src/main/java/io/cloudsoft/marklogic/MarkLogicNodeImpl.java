@@ -50,6 +50,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
         setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
         setConfig(FCOUNT, Integer.parseInt(getManagementContext().getConfig().getFirst("brooklyn.marklogic.fcount")));
+        setConfig(CLUSTER, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
     }
 
 	public Class getDriverInterface() {
