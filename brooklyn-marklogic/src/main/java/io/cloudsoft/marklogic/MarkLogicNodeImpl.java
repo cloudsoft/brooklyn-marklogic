@@ -29,8 +29,6 @@ import com.google.common.collect.Maps;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
-    // TODO What custom stuff is needed for master versus joining? Extract more commands from startup_script
-
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeImpl.class);
 
     // TODO What $node_name - what does `./get_node_name` do?
