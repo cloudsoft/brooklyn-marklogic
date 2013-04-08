@@ -142,45 +142,45 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 	 *              New node?  Join cluster
 	 *              Takeover node?  Fix host, become master if I am master
      */
-    protected JcloudsLocationCustomizer getEbsVolumeCustomizer(JcloudsLocation location) {
-        // TODO Currently only new node, and semi-handling replacing a node if configured with appropriate volume ids
-
-        List<JcloudsLocationCustomizer> customizers = Lists.newArrayList();
-
-        // TODO Use hex_val to get proper mount points
-        String varOptVolumeId = getConfig(VAR_OPT_VOLUME);
-        customizers.add(createOrAttachVolumeCustomizer(location, varOptVolumeId, "/var/opt", getConfig(VOLUME_SIZE)));
-
-        if (getConfig(IS_BACKUP_EBS)) {
-            // TODO Get the volumeId for the volume created here, so can set the attribute accordingly; same for other volume attributes
-            String backupVolumeId = getConfig(BACKUP_VOLUME);
-            customizers.add(createOrAttachVolumeCustomizer(location, backupVolumeId, "/var/opt/backup", getConfig(BACKUP_VOLUME_SIZE)));
-        }
-
-        if (getConfig(IS_STORAGE_EBS)) {
-            // TODO In startup_script, mount points are:
-            //   /var/opt/mldata/$sdb_bucket_name-$node_name-fastdir-$vol_count
-            //   /var/opt/mldata/$sdb_bucket_name-$node_name-replica-$vol_count
-            //   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
-
-            int numMountPoints = getConfig(NUM_MOUNT_POINTS);
-
-            Map<String, String> regularVolumes = toVolumeMountsMap(getConfig(REGULAR_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-", numMountPoints);
-            customizers.addAll(createOrAttachVolumeCustomizers(location, regularVolumes, getConfig(VOLUME_SIZE)));
-
-            if (getConfig(IS_FASTDIR_EBS)) {
-                Map<String, String> fastdirVolumes = toVolumeMountsMap(getConfig(FASTDIR_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-fastdir-", numMountPoints);
-                customizers.addAll(createOrAttachVolumeCustomizers(location, fastdirVolumes, getConfig(VOLUME_SIZE)));
-            }
-
-            if (getConfig(IS_REPLICA_EBS)) {
-                Map<String, String> replicaVolumes = toVolumeMountsMap(getConfig(REPLICA_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-fastdir-", numMountPoints);
-                customizers.addAll(createOrAttachVolumeCustomizers(location, replicaVolumes, getConfig(VOLUME_SIZE)));
-            }
-        }
-
-        return new CompoundJcloudsLocationCustomizer(customizers);
-    }
+//    protected JcloudsLocationCustomizer getEbsVolumeCustomizer(JcloudsLocation location) {
+//        // TODO Currently only new node, and semi-handling replacing a node if configured with appropriate volume ids
+//
+//        List<JcloudsLocationCustomizer> customizers = Lists.newArrayList();
+//
+//        // TODO Use hex_val to get proper mount points
+//        String varOptVolumeId = getConfig(VAR_OPT_VOLUME);
+//        customizers.add(createOrAttachVolumeCustomizer(location, varOptVolumeId, "/var/opt", getConfig(VOLUME_SIZE)));
+//
+//        if (getConfig(IS_BACKUP_EBS)) {
+//            // TODO Get the volumeId for the volume created here, so can set the attribute accordingly; same for other volume attributes
+//            String backupVolumeId = getConfig(BACKUP_VOLUME);
+//            customizers.add(createOrAttachVolumeCustomizer(location, backupVolumeId, "/var/opt/backup", getConfig(BACKUP_VOLUME_SIZE)));
+//        }
+//
+//        if (getConfig(IS_STORAGE_EBS)) {
+//            // TODO In startup_script, mount points are:
+//            //   /var/opt/mldata/$sdb_bucket_name-$node_name-fastdir-$vol_count
+//            //   /var/opt/mldata/$sdb_bucket_name-$node_name-replica-$vol_count
+//            //   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
+//
+//            int numMountPoints = getConfig(NUM_MOUNT_POINTS);
+//
+//            Map<String, String> regularVolumes = toVolumeMountsMap(getConfig(REGULAR_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-", numMountPoints);
+//            customizers.addAll(createOrAttachVolumeCustomizers(location, regularVolumes, getConfig(VOLUME_SIZE)));
+//
+//            if (getConfig(IS_FASTDIR_EBS)) {
+//                Map<String, String> fastdirVolumes = toVolumeMountsMap(getConfig(FASTDIR_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-fastdir-", numMountPoints);
+//                customizers.addAll(createOrAttachVolumeCustomizers(location, fastdirVolumes, getConfig(VOLUME_SIZE)));
+//            }
+//
+//            if (getConfig(IS_REPLICA_EBS)) {
+//                Map<String, String> replicaVolumes = toVolumeMountsMap(getConfig(REPLICA_VOLUMES), "/var/opt/mldata/" + NODE_NAME + "-fastdir-", numMountPoints);
+//                customizers.addAll(createOrAttachVolumeCustomizers(location, replicaVolumes, getConfig(VOLUME_SIZE)));
+//            }
+//        }
+//
+//        return new CompoundJcloudsLocationCustomizer(customizers);
+//    }
 
     private String nextDeviceSuffix() {
         return Character.toString((char) deviceNameSuffix.getAndIncrement()).toLowerCase();
