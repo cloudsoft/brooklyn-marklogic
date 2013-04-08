@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +39,25 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 	private final AtomicInteger deviceNameSuffix = new AtomicInteger('h');
 
 	private HttpFeed httpFeed;
-	
+
+    @Override
+    public void init(){
+        //we give it a bit longer timeout for starting up
+        setConfig(ConfigKeys.START_TIMEOUT, 240);
+
+        //todo: ugly.. we don't want to get the properties  this way, but for the time being it works.
+        setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
+        setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
+        setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
+        setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
+        setConfig(FCOUNT, Integer.parseInt(getManagementContext().getConfig().getFirst("brooklyn.marklogic.fcount")));
+        setConfig(CLUSTER, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
+        String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");
+        if(configuredVersion!=null&&!configuredVersion.isEmpty()){
+            setConfig(SoftwareProcess.SUGGESTED_VERSION,configuredVersion);
+        }
+    }
+
 	public Class getDriverInterface() {
 		return MarkLogicDriver.class;
 	}
@@ -54,7 +74,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                 .period(500, TimeUnit.MILLISECONDS)
                 .baseUri(getAttribute(URL))
                 .poll(new HttpPollConfig<Boolean>(SERVICE_UP)
-                        .onSuccess(HttpValueFunctions.responseCodeEquals(200))
+                        //todo: currently an authentication screen is shown, so for the time being it is enough to assume
+                        //that the marklogic node is running. Why are we not using the isRunning method from the driver?
+                        .onSuccess(HttpValueFunctions.responseCodeEquals(401))
                         .onError(Functions.constant(false)))
                 .build();
 	}

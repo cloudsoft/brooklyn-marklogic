@@ -2,11 +2,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.cloudsoft.marklogic</groupId>
-    <artifactId>brooklyn-marklogic</artifactId>
+    <artifactId>brooklyn-marklogic-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>Brooklyn MarkLogic</name>
+    <name>Brooklyn MarkLogic - Parent</name>
+    <description>
+        Contains the Brooklyn integration for the MarkLogic NoSQL database.
+    </description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,54 +19,13 @@
         <testng.version>6.7</testng.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.brooklyn</groupId>
-            <artifactId>brooklyn-all</artifactId>
-            <version>${brooklyn.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.brooklyn</groupId>
-            <artifactId>brooklyn-test-support</artifactId>
-            <version>${brooklyn.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.brooklyn</groupId>
-            <artifactId>brooklyn-core</artifactId>
-            <version>${brooklyn.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.brooklyn</groupId>
-            <artifactId>brooklyn-software-base</artifactId>
-            <version>${brooklyn.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
-
     <repositories>
         <repository>
             <id>cloudsoft-releases</id>
             <url>http://developers.cloudsoftcorp.com/download/maven2/</url>
         </repository>
-        <repository>
+        <!-- not needed since we don't use a snapshot version of brooklyn -->
+        <!-- repository>
             <id>libs-snapshot-local</id>
             <url>http://ccweb.cloudsoftcorp.com/maven/libs-snapshot-local/</url>
             <snapshots>
@@ -71,7 +33,7 @@
                 <updatePolicy>never</updatePolicy>
                 <checksumPolicy>fail</checksumPolicy>
             </snapshots>
-        </repository>
+        </repository -->
     </repositories>
 
     <build>
@@ -223,4 +185,8 @@
         </profile>
     </profiles>
 
+    <modules>
+        <module>brooklyn-marklogic</module>
+        <module>dist</module>
+    </modules>
 </project>

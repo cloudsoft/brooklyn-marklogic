@@ -19,9 +19,45 @@ import com.google.common.collect.ImmutableList;
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {
 
-    @SetFromFlag("version")
-    ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
-    		SoftwareProcess.SUGGESTED_VERSION, "6.0-2.3");
+   @SetFromFlag("version")
+   ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
+      		SoftwareProcess.SUGGESTED_VERSION, "7.0-ea1_20130315");
+
+   @SetFromFlag("user")
+   ConfigKey<String> USER = new BasicConfigKey<String>(
+           String.class, "marklogic.user",
+           "The user to access MarkLogic Server Web UI", "admin");
+
+   @SetFromFlag("password")
+   ConfigKey<String> PASSWORD = new BasicConfigKey<String>(
+           String.class, "marklogic.password",
+           "The password to access MarkLogic Server Web UI", "hap00p");
+
+    @SetFromFlag("awsAccessKey")
+    ConfigKey<String> AWS_ACCESS_KEY = new BasicConfigKey<String>(
+            String.class, "marklogic.aws-access-key",
+            "The AWS Access Key", null);
+
+    @SetFromFlag("awsSecretKey")
+    ConfigKey<String> AWS_SECRET_KEY = new BasicConfigKey<String>(
+            String.class, "marklogic.aws-secret-key",
+            "The AWS Access Key", null);
+
+   @SetFromFlag("licenseKey")
+   ConfigKey<String> LICENSE_KEY = new BasicConfigKey<String>(
+           String.class, "marklogic.licenseKey", "The license key to register the MarkLogic Server", null);
+
+   @SetFromFlag("licensee")
+   ConfigKey<String> LICENSEE = new BasicConfigKey<String>(
+           String.class, "marklogic.licensee", "The licensee to register the MarkLogic Server", null);
+
+    @SetFromFlag("fCount")
+    ConfigKey<Integer> FCOUNT = new BasicConfigKey<Integer>(
+            Integer.class, "marklogic.fcount", "FCount", 4);
+
+    @SetFromFlag("cluster")
+    ConfigKey<String> CLUSTER = new BasicConfigKey<String>(
+            String.class, "marklogic.cluster", "The cluster name", null);
 
     // FIXME This doesn't work because gives 403 unless you include username/password in curl
     @SetFromFlag("downloadUrl")
