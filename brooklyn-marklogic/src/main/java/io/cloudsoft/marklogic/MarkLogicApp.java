@@ -34,8 +34,6 @@ public class MarkLogicApp extends AbstractApplication {
      * Launches the application, along with the brooklyn web-console.
      */
     public static void main(String[] argv) throws Exception {
-        // TODO Syntax below is improving massively in next 0.5.0-M3 or rc.1 release!
-
         List<String> args = Lists.newArrayList(argv);
         String port = CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
         String location = CommandLineUtil.getCommandLineOption(args, "--location", "named:marklogic-us-east-1");
