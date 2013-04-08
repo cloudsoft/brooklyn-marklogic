@@ -1,5 +1,5 @@
 <catalog>
-  <catalog>
+    <name>Brooklyn MarkLogic</name>
 
     <template type="brooklyn.demo.WebClusterDatabaseExample" name="Demo Web Cluster with DB">
       <description>Deploys a demonstration web application to a managed JBoss cluster with elasticity, persisting to a MySQL</description>
@@ -20,5 +20,4 @@
       <entry>file://~/Desktop/brooklyn-marklogic-0.1.0-SNAPSHOT/lib/brooklyn-marklogic-0.1.0-SNAPSHOT.jar</entry>
     </classpath>
 
-  </catalog>
 </catalog>
