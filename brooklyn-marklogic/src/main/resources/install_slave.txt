@@ -114,15 +114,13 @@ echo Finished restarting MarkLogic
 # Node has now joined cluster, after this it  add its forests to the DB
 
 echo Creating MarkMail forrest
-#todo: we need to fix parameters
 curl --digest -u ${driver.user}:${driver.password} \
-   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node2&cluster=${driver.cluster}'
+   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
 echo Finished creating MarkMail forrest
 
 echo Attaching MarkMail forrest
-#todo: we need to fix parameters
 curl --digest -u ${driver.user}:${driver.password} \
-   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node2&cluster=${driver.cluster}'
+   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
 echo Finished Attaching MarkMail forrest
 
 echo ==============================================================================
