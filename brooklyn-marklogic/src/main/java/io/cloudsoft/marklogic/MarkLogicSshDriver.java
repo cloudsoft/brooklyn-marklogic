@@ -127,10 +127,6 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     @Override
     public void postLaunch() {
         entity.setAttribute(MarkLogicNode.URL, String.format("http://%s:%s", getHostname(), 8001));
-        //todo: remove me
-        log.info("---------------------------------------------------------");
-        log.info("connect url: " + entity.getAttribute(MarkLogicNode.URL));
-        log.info("---------------------------------------------------------");
     }
 
     public boolean isRunning() {
