@@ -27,7 +27,7 @@ public class MarkLogicApp extends AbstractApplication {
     @Override
     public void init() {
         cluster = (MarkLogicCluster) addChild(getEntityManager().createEntity(BasicEntitySpec.newInstance(MarkLogicCluster.class)
-                .configure(MarkLogicCluster.INITIAL_SIZE, 1)));
+                .configure(MarkLogicCluster.INITIAL_SIZE, 2)));
     }
 
     /**
