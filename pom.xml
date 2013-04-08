@@ -19,7 +19,7 @@
         <testng.version>6.7</testng.version>
     </properties>
 
-   <repositories>
+    <repositories>
         <repository>
             <id>cloudsoft-releases</id>
             <url>http://developers.cloudsoftcorp.com/download/maven2/</url>
