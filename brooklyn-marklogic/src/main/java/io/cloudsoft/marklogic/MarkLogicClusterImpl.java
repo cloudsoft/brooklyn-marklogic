@@ -30,7 +30,6 @@ public class MarkLogicClusterImpl extends DynamicClusterImpl implements MarkLogi
                     .configure(MarkLogicNode.IS_MASTER, isMaster)
                     .configure(MarkLogicNode.MASTER_ADDRESS, isMaster ? null : attributeWhenReady(master, MarkLogicNode.HOSTNAME))
                     //very nasty hack to wait for the service up from the master to start a client; we need to master to be fully started before we proceed with the client.
-                    //needs to be cleaned up..
                     .configure(MarkLogicNode.IS_BACKUP_EBS, isMaster ? null : attributeWhenReady(master, MarkLogicNode.SERVICE_UP)));
              if (isMaster) {
             	setAttribute(MASTER_NODE, result);

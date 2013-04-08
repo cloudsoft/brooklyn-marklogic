@@ -21,7 +21,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
    @SetFromFlag("version")
    ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
-      		SoftwareProcess.SUGGESTED_VERSION, "6.0-2.3");
+      		SoftwareProcess.SUGGESTED_VERSION, "7.0-ea1_20130315");
 
    @SetFromFlag("user")
    ConfigKey<String> USER = new BasicConfigKey<String>(

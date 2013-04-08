@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +43,19 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void init(){
         //we give it a bit longer timeout for starting up
-        setConfig(ConfigKeys.START_TIMEOUT, 600);
+        setConfig(ConfigKeys.START_TIMEOUT, 240);
 
-        //todo: ugly.. we don't want to get the properties in this way, but for the time being it works.
+        //todo: ugly.. we don't want to get the properties  this way, but for the time being it works.
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
         setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
         setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
         setConfig(FCOUNT, Integer.parseInt(getManagementContext().getConfig().getFirst("brooklyn.marklogic.fcount")));
         setConfig(CLUSTER, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
+        String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");
+        if(configuredVersion!=null&&!configuredVersion.isEmpty()){
+            setConfig(SoftwareProcess.SUGGESTED_VERSION,configuredVersion);
+        }
     }
 
 	public Class getDriverInterface() {
