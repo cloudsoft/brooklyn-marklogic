@@ -2,7 +2,6 @@ package io.cloudsoft.marklogic;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
-import static java.lang.String.format;
 
 import java.net.URI;
 import java.net.URISyntaxException;
