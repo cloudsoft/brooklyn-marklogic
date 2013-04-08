@@ -3,11 +3,14 @@ package io.cloudsoft.marklogic;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,15 +70,16 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     protected void connectSensors() {
         super.connectSensors();
 
-        httpFeed = HttpFeed.builder()
+        FunctionFeed serviceUp = FunctionFeed.builder()
                 .entity(this)
-                .period(500, TimeUnit.MILLISECONDS)
-                .baseUri(getAttribute(URL))
-                .poll(new HttpPollConfig<Boolean>(SERVICE_UP)
-                        //todo: currently an authentication screen is shown, so for the time being it is enough to assume
-                        //that the marklogic node is running. Why are we not using the isRunning method from the driver?
-                        .onSuccess(HttpValueFunctions.responseCodeEquals(401))
-                        .onError(Functions.constant(false)))
+                .period(5000)
+                .poll(new FunctionPollConfig<Boolean, Boolean>(SERVICE_UP)
+                        .onError(Functions.constant(Boolean.FALSE))
+                        .callable(new Callable<Boolean>() {
+                            public Boolean call() {
+                                return getDriver().isRunning();
+                            }
+                        }))
                 .build();
     }
 

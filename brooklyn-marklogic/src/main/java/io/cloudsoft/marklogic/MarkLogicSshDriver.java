@@ -64,13 +64,13 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     @Override
     public void install() {
         boolean master = isMaster();
-        if (!master) {
+        if (master) {
+            log.info("Starting installation of MarkLogic master " + getHostname());
+        } else {
             log.info("Slave " + getHostname() + " waiting for master to be up");
             //a very nasty hack to wait on the service up from the
             entity.getConfig(MarkLogicNode.IS_BACKUP_EBS);
-            log.info("Starting installation of slave " + getHostname());
-        } else {
-            log.info("Starting installation of master " + getHostname());
+            log.info("Starting installation of MarkLogic slave " + getHostname());
         }
 
 
@@ -85,10 +85,10 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .body.append(commands)
                 .execute();
 
-        if (!master) {
-            log.info("Finished installation of slave " + getHostname());
+        if (master) {
+           log.info("Finished installation of MarkLogic master " + getHostname());
         } else {
-            log.info("Finished installation of master " + getHostname());
+            log.info("Finished installation of MarkLogic slave " + getHostname());
         }
     }
 
@@ -118,9 +118,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .execute();
 
         if (isMaster()) {
-            log.info("Successfully launched master " + getHostname());
+            log.info("Successfully launched MarkLogic master " + getHostname());
         } else {
-            log.info("Successfully launched slave " + getHostname());
+            log.info("Successfully launched MarkLogic slave " + getHostname());
         }
     }
 
@@ -130,7 +130,6 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     }
 
     public boolean isRunning() {
-        // TODO Aled made this up: is this right?
         int exitStatus = newScript(LAUNCHING)
                 .failOnNonZeroResultCode()
                 .body.append(sudo("/etc/init.d/MarkLogic status | grep running"))
