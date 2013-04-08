@@ -6,19 +6,28 @@ import brooklyn.location.basic.SshMachineLocation;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
 
 public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicDriver {
 
+    public final static AtomicInteger counter = new AtomicInteger(2);
+    private final int nodeId;
+
     public MarkLogicSshDriver(EntityLocal entity, SshMachineLocation machine) {
         super(entity, machine);
+        this.nodeId  = counter.getAndIncrement();
     }
 
     public String getDownloadFilename() {
         // TODO To support other platforms, need to customize this based on OS
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
+    }
+
+    public int getNodeId(){
+        return nodeId;
     }
 
     public int getFcount() {

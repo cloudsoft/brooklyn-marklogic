@@ -97,9 +97,10 @@ curl 'http://localhost:8001/qa-restart.xqy'
 sleep 60
 echo Finished restarting MarkLogic
 
-echo security-install-go
+echo Setting new credentials
 curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
 sleep 2
+echo Finished setting new credentials
 
 echo credentials-admin-go
 curl --digest -u ${driver.user}:${driver.password} \

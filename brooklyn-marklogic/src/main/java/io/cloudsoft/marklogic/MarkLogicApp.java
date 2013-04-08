@@ -1,10 +1,13 @@
 package io.cloudsoft.marklogic;
 
+import brooklyn.catalog.CatalogConfig;
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.basic.StartableApplication;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
@@ -24,12 +27,20 @@ import java.util.List;
  */
 public class MarkLogicApp extends AbstractApplication {
 
+    //@CatalogConfig(label="Marklogic Licensee", priority=1)
+   // public static final ConfigKey<String> DB_SETUP_SQL_URL = new BasicConfigKey<String>(String.class,
+   //         "app.db_sql", "The MarkLogic Licensee","");
+
+   // @CatalogConfig(label="Marklogic LicenseKey", priority=1)
+   // public static final ConfigKey<String> DB_SETUP_SQL_URL1 = new BasicConfigKey<String>(String.class,
+   //         "app.db_sql", "The MarkLogic License-key","");
+
+
     MarkLogicCluster cluster;
 
     @Override
     public void init() {
-        cluster = (MarkLogicCluster) addChild(getEntityManager().createEntity(BasicEntitySpec.newInstance(MarkLogicCluster.class)
-                .configure(MarkLogicCluster.INITIAL_SIZE, 2)));
+        cluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, 3));
     }
 
     /**
@@ -37,20 +48,15 @@ public class MarkLogicApp extends AbstractApplication {
      */
     public static void main(String[] argv) throws Exception {
         List<String> args = Lists.newArrayList(argv);
-        String port = CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
-        String location = CommandLineUtil.getCommandLineOption(args, "--location", "named:marklogic-us-east-1");
+        String port =  CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
+        String location = CommandLineUtil.getCommandLineOption(args, "--location", "localhost");
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
-                .application(EntitySpecs.appSpec(MarkLogicApp.class))
+                .application(EntitySpecs.appSpec(MarkLogicApp.class).displayName("Brooklyn MarkLogic Application"))
                 .webconsolePort(port)
                 .location(location)
                 .start();
 
-        StartableApplication app = (StartableApplication) launcher.getApplications().get(0);
-        Entities.dumpInfo(app);
-
-        LOG.info("Press return to shut down the cluster");
-        System.in.read(); //wait for the user to type a key
-        app.stop();
+        Entities.dumpInfo(launcher.getApplications());
     }
 }
