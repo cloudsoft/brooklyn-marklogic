@@ -17,7 +17,7 @@
     </template>
     
     <classpath>
-      <entry>file://~/Desktop/brooklyn-marklogic-0.1.0-SNAPSHOT/lib/brooklyn-marklogic-0.1.0-SNAPSHOT.jar</entry>
+      <entry>file://../lib/brooklyn-marklogic-0.1.0-SNAPSHOT.jar</entry>
     </classpath>
 
   </catalog>

@@ -37,20 +37,10 @@ brooklyn.marklogic.version=7.0-ea1_20130315
 Since we are relying on EC2 for the examples, the brooklyn.jclouds.aws-ec2.* properties need to be provided.
 
 
-Configuring the Brooklyn Catalog
+Starting the Brooklyn Catalog
 ===========================
 
-Copy the 'catalog.xml' from 'brooklyn-marklogic-distribution/conf/catalog.xml' to ~/.brooklyn/
-
-Edit the <classpath> section accordingly:
-
-```xml
-  <classpath>
-    <entry>file://path/to/marklogic/jar</entry>
-  </classpath>
-  ```
-
-After the Brooklyn catalog has been configured, the Brooklyn Catalog can be startup using:
+Go to the bin directory and execute the following command:
 ./start.sh
 
 
