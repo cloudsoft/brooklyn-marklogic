@@ -1,7 +1,5 @@
 package io.cloudsoft.marklogic;
 
-import java.util.Collection;
-
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.ImplementedBy;
@@ -10,8 +8,6 @@ import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * A node in a MarkLogic cluster, where it will be the master if {@code getConfig(IS_MASTER)}.
