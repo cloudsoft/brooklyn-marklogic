@@ -87,19 +87,6 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     /opt/MarkLogic/Admin
 echo Finished copying xqy files
 
-
-array=( reset_ml_on_startup )
-for i in ${r"${array[@]}"}
-do
-	curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
-done
-
-export MARKLOGIC_AWS_ACCESS_KEY=${driver.awsAccessKey}
-export MARKLOGIC_AWS_SECRET_KEY=${driver.awsSecretKey}
-export MARKLOGIC_AUTO_SCALE_GROUP=${driver.cluster}
-chmod +x ./reset_ml_on_startup
-sudo -E -n -S -- ./reset_ml_on_startup
-
 popd
 
 echo Starting MarkLogic
