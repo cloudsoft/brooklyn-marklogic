@@ -1,13 +1,9 @@
 package io.cloudsoft.marklogic;
 
-import brooklyn.catalog.CatalogConfig;
-import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.AbstractApplication;
+import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.Entities;
-import brooklyn.entity.basic.StartableApplication;
-import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.EntitySpecs;
-import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
@@ -43,7 +39,20 @@ public class MarkLogicApp extends AbstractApplication {
         cluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, 6));
     }
 
-    /**
+   @Override
+   public void postStart(Collection<? extends Location> locations) {
+      super.postStart(locations);
+      LOG.info("MarkLogic server is available at 'http://" +
+              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) + ":8000'");
+      LOG.info("MarkLogic Cluster summary is available at 'http://" +
+              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
+              ":8001'");
+      LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
+              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
+              ":8002/dashboard'");
+   }
+
+   /**
      * Launches the application, along with the brooklyn web-console.
      */
     public static void main(String[] argv) throws Exception {
