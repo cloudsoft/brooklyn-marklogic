@@ -26,6 +26,11 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
     }
 
+    @Override
+    public String getVersion() {
+        return super.getVersion();
+    }
+
     public int getNodeId(){
         return nodeId;
     }

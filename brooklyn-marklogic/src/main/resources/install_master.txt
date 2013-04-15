@@ -1,8 +1,10 @@
 echo ==============================================================================
-echo                INSTALLING MARKLOGIC MASTER
+echo                INSTALLING MARKLOGIC MASTER  ${driver.version}
 echo ==============================================================================
 
 echo Installing MarkLogic rpm
+#uninstall if already installed
+(sudo -E -n -S -- rpm -e MarkLogic) || true
 sudo yum -y --nogpgcheck install lsb gdb
 mkdir -p ~/marklogic_install/
 curl -o ~/marklogic_install/${driver.downloadFilename} https://s3.amazonaws.com/brooklyn-marklogic/${driver.downloadFilename}
@@ -13,85 +15,73 @@ sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysc
 
 pushd .
 
+echo Copying xqy files
+sudo -E -n -S -- mkdir /var/opt/xqy
+
 mkdir -p ~/marklogic_install/config
 cd ~/marklogic_install/config
-
-array=( join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy )
+array=(
+    join-cluster.xqy
+    qa-restart.xqy
+    transfer-cluster-config.xqy )
 for i in ${r"${array[@]}"}
 do
-	curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+   sudo -E -n -S -- cp $i /opt/MarkLogic/Admin
 done
-
-echo Copying xqy files
-sudo -E -n -S -- cp join-cluster.xqy \
-                     qa-restart.xqy \
-                     transfer-cluster-config.xqy \
-                     /opt/MarkLogic/Admin
-
-sudo -E -n -S -- mkdir /var/opt/xqy
 
 mkdir -p ~/marklogic_install/config/xqy
 cd ~/marklogic_install/config/xqy
-
-array=( bookmark.xqy delete.xqy search-debug.xqy search.xqy update.xqy verify.xqy view.xqy )
+array=(
+    bookmark.xqy
+    delete.xqy
+    search-debug.xqy
+    search.xqy
+    update.xqy
+    verify.xqy
+    view.xqy )
 for i in ${r"${array[@]}"}
 do
-	curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    sudo -E -n -S -- cp  $i /var/opt/xqy
 done
-cd ~/marklogic_install/config
 
-sudo -E -n -S -- cp xqy/bookmark.xqy \
-                    xqy/delete.xqy \
-                    xqy/search-debug.xqy \
-                    xqy/search.xqy \
-                    xqy/update.xqy \
-                    xqy/verify.xqy \
-                    xqy/view.xqy \
-                    /var/opt/xqy
-
-array=( get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy attach_replica.xqy detach_replica.xqy
-create_markmail_forests.xqy create_forests.xqy create_forests_with_fastdir.xqy create_s3_forests.xqy
-create_s3_forests_with_fastdir.xqy create_s3_replica_forests.xqy create_s3_replica_forests_with_fastdir.xqy
-create_replica_forests.xqy create_replica_forests_with_fastdir.xqy create_markmail_appserver.xqy
-create_markmail_database.xqy attach_markmail_forests.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy
-rewrite-assignments.xqy transfer-cluster-config.xqy set_metering_on.xqy )
+array=( get_db_id.xqy
+    stats.xqy
+    http-server-status.xqy
+    get-hosts.xqy
+    attach_replica.xqy
+    detach_replica.xqy
+    create_markmail_forests.xqy
+    create_forests.xqy
+    create_forests_with_fastdir.xqy
+    create_s3_forests.xqy
+    create_s3_forests_with_fastdir.xqy
+    create_s3_replica_forests.xqy
+    create_s3_replica_forests_with_fastdir.xqy
+    create_replica_forests.xqy
+    create_replica_forests_with_fastdir.xqy
+    create_markmail_appserver.xqy
+    create_markmail_database.xqy
+    attach_markmail_forests.xqy
+    create_httpserver.xqy
+    create_role.xqy
+    rewrite-hostname.xqy
+    rewrite-assignments.xqy
+    transfer-cluster-config.xqy
+    set_metering_on.xqy )
 for i in ${r"${array[@]}"}
 do
-	curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    sudo -E -n -S -- cp $i /opt/MarkLogic/Admin
 done
-
-sudo -E -n -S -- cp get_db_id.xqy \
-                    stats.xqy \
-                    http-server-status.xqy \
-                    get-hosts.xqy \
-                    attach_replica.xqy \
-                    detach_replica.xqy \
-                    create_markmail_forests.xqy \
-                    create_forests.xqy \
-                    create_forests_with_fastdir.xqy \
-                    create_s3_forests.xqy \
-                    create_s3_forests_with_fastdir.xqy \
-                    create_s3_replica_forests.xqy \
-                    create_s3_replica_forests_with_fastdir.xqy \
-                    create_replica_forests.xqy \
-                    create_replica_forests_with_fastdir.xqy \
-                    create_markmail_appserver.xqy \
-                    create_markmail_database.xqy \
-                    attach_markmail_forests.xqy \
-                    create_httpserver.xqy \
-                    create_role.xqy \
-                    rewrite-hostname.xqy \
-                    rewrite-assignments.xqy \
-                    transfer-cluster-config.xqy \
-                    set_metering_on.xqy \
-                    /opt/MarkLogic/Admin
 echo Finished copying xqy files
 
 
 array=( reset_ml_on_startup )
 for i in ${r"${array[@]}"}
 do
-	curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
+    curl -o $i https://s3.amazonaws.com/brooklyn-marklogic/config/$i
 done
 
 export MARKLOGIC_AWS_ACCESS_KEY=${driver.awsAccessKey}
@@ -172,5 +162,5 @@ curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_me
 echo Finished setting metering on
 
 echo ==============================================================================
-echo                FINISHED INSTALLING MARKLOGIC MASTER
+echo                FINISHED INSTALLING MARKLOGIC MASTER  ${driver.version}
 echo ==============================================================================
