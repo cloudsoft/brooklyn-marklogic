@@ -4,6 +4,7 @@ import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.location.basic.SshMachineLocation;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,6 +71,19 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return entity.getConfig(MarkLogicNode.IS_MASTER);
     }
 
+    public File getBrooklynMarkLogicHome(){
+        String home = System.getenv("BROOKLYN_MARKLOGIC_HOME");
+        if(home == null){
+            home = System.getProperty("user.dir");
+            log.warn("BROOKLYN_MARKLOGIC_HOME not found in environment, defaulting to [{}]",home);
+        }
+        return new File(home);
+    }
+
+    public File getScriptDirectory(){
+        return new File(getBrooklynMarkLogicHome(),"scripts");
+    }
+
     @Override
     public void install() {
         boolean master = isMaster();
@@ -83,8 +97,9 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         }
 
 
-        String f = master ? "/install_master.txt" : "/install_slave.txt";
-        String installScript = processTemplate(MarkLogicSshDriver.class.getResource(f).toString());
+        String f = master ? "install_master.txt" : "install_slave.txt";
+        File installScriptFile = new File(getScriptDirectory(), f);
+        String installScript = processTemplate(installScriptFile);
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
