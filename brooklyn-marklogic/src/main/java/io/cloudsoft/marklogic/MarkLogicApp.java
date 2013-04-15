@@ -36,7 +36,13 @@ public class MarkLogicApp extends AbstractApplication {
 
     @Override
     public void init() {
-        cluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, 2));
+        String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogic.initial-cluster-size");
+        int initialClusterSize = 2;
+        if (initialClusterSizeValue != null && !initialClusterSizeValue.isEmpty()) {
+            initialClusterSize = Integer.parseInt(initialClusterSizeValue);
+        }
+
+        cluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, initialClusterSize));
     }
 
    @Override
