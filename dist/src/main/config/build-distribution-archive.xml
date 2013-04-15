@@ -17,6 +17,11 @@
                 <include>NOTICE*</include>
             </includes>
         </fileSet -->
+
+        <fileSet>
+            <directory>${project.basedir}/../brooklyn-marklogic/scripts</directory>
+            <outputDirectory>/scripts</outputDirectory>
+        </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/main/dist/bin</directory>
             <outputDirectory>/bin</outputDirectory>
