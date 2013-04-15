@@ -33,6 +33,7 @@ brooklyn.markLogic.licensee=<your marklogic licensee name>
 brooklyn.marklogic.fcount=4
 brooklyn.marklogic.cluster=<clustername>
 brooklyn.marklogic.version=7.0-ea1_20130315
+brooklyn.marklogic.initial-cluster-size=2
 
 Since we are relying on EC2 for the examples, the brooklyn.jclouds.aws-ec2.* properties need to be provided.
 
