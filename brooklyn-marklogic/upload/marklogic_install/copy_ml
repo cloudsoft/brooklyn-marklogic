@@ -1,2 +1,0 @@
-set -x
-curl --digest -u admin:admin http://ec2-23-20-105-193.compute-1.amazonaws.com:8001/transfer-cluster-config.xqy?server=ec2-23-20-105-193.compute-1.amazonaws.com\&joiner=ec2-54-243-20-162.compute-1.amazonaws.com

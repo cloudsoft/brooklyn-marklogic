@@ -6,3 +6,4 @@ test-output
 *.log
 .idea/
 *.iml
+.DS_Store

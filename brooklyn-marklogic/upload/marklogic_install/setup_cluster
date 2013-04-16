@@ -1,4 +1,0 @@
-bucket=$1
-./simpledb create-domain $bucket
-./simpledb put $bucket meta iops=0 count=3 create_lock=0 dbname=cpox lock=0 volume_size=100 rpm_uri=none storage=ebs mount_points=4
-

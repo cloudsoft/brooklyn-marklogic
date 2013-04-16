@@ -1,8 +1,0 @@
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-do
-
-/etc/init.d/MarkLogic pstack | awk 'BEGIN { s = "";threadid="nothing" } /^Thread/ { threads[threadid]=s;s = "";threadid=sprintf("%s_%s",$1,$6) } /^\#/ { if (s != "" ) { s = s "," $4} else { s = $4 } } END { for (n in threads){if (n != "nothing"){printf "%s %s\n",n,threads[n] }}}' 
-sleep 1
-printf "\n\n"
-done
-

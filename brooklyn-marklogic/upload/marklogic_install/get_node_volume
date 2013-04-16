@@ -1,1 +1,0 @@
-./simpledb select 'select volume_name  from marklogic__sdbv25_1a where ip = "ec2-54-234-152-115.compute-1.amazonaws.com"  ' | awk ' BEGIN{FS="="} /volume/ {print $2} '

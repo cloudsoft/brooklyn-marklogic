@@ -1,1 +1,0 @@
-./simpledb select 'select ip  from marklogic__sdbv12 where ItemName() = "node1"  ' | awk ' BEGIN{FS="="} /ip/ {print $2} '

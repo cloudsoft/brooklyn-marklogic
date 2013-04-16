@@ -1,1 +1,0 @@
-./simpledb select 'select volume  from marklogic__sdbv12 where az = "us-east-1a"  ' | awk ' BEGIN{FS="="} /volume/ {print $2} ' | awk ' BEGIN{found=0}{sysstring=sprintf("grep %s attach_list | wc -l",$1);sysstring | getline ids; if ((ids == 1) && (found==0)){ print $1;found=1}}' 

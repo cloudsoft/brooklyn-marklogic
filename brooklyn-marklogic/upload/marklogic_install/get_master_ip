@@ -1,1 +1,0 @@
-./simpledb select 'select ip  from marklogic__sdbv19_1a where master = "true"  ' | awk ' BEGIN{FS="="} /ip/ {print $2} ' 

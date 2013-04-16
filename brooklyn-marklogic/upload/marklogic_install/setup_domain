@@ -1,1 +1,0 @@
-./simpledb put marklogic__sdbv8 meta  forests=6 iops=0 count=3 create_lock=0 lock=1 rpm_uri=http://root.marklogic.com/nightly/builds/linux64/rh5-intel64-70-build.marklogic.com/HEAD/pkgs.20130122/MarkLogic-7.0-20130122.x86_64.rpm storage=ebs
