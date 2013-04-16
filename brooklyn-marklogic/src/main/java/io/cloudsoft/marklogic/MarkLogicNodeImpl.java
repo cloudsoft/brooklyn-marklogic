@@ -44,6 +44,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         setConfig(ConfigKeys.START_TIMEOUT, 240);
 
         //todo: ugly.. we don't want to get the properties  this way, but for the time being it works.
+        setConfig(WEBSITE_USERNAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-username"));
+        setConfig(WEBSITE_PASSWORD, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-password"));
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
         setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
