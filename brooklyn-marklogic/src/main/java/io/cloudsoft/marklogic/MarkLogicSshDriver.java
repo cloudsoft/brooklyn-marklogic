@@ -34,6 +34,14 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     public int getFcount() {
         return entity.getConfig(MarkLogicNode.FCOUNT);
     }
+    
+    public String getWebsiteUsername() {
+        return entity.getConfig(MarkLogicNode.WEBSITE_USERNAME);
+    }
+    
+    public String getWebsitePassword() {
+        return entity.getConfig(MarkLogicNode.WEBSITE_PASSWORD);
+    }
 
     public String getUser() {
         return entity.getConfig(MarkLogicNode.USER);

@@ -19,6 +19,16 @@ public interface MarkLogicNode extends SoftwareProcess {
    ConfigKey<String> SUGGESTED_VERSION = new BasicConfigKey<String>(
       		SoftwareProcess.SUGGESTED_VERSION, "7.0-ea1_20130315");
 
+   @SetFromFlag("websiteUsername")
+   ConfigKey<String> WEBSITE_USERNAME = new BasicConfigKey<String>(
+           String.class, "marklogic.website-username",
+           "The username to access MarkLogic Server website", null);
+
+   @SetFromFlag("websitePassword")
+   ConfigKey<String> WEBSITE_PASSWORD = new BasicConfigKey<String>(
+           String.class, "marklogic.website-password",
+           "The password to access MarkLogic website", null);
+   
    @SetFromFlag("user")
    ConfigKey<String> USER = new BasicConfigKey<String>(
            String.class, "marklogic.user",
