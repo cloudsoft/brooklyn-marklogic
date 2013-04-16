@@ -1,0 +1,278 @@
+set -x
+MARKLOGIC_AWS_ACCESS_KEY=AKIAJFEVG7RSZONJC57Q
+MARKLOGIC_AWS_SECRET_KEY=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
+
+
+node_name=$1
+if [ "$node_name" == "" ]
+then
+        echo "Must give node name"
+        exit
+fi
+
+# Get the launch config variables
+
+/opt/aws/bin/ec2-metadata -d | awk '{for (i=2;i<=NF;i++){if ($i == "export"){printf "\n%s ",$i}else {printf "%s",$i}}}' > setup
+source setup
+export HOME=/root
+
+df -k
+
+/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep ATTACHMENT 
+/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep VOLUMES 
+
+instance_id=`/opt/aws/bin/ec2-metadata -i | awk '{print $2}'`
+region=`/opt/aws/bin/ec2-metadata -z | awk '{print $2}'`
+instance_name=`wget -q -O - http://169.254.169.254/latest/meta-data/public-hostname`
+instance_type=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-type`
+
+i=0
+character=$(expr $i + 68)
+dev=`printf "sd\x$character"`
+sdb_bucket_name=`echo $MARKLOGIC_AUTO_SCALE_GROUP | sed 's/--/__/'`
+
+# Extract our meta data from simple db
+# Is the storage EBS or Ephemeral
+storage=`./simpledb get $sdb_bucket_name meta storage | awk 'BEGIN{FS="="}{print $2}'`
+
+# Are we using provisioned IOPs
+iops=`./simpledb get $sdb_bucket_name meta iops | awk 'BEGIN{FS="="}{print $2}'`
+
+# Whats our dbname
+#dbname=`./simpledb get $sdb_bucket_name meta dbname | awk 'BEGIN{FS="="}{print $2}'`
+
+# How many mounts per node
+default_mount_points=`./simpledb get $sdb_bucket_name meta default_mount_points | awk 'BEGIN{FS="="}{print $2}'`
+if [ "$default_mount_points" == "" ]
+then
+    default_mount_points=8
+fi
+
+
+# Whats our volume size
+volume_size=`./simpledb get $sdb_bucket_name meta volume_size | awk 'BEGIN{FS="="}{print $2}'`
+if [ "$volume_size" == "" ]
+then
+    volume_size=100
+fi
+
+# Where to load the ML binary from
+download_location=`./simpledb get $sdb_bucket_name meta rpm_uri | awk 'BEGIN{FS="="}{print $2}'`
+
+env
+
+# Stop MarkLogic in case we need to attach
+
+/etc/init.d/MarkLogic stop
+
+disable=1
+if [ $disable -eq 0 ]
+then
+ umount /media/ephemeral0 
+ mkdir /var/opt
+ mkdir /space2
+ chmod 777 /var/opt 
+ chmod 777 /space2
+
+
+ if [ "$storage" == "ephemeral" ]
+ then
+    mount /dev/xvdb /var/opt
+    dd if=/dev/zero of=/var/opt/swapfile1 bs=1024 count=8388608
+    mkswap /var/opt/swapfile1
+    swapon /var/opt/swapfile1
+ else
+    mount /dev/xvdb /space2 
+    dd if=/dev/zero of=/space2/swapfile1 bs=1024 count=8388608
+    mkswap /space2/swapfile1
+    swapon /space2/swapfile1
+ fi 
+
+fi
+
+
+if [ "$storage" == "ebs" ]
+then
+
+new=0
+
+# Need to lock the simpledb bucket while we attach
+
+locked=1
+while [ $locked -eq 1 ]
+do
+
+# Note error from simpledb on stderr, redirect 
+locked=`./simpledb put-conditional $sdb_bucket_name meta lock 0 lock=$instance_id 2>&1 | grep -c ERROR`
+if [ $locked -eq 1 ]
+then
+   sleep 10
+fi
+
+done
+
+num_nodes=`./simpledb get $sdb_bucket_name meta count | awk 'BEGIN{FS="="}{print $2}'`
+
+printf "./simpledb select 'select ip  from $sdb_bucket_name where ItemName() = \"$node_name\"  ' | awk ' BEGIN{FS=\"=\"} /ip/ {print \$2} '\n" > get_ip
+chmod 777 ./get_ip
+node_ip=`./get_ip`
+
+# We are taking over, install ML
+
+if [ "$node_ip" != "$instance_name" ]
+then
+   new=2
+fi
+
+
+
+printf "./simpledb select 'select volume  from $sdb_bucket_name where ItemName() = \"$node_name\"  ' | awk ' BEGIN{FS=\"=\"} /volume/ {print \$2} '\n" > get_node_volume
+chmod 777 ./get_node_volume
+volume_name=`./get_node_volume`
+
+        printf "./simpledb select 'select mount_points  from $sdb_bucket_name where ItemName() = \"$node_name\"  ' | awk ' BEGIN{FS=\"=\"} /mount_points/ {print \$2} '\n" > get_mount_points
+        chmod 777 ./get_mount_points
+        mount_points=`./get_mount_points`  
+        if [ "$mount_points" == "" ]        then 
+           mount_points=$default_mount_points
+        fi
+
+        # Attach an EBS volume for each mount_point
+        vol_count=1
+        i=105
+        while [ $vol_count -le $mount_points ]
+        do
+           hex_representation=$( printf "%X" ${i} )
+
+           fdev=`printf "sd\x$hex_representation\n"`
+           mount_point_volume_name=`./simpledb get $sdb_bucket_name $node_name volume_$vol_count | awk 'BEGIN{FS="="}{print $2}'`
+
+
+           /opt/aws/bin/ec2-attach-volume  $mount_point_volume_name -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  -i $instance_id -d /dev/$fdev
+          attached=`/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep ATTACHMENT | grep $mount_point_volume_name | grep $fdev | awk '{print $5}'`
+          while [ "$attached" != "attached" ]
+          do
+             sleep 10
+             attached=`/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep ATTACHMENT |  grep $mount_point_volume_name | grep $fdev | awk '{print $5}'`
+          done
+
+
+           ./simpledb put-replace $sdb_bucket_name $node_name mount_point_volume_$vol_count=/dev/$fdev
+          vol_count=$(expr $vol_count + 1)
+          i=$(expr $i + 1)
+        done
+
+
+            fi
+
+# Attach to the /opt volume
+
+   /opt/aws/bin/ec2-attach-volume  $volume_name -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  -i $instance_id -d /dev/$dev
+   attached=`/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep ATTACHMENT | grep $volume_name | grep $dev | awk '{print $5}'`
+   while [ "$attached" != "attached" ]
+   do
+      sleep 10
+      attached=`/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY  | grep ATTACHMENT |  grep $volume_name | grep $dev | awk '{print $5}'`
+   done
+
+        
+
+
+    ./simpledb put-replace $sdb_bucket_name  $node_name volume=$volume_name ip=$instance_name az=$region
+
+
+
+
+# Release the lock until the create DB can run in parallel
+./simpledb put-replace $sdb_bucket_name meta lock=0
+
+if [ $new -eq 0 ]
+then
+       mount /dev/$dev /var/opt
+        # Mount the ebs volumes
+        vol_count=1
+        i=105
+        while [ $vol_count -le $mount_points ]
+        do
+          hex_representation=$( printf "%X" ${i} )
+
+          fdev=`printf "sd\x$hex_representation\n"`
+
+          mount /dev/$fdev /var/opt/mldata/$node_name-$vol_count
+
+
+          vol_count=$(expr $vol_count + 1)
+          i=$(expr $i + 1)
+        done
+       chmod 777  /var/opt/mldata/*
+
+       /etc/init.d/MarkLogic start
+fi
+
+
+if [ $new -gt 0 ]
+then
+
+# This is a new instance, install MarkLogic
+
+  
+   if [ "$download_location" == "none" ]
+   then
+      this_rpm=MarkLogic-6.0-20130110.x86_64.rpm
+   else
+
+      this_rpm=`basename $download_location`
+      if [ ! -f $this_rpm ]
+      then
+         /usr/bin/wget --user dsheahan --password S\$n0psys $download_location
+      fi
+
+   fi
+
+
+       mount /dev/$dev /var/opt
+        # Mount the ebs volumes
+        vol_count=1
+        i=105
+        while [ $vol_count -le $mount_points ]
+        do
+           hex_representation=$( printf "%X" ${i} )
+
+           fdev=`printf "sd\x$hex_representation\n"`
+          mount /dev/$fdev /var/opt/mldata/$node_name-$vol_count
+
+
+          vol_count=$(expr $vol_count + 1)
+          i=$(expr $i + 1)
+        done
+       chmod 777  /var/opt/mldata/*
+
+
+# For all new instances remove, install and start ML
+   rpm -e MarkLogic
+
+   rpm -i $this_rpm
+
+   sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
+    
+   /etc/init.d/MarkLogic start
+
+   cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin
+   cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy  xqy/update.xqy xqy/verify.xqy xqy/view.xqy /var/opt/xqy
+
+   cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy create_forests.xqy create_database.xqy attach_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy rewrite-hostname.xqy /opt/MarkLogic/Admin
+
+fi
+
+# Replace the name
+
+if [ $new -eq 2 ]
+then
+
+printf "./simpledb select 'select ip  from $sdb_bucket_name where master = \"true\"  ' | awk ' BEGIN{FS=\"=\"} /ip/ {print \$2} ' \n" > get_master
+chmod 777 ./get_master
+master=`./get_master`
+
+curl --digest -u admin:admin http://$master:8001/rewrite-hostname.xqy?oldhost=$node_ip\&newhost=$instance_name
+
+fi

@@ -1,0 +1,6 @@
+marklogic__sdbv17_1c:node1:1 marklogic__sdbv17_1a:node1:replica-1
+marklogic__sdbv17_1c:node1:2 marklogic__sdbv17_1a:node1:replica-2
+marklogic__sdbv17_1a:node1:1 marklogic__sdbv17_1d:node1:replica-1
+marklogic__sdbv17_1a:node1:2 marklogic__sdbv17_1d:node1:replica-2
+marklogic__sdbv17_1d:node1:1 marklogic__sdbv17_1c:node1:replica-1
+marklogic__sdbv17_1d:node1:2 marklogic__sdbv17_1c:node1:replica-2

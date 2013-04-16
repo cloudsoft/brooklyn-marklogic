@@ -1,0 +1,2 @@
+curl --digest -u admin:hap00p http://localhost:8001/qa-restart.xqy
+sleep 10

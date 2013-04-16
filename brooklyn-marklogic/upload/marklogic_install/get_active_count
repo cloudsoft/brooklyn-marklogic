@@ -1,0 +1,1 @@
+./simpledb select 'select ItemName()  from marklogic__sdbv25_1a where ItemName() like "node%" '  

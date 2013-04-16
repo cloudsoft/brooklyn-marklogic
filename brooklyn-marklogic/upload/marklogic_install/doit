@@ -1,0 +1,22 @@
+
+/opt/aws/bin/ec2-metadata -d | awk '{for (i=2;i<=NF;i++){if ($i == "export"){printf "\n%s ",$i}else {printf "%s",$i}}}' > setup
+source setup
+export HOME=/root
+
+# Check my credentials
+if [ "$MARKLOGIC_AWS_ACCESS_KEY" == "none" ] || [ "$MARKLOGIC_AWS_SECRET_KEY" == "none" ] || [ "$MARKLOGIC_AWS_ACCESS_KEY" == "" ] || [ "$MARKLOGIC_AWS_SECRET_KEY" == "" ]
+then
+ # Without credentials we can do nothing
+ exit
+else
+ # setup credentials for simple db
+ printf "%s:%s" $MARKLOGIC_AWS_ACCESS_KEY $MARKLOGIC_AWS_SECRET_KEY > /etc/passwd-s3fs
+ # setup the credentials for S3
+ printf "access_key = %s\n" $MARKLOGIC_AWS_ACCESS_KEY > /root/.s3cfg
+ printf "secret_key = %s\n" $MARKLOGIC_AWS_SECRET_KEY >> /root/.s3cfg
+ cat s3cfg >> /root/.s3cfg
+
+fi
+
+/home/ec2-user/s3cmd-1.1.0-beta3/s3cmd ls
+

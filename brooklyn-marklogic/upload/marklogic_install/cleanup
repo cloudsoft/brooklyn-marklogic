@@ -1,0 +1,17 @@
+/opt/aws/bin/ec2-delete-volume  vol-a958b6d8 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-2e59b75f -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-7656b807 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-bc56b8cd -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-2900e858 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-4101e930 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-6502ea14 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-a502ead4 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-31769e40 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-0f779f7e -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-d048a0a1 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-bc49a1cd -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-2455be55 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-2a55be5b -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-1555be64 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-1655be67 -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-delete-volume  vol-de1de8af -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX

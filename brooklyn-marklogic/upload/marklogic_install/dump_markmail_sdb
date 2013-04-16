@@ -1,0 +1,15 @@
+echo "Meta"
+./simpledb get marklogic__sdbv19_1a meta
+echo "Node1"
+./simpledb get marklogic__sdbv19_1a node1
+echo "Node2"
+./simpledb get marklogic__sdbv19_1a node2
+echo "Node3"
+./simpledb get marklogic__sdbv19_1a node3
+echo "Node4"
+./simpledb get marklogic__sdbv19_1a node4
+echo "Node5"
+./simpledb get marklogic__sdbv19_1a node5
+echo "Node6"
+./simpledb get marklogic__sdbv19_1a node6
+

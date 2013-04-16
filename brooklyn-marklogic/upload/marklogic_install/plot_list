@@ -1,0 +1,23 @@
+cpu.png,CPU Utilization,%user,User,%nice,Nice,%system,System,%iowait,IOWait
+docs.png,Doc ingested per Second,Docs/s,Docs
+stands.png,Total Stands,Stands,Stands
+network.png,Network Tx and Rx Kbits,NtRxKb,Receive Kb/s,NtTxKb,Transmit Kb/s
+saves.png,Saves / Active Merges / Complete Merges,NumSv, Number Saves,A-Mergs,Active Merges,C-Mergs,Completed Merges
+ml-io.png,Journal / Save / Merge Read and Write MB/s,J-MB/s,Journal MB/s,Sv-MB/s,Save MB/s,M-rMB/s,Merge Read MB/s,M-wMB/s,Merge Write MB/s
+ml-read.png,Merge Read MB/s,M-rMB/s,Merge Read MB/s
+ml-write.png,Merge Write MB/s,M-wMB/s,Merge Write MB/s
+journal-io.png,Journal Write MB/s,J-MB/s,Journal MB/s
+save-io.png,Save Write MB/s,Sv-MB/s,Save MB/s
+memory.png,Memory size,Mem-MB,Memory MB
+disk_size.png,Disk size,Disk-MB,On Disk MB
+mmaped_files.png,Memory Mapped file size MB,MM-MB,total-size,MM-RSS,allocated
+anon.png,Anon memory size MB,A-MB,total-size,A-RSS,allocated
+process_size.png,MarkLogic memory size MB,Tot-MB,total-size,Tot-RSS,allocated
+total_write.png,Total write MB/s,Tt-WMB, Disk Write(MB/s)
+iops.png, Total IOPS,S-iops,Save IOPS,J-iops, Journal IOPS,MR-iops, Merge Read IOPS,MW-iops, Merge Write IOPS,T-wops, Total IOPS
+latency.png, I/O Latency,S-lat, Save Latency,J-lat, Journal Latency,MR-lat, Merge Read Latency,MW-lat, Merge Write Latency
+load.png, I/O Load,S-ld, Save Load,J-ld, Journal Load,MR-ld, Merge Read Load,MW-ld, Merge Write Load  
+latency_save.png,I/O Latency,S-lat,Save Latency
+latency_mr.png,I/O Latency,MR-lat,Merge Read Latency
+latency_mw.png,I/O Latency,MW-lat,Merge Write Latency
+latency_journal.png,I/O Latency,J-lat,Journal Latency

@@ -1,0 +1,1 @@
+./simpledb select 'select *  from marklogic__sdbv12 where ItemName() = "node3"  ' | grep mount_point_volume_4 | awk ' BEGIN{FS="="}  {print $2} '

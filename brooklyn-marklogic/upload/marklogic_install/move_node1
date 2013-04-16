@@ -1,0 +1,13 @@
+./simpledb put-replace marklogic__sdbv12 node1 volume_4=vol-e1f6cc9f
+./simpledb put-replace marklogic__sdbv12 node1 volume_3=vol-5ff6cc21
+./simpledb put-replace marklogic__sdbv12 node1 volume_2=vol-26f1cb58
+./simpledb put-replace marklogic__sdbv12 node1 volume_1=vol-80f0cafe
+./simpledb put-replace marklogic__sdbv12 node1 mount_point_volume_4=/dev/sdr
+./simpledb put-replace marklogic__sdbv12 node1 mount_point_volume_3=/dev/sdq
+./simpledb put-replace marklogic__sdbv12 node1 mount_point_volume_2=/dev/sdp
+./simpledb put-replace marklogic__sdbv12 node1 mount_point_volume_1=/dev/sdi
+
+./simpledb delete marklogic__sdbv12 node1 mount_point_vol_4
+./simpledb delete marklogic__sdbv12 node1 mount_point_vol_3
+./simpledb delete marklogic__sdbv12 node1 mount_point_vol_2
+./simpledb delete marklogic__sdbv12 node1 mount_point_vol_1
