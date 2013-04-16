@@ -23,6 +23,10 @@
             <outputDirectory>/scripts</outputDirectory>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/../brooklyn-marklogic/upload</directory>
+            <outputDirectory>/upload</outputDirectory>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/src/main/dist/bin</directory>
             <outputDirectory>/bin</outputDirectory>
             <fileMode>0755</fileMode>
