@@ -6,7 +6,8 @@ echo Installing MarkLogic rpm
 sudo yum -y --nogpgcheck install lsb gdb
 mkdir -p ~/marklogic_install/
 unzip -d ~ ~/marklogic_install.zip
-curl -O -XPOST -d'email=${driver.websiteUsername}&pass=${driver.websitePassword}' -f -L https://developer.marklogic.com/download/binaries/6.0/${driver.downloadFilename} -o ${driver.downloadFilename}
+cd ~/marklogic_install
+curl -o ~/marklogic_install/${driver.downloadFilename} https://s3.amazonaws.com/brooklyn-marklogic/${driver.downloadFilename}
 sudo -E -n -S -- rpm -i ~/marklogic_install/${driver.downloadFilename}
 echo Finished Installing the MarkLogic rpm
 
@@ -15,7 +16,6 @@ sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysc
 pushd .
 
 echo Copying xqy files
-cd ~/marklogic_install
 sudo -E -n -S -- cp join-cluster.xqy \
                      qa-restart.xqy \
                      transfer-cluster-config.xqy \
