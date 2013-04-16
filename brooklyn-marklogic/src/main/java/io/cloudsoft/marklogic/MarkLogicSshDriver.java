@@ -3,8 +3,10 @@ package io.cloudsoft.marklogic;
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.location.basic.SshMachineLocation;
+import brooklyn.util.MutableMap;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,7 +21,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 
     public MarkLogicSshDriver(EntityLocal entity, SshMachineLocation machine) {
         super(entity, machine);
-        this.nodeId  = counter.getAndIncrement();
+        this.nodeId = counter.getAndIncrement();
     }
 
     public String getDownloadFilename() {
@@ -27,7 +29,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
     }
 
-    public int getNodeId(){
+    public int getNodeId() {
         return nodeId;
     }
 
@@ -79,31 +81,39 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return entity.getConfig(MarkLogicNode.IS_MASTER);
     }
 
-    public File getBrooklynMarkLogicHome(){
+    public File getBrooklynMarkLogicHome() {
         String home = System.getenv("BROOKLYN_MARKLOGIC_HOME");
-        if(home == null){
+        if (home == null) {
             home = System.getProperty("user.dir");
-            log.warn("BROOKLYN_MARKLOGIC_HOME not found in environment, defaulting to [{}]",home);
+            log.warn("BROOKLYN_MARKLOGIC_HOME not found in environment, defaulting to [{}]", home);
         }
         return new File(home);
     }
 
-    public File getScriptDirectory(){
-        return new File(getBrooklynMarkLogicHome(),"scripts");
+    public File getScriptDirectory() {
+        return new File(getBrooklynMarkLogicHome(), "scripts");
     }
+
+    public File getUploadDirectory() {
+        return new File(getBrooklynMarkLogicHome(), "upload");
+    }
+
 
     @Override
     public void install() {
         boolean master = isMaster();
         if (master) {
             log.info("Starting installation of MarkLogic master " + getHostname());
+             uploadFiles();
         } else {
             log.info("Slave " + getHostname() + " waiting for master to be up");
+            uploadFiles();
+
             //a very nasty hack to wait on the service up from the
+
             entity.getConfig(MarkLogicNode.IS_BACKUP_EBS);
             log.info("Starting installation of MarkLogic slave " + getHostname());
         }
-
 
         String f = master ? "install_master.txt" : "install_slave.txt";
         File installScriptFile = new File(getScriptDirectory(), f);
@@ -118,9 +128,34 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .execute();
 
         if (master) {
-           log.info("Finished installation of MarkLogic master " + getHostname());
+            log.info("Finished installation of MarkLogic master " + getHostname());
         } else {
             log.info("Finished installation of MarkLogic slave " + getHostname());
+        }
+    }
+
+    private void uploadFiles() {
+        log.info("Starting upload to" + getHostname());
+
+
+        File uploadDirectory = getUploadDirectory();
+        String targetDirectory = "./";
+        uploadFiles(uploadDirectory, targetDirectory);
+
+        log.info("Finished upload to " + getHostname());
+    }
+
+    private void uploadFiles(File dir, String targetDirectory) {
+        getLocation().exec(Arrays.asList("mkdir -p "+targetDirectory), MutableMap.of());
+
+        for (File file : dir.listFiles()) {
+            final String targetLocation = targetDirectory + "/" + file.getName();
+            if (file.isDirectory()) {
+                uploadFiles(file, targetLocation);
+            } else if (file.isFile()) {
+                log.info("Copying file: "+targetLocation);
+                getLocation().copyTo(file, targetLocation);
+            }
         }
     }
 
