@@ -115,8 +115,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
             log.info("Starting installation of MarkLogic slave " + getHostname());
         }
 
-        String f = master ? "install_master.txt" : "install_slave.txt";
-        File installScriptFile = new File(getScriptDirectory(), f);
+        File installScriptFile = new File(getScriptDirectory(), "install.txt");
         String installScript = processTemplate(installScriptFile);
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());

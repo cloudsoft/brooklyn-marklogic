@@ -1,5 +1,9 @@
 echo ==============================================================================
-echo                INSTALLING MARKLOGIC MASTER
+<#if driver.isMaster()>
+echo  INSTALLING MARKLOGIC MASTER
+<#else>
+echo  INSTALLING MARKLOGIC SLAVE
+</#if>
 echo ==============================================================================
 
 echo Installing MarkLogic rpm
@@ -90,6 +94,10 @@ curl 'http://localhost:8001/qa-restart.xqy'
 sleep 60
 echo Finished restarting MarkLogic
 
+
+<#if driver.isMaster()>
+echo  INSTALLING MARKLOGIC MASTER
+
 echo Setting new credentials
 curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
 sleep 2
@@ -130,6 +138,39 @@ echo Setting metering on
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
 echo Finished setting metering on
 
+<#else>
+echo Joining cluster
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
+echo Finished joining cluster
+
+echo Transferring Cluster Config
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/transfer-cluster-config.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}'
+echo Finished transferring Cluster config
+
+echo Restarting MarkLogic
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+#todo: better mechanism needed to wait till service is available again
+sleep 30
+echo Finished restarting MarkLogic
+
+# Node has now joined cluster, after this it  add its forests to the DB
+
+echo Creating MarkMail forrest
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
+echo Finished creating MarkMail forrest
+
+echo Attaching MarkMail forrest
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
+echo Finished Attaching MarkMail forrest
+</#if>
+
 echo ==============================================================================
-echo                FINISHED INSTALLING MARKLOGIC MASTER
+<#if driver.isMaster()>
+echo  FINISHED INSTALLING MARKLOGIC MASTER!!
+<#else>
+echo  FINISHED INSTALLING MARKLOGIC SLAVE!!
+</#if>
 echo ==============================================================================
