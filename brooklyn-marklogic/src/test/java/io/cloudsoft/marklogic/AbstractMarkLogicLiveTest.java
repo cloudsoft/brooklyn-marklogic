@@ -46,9 +46,10 @@ public abstract class AbstractMarkLogicLiveTest {
     protected void testMarkLogicNode(String provider, String regionName, String imageId, String hardwareId,
             String loginUser) throws Exception {
         Map<?, ?> flags = ImmutableMap.of(
-                "imageId", regionName != null ? String.format("%s/%s", regionName, imageId) : imageId, 
-                "hardwareId", hardwareId, 
-                "loginUser", loginUser);
+                "imageId", regionName != null ? String.format("%s/%s", regionName, imageId) : imageId,
+                "hardwareId", hardwareId,
+                "loginUser", loginUser
+                );
         runTest(flags, provider, regionName);
     }
 

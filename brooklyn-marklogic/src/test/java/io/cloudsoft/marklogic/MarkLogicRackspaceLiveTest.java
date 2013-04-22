@@ -5,8 +5,8 @@ import org.testng.annotations.Test;
 @Test(groups = { "Live" })
 public class MarkLogicRackspaceLiveTest extends AbstractMarkLogicLiveTest {
 
-    private static final String PROVIDER = "cloudservers-uk";
-    private static final String SMALL_HARDWARE_ID = "2";
+    private static final String PROVIDER = "rackspace-cloudservers-uk";
+    private static final String SMALL_HARDWARE_ID = "LON/2";
     
     @Override
     public String getProvider() {
@@ -15,7 +15,7 @@ public class MarkLogicRackspaceLiveTest extends AbstractMarkLogicLiveTest {
     
     @Test
     void test_Centos_6_3_on_UK() throws Exception {
-        testMarkLogicNode(PROVIDER, null, "127", SMALL_HARDWARE_ID, "root");
+        testMarkLogicNode(PROVIDER, null, "LON/da1f0392-8c64-468f-a839-a9e56caebf07", SMALL_HARDWARE_ID, "root");
     }
 
     /*

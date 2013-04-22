@@ -19,7 +19,7 @@ public class MarkLogicEc2LiveTest extends AbstractMarkLogicLiveTest {
     void test_Amazon_Linux_AMI_on_US_East_1() throws Exception {
         testMarkLogicNode(PROVIDER, US_EAST_1_REGION_NAME, "ami-3275ee5b", SMALL_HARDWARE_ID, "ec2-user");
     }
-
+          /*
     @Test
     void test_Amazon_Linux_AMI_EU_West_1() throws Exception {
         testMarkLogicNode(PROVIDER, EU_WEST_1_REGION_NAME, "ami-44939930", SMALL_HARDWARE_ID, "ec2-user");
@@ -54,5 +54,6 @@ public class MarkLogicEc2LiveTest extends AbstractMarkLogicLiveTest {
     void test_RHEL_6_on_EU_West_1() throws Exception {
         testMarkLogicNode(PROVIDER, EU_WEST_1_REGION_NAME, "ami-c07b75b4", SMALL_HARDWARE_ID, "root");
     }
+    */
     
 }
