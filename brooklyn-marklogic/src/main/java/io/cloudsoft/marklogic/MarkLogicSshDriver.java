@@ -151,7 +151,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
             final String targetLocation = targetDirectory + "/" + file.getName();
             if (file.isDirectory()) {
                 uploadFiles(file, targetLocation);
-            } else if (file.isFile() && !file.getName().equals(".DS_STORE")) {
+            } else if (file.isFile() && !file.getName().equals(".DS_Store")) {
                 log.info("Copying file: "+targetLocation);
                 getLocation().copyTo(file, targetLocation);
             }
