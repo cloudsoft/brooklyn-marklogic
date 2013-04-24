@@ -68,6 +68,12 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<Integer> FCOUNT = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.fcount", "FCount", 4);
 
+
+    @SetFromFlag("host")
+    ConfigKey<String> HOST = new BasicConfigKey<String>(
+            String.class, "marklogic.host",
+            "The internal identifier of this marklogic node", null);
+
     @SetFromFlag("cluster")
     ConfigKey<String> CLUSTER = new BasicConfigKey<String>(
             String.class, "marklogic.cluster", "The cluster name", null);
@@ -150,10 +156,12 @@ public interface MarkLogicNode extends SoftwareProcess {
     @Description("Creates a new forest on the this MarkLogic node")
     void createForest(
             @NamedParameter("name") @Description("The name of the forest") String name,
+            @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String host,
             @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
             @NamedParameter("large-data-dir") @Description("TSpecifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
             @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
             @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest") UpdatesAllowed updatesAllowed,
             @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
+
 }

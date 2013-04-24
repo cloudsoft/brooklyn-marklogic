@@ -1,0 +1,9 @@
+# contains the template for create a marklogic forest. The forrest entity can be accessed using the ${forest} variable.
+# the marklogic node the forest is going to be installed on, can be accessed using ${entity}.
+
+
+echo Creating MarkMail forrest
+# not all forest fields are currently being passed; currently only the mandatory ones.
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/add-forest-go.xqy?forest-0-forest-name=${forest.name}&forest-0-host=${forest.host}&forest-0-updates-allowed=${forest.updatesAllowed}&forest-0-enabled=true&forest-0-rebalancer-enable=${forest.rebalancerEnabled}'
+echo Finished creating MarkMail forrest
+
