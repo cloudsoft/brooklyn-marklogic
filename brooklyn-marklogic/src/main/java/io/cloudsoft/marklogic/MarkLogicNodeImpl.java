@@ -6,14 +6,13 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.*;
+import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.event.feed.http.HttpFeed;
 import brooklyn.location.MachineProvisioningLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
@@ -26,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -227,5 +228,45 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             result.add(createOrAttachVolumeCustomizer(location, volumeId, mountPoint, sizeInGib));
         }
         return result;
+    }
+
+    private NodeType getNodeType(){
+        return getConfig(NODE_TYPE);
+    }
+
+    public MarkLogicDriver getDriver(){
+        return (MarkLogicDriver)super.getDriver();
+    }
+
+    @Override
+    public void createForest(
+            @NamedParameter("name") @Description("The name of the forest") String name,
+            @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
+            @NamedParameter("large-data-dir") @Description("TSpecifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
+            @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
+            @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest") UpdatesAllowed updatesAllowed,
+            @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
+            @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled) {
+
+         if(getNodeType() == NodeType.E_NODE){
+             throw new IllegalStateException("Can't create a forest on an e-node");
+         }
+
+
+        //todo: it probably is better not to create the entity yet; if we are automatically going to sync our internal
+        //structure to what is running in the marklogic hosts, then eventually the create forest in marklogic will result in a
+        //in a forest entity in the marklogic node.
+        Forest forest = getEntityManager().createEntity(BasicEntitySpec.newInstance(Forest.class)
+                .parent(this)
+                .configure(Forest.NAME, name)
+                .configure(Forest.DATA_DIR, dataDir)
+                .configure(Forest.LARGE_DATA_DIR, largeDataDir)
+                .configure(Forest.FAST_DATA_DIR_DIR, fastDataDir)
+                .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
+                .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
+                .configure(Forest.FAILOVER_ENABLED,failoverEnabled)
+        );
+
+        getDriver().createForest(forest);
     }
 }
