@@ -1,32 +1,24 @@
 package io.cloudsoft.marklogic;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import brooklyn.entity.basic.*;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import brooklyn.event.feed.http.HttpFeed;
 import brooklyn.location.MachineProvisioningLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsLocationCustomizer;
 import brooklyn.util.MutableMap;
-
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -119,31 +111,31 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     /**
      * Configures the location so that any instances will have the required EBS volumes attached.
      * Also sets up the datadir for the given instance, to use that EBS volume.
-     *
-	 * Algorithm
-	 *                                Lock the ASG meta Lock
-	 *
-	 *                   Do I exist in the ASG List
-	 *            Yes                                No
-	 *       Reattach                       Any free slots in the ASG List
-	 *                                Yes                    No
-	 *                         Create Node             Any Dead nodes in the ASG List
-	 *                         Create Volumes       No                        yes
-	 *                         Attach             Start Standalone      Takeover Node
-	 *                                                                  Attach volumes
-	 *
-	 *                              Unlock the ASG meta lock
-	 *
-	 *                              Lock Cluster Lock
-	 *                              Check Cluster Master
-	 *                         1. none?   Become Master - Database Created?  Create DB
-	 *                         2. Dead?   Did I take over his node?  Yes I am Master, No wait for master
-	 *                         3  Alive?  Nothing to do
-	 *                              UnLock Cluster Lock
-	 *
-	 *              Same node? Nothing to do
-	 *              New node?  Join cluster
-	 *              Takeover node?  Fix host, become master if I am master
+     * <p/>
+     * Algorithm
+     * Lock the ASG meta Lock
+     * <p/>
+     * Do I exist in the ASG List
+     * Yes                                No
+     * Reattach                       Any free slots in the ASG List
+     * Yes                    No
+     * Create Node             Any Dead nodes in the ASG List
+     * Create Volumes       No                        yes
+     * Attach             Start Standalone      Takeover Node
+     * Attach volumes
+     * <p/>
+     * Unlock the ASG meta lock
+     * <p/>
+     * Lock Cluster Lock
+     * Check Cluster Master
+     * 1. none?   Become Master - Database Created?  Create DB
+     * 2. Dead?   Did I take over his node?  Yes I am Master, No wait for master
+     * 3  Alive?  Nothing to do
+     * UnLock Cluster Lock
+     * <p/>
+     * Same node? Nothing to do
+     * New node?  Join cluster
+     * Takeover node?  Fix host, become master if I am master
      */
 //    protected JcloudsLocationCustomizer getEbsVolumeCustomizer(JcloudsLocation location) {
 //        // TODO Currently only new node, and semi-handling replacing a node if configured with appropriate volume ids
@@ -184,7 +176,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 //
 //        return new CompoundJcloudsLocationCustomizer(customizers);
 //    }
-
     private String nextDeviceSuffix() {
         return Character.toString((char) deviceNameSuffix.getAndIncrement()).toLowerCase();
     }
@@ -230,17 +221,18 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return result;
     }
 
-    private NodeType getNodeType(){
+    private NodeType getNodeType() {
         return getConfig(NODE_TYPE);
     }
 
-    public MarkLogicDriver getDriver(){
-        return (MarkLogicDriver)super.getDriver();
+    public MarkLogicDriver getDriver() {
+        return (MarkLogicDriver) super.getDriver();
     }
 
     @Override
     public void createForest(
             @NamedParameter("name") @Description("The name of the forest") String name,
+            @NamedParameter("host") @Description("Specifies the host on which the forest resides") String host,
             @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
             @NamedParameter("large-data-dir") @Description("TSpecifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
             @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
@@ -248,23 +240,26 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled) {
 
-         if(getNodeType() == NodeType.E_NODE){
-             throw new IllegalStateException("Can't create a forest on an e-node");
-         }
-
+        if (getNodeType() == NodeType.E_NODE) {
+            throw new IllegalStateException("Can't create a forest on an e-node");
+        }
 
         //todo: it probably is better not to create the entity yet; if we are automatically going to sync our internal
         //structure to what is running in the marklogic hosts, then eventually the create forest in marklogic will result in a
         //in a forest entity in the marklogic node.
+
+        //todo: do we want to have the marklogicnode as parent of the forest, or should we insert a group entity in between.
+
         Forest forest = getEntityManager().createEntity(BasicEntitySpec.newInstance(Forest.class)
                 .parent(this)
                 .configure(Forest.NAME, name)
+                .configure(Forest.HOST, host)
                 .configure(Forest.DATA_DIR, dataDir)
                 .configure(Forest.LARGE_DATA_DIR, largeDataDir)
-                .configure(Forest.FAST_DATA_DIR_DIR, fastDataDir)
+                .configure(Forest.FAST_DATA_DIR, fastDataDir)
                 .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
                 .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
-                .configure(Forest.FAILOVER_ENABLED,failoverEnabled)
+                .configure(Forest.FAILOVER_ENABLED, failoverEnabled)
         );
 
         getDriver().createForest(forest);
