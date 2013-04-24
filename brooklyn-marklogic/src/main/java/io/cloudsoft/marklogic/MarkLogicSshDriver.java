@@ -169,16 +169,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(sudo("/etc/init.d/MarkLogic start"));
         commands.add("sleep 10"); // Have seen cases where startup takes some time
 
-        //// TODO Where does clusterJoin.py etc come from?
-        //if (entity.getConfig(MarkLogicNode.IS_MASTER)) {
-        //    // TODO
-        //} else {
-        //    //String masterInstance = entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
-        //    //commands.add(sudo(format("python clusterJoin.py -n hosts.txt -u ec2-user -l license.txt -c %s > init_ml", masterInstance)));
-        //    // TODO More stuff like this
-        //}
-
-        newScript(LAUNCHING)
+       newScript(LAUNCHING)
                 .failOnNonZeroResultCode()
                 .body.append(commands)
                 .execute();
@@ -208,6 +199,22 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         newScript(LAUNCHING)
                 .failOnNonZeroResultCode()
                 .body.append(sudo("/etc/init.d/MarkLogic stop"))
+                .execute();
+    }
+
+    @Override
+    public void createForest(Forest forest) {
+        File installScriptFile = new File(getScriptDirectory(), "create_forest.txt");
+        String installScript = processTemplate(installScriptFile);
+        //todo: we need to inject the forest for easy access in the script.
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript(INSTALLING)
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
                 .execute();
     }
 }
