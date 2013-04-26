@@ -84,12 +84,12 @@ public class ForestTest {
 
         app.start(ImmutableList.of(jcloudsLocation));
 
-
         EntityTestUtils.assertAttributeEqualsEventually(markLogicNode, SoftwareProcess.SERVICE_UP, true);
 
-        String forestName = "peter";
+        String forestName = "peter"+System.currentTimeMillis();
 
-        markLogicNode.createForest("peter", "/data", "/largeData", "/fastData", UpdatesAllowed.ALL, true, false);
+        ///var/opt/MarkLogic
+        markLogicNode.createForest(forestName, null, null, null, UpdatesAllowed.ALL, true, false);
 
         String username = markLogicNode.getConfig(MarkLogicNode.USER);
         String password = markLogicNode.getConfig(MarkLogicNode.PASSWORD);
@@ -101,5 +101,8 @@ public class ForestTest {
 
         int exitCode = sshMachineLocation.exec(ImmutableMap.of(), checkIfExistCommand);
         Assert.assertEquals(0, exitCode);
+
+        LOG.error("================================================================");
+        Thread.sleep(100000000);
     }
 }
