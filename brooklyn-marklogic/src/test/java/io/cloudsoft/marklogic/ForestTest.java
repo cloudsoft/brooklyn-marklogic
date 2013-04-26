@@ -6,6 +6,7 @@ import brooklyn.entity.basic.Entities;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.location.Location;
+import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.management.ManagementContext;
 import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
@@ -15,20 +16,24 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.List;
 import java.util.Map;
 
-//todo: we need to clean up this test.. best to be able to run on localhost
+import static java.lang.String.format;
+
+@Test(groups = {"Live"})
 public class ForestTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(ForestTest.class);
 
     public static final String PROVIDER = "aws-ec2";
 
-    public static final String MEDIUM_HARDWARE_ID = "m1.small";
+    public static final String MEDIUM_HARDWARE_ID = "m1.medium";
 
     protected BrooklynProperties brooklynProperties;
     protected ManagementContext ctx;
@@ -63,29 +68,38 @@ public class ForestTest {
         String regionName = "us-east-1";
         String amiId = "ami-3275ee5b";
         String loginUser = "ec2-user";
-        String imageId = String.format("%s/%s", regionName, amiId);
-        Map<?, ?> flags = ImmutableMap.of("imageId", imageId,
-                "hardwareId", MEDIUM_HARDWARE_ID,
-                "loginUser", loginUser == null ? "root" : loginUser);
+        String imageId = format("%s/%s", regionName, amiId);
+        Map<?, ?> flags = ImmutableMap.of("imageId", imageId, "hardwareId", MEDIUM_HARDWARE_ID, "loginUser", loginUser);
         runTest(flags, PROVIDER, regionName);
     }
 
     protected void runTest(Map<?, ?> flags, String provider, String regionName) throws Exception {
         Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
-        String locationSpec = String.format("%s:%s", provider, regionName);
+        String locationSpec = format("%s:%s", provider, regionName);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);
-        doTest(jcloudsLocation);
-    }
-
-    private void doTest(Location loc) throws Exception {
         markLogicNode = app.createAndManageChild(BasicEntitySpec.newInstance(MarkLogicNode.class)
+                .configure(MarkLogicNode.IS_MASTER, true)
                 .configure(MarkLogicNode.MASTER_ADDRESS, "localhost"));
 
-        app.start(ImmutableList.of(loc));
+
+        app.start(ImmutableList.of(jcloudsLocation));
+
+
         EntityTestUtils.assertAttributeEqualsEventually(markLogicNode, SoftwareProcess.SERVICE_UP, true);
+
+        String forestName = "peter";
 
         markLogicNode.createForest("peter", "/data", "/largeData", "/fastData", UpdatesAllowed.ALL, true, false);
 
-        //todo: verify that this forest is created.
+        String username = markLogicNode.getConfig(MarkLogicNode.USER);
+        String password = markLogicNode.getConfig(MarkLogicNode.PASSWORD);
+
+        List<String> checkIfExistCommand = ImmutableList.of(
+                format("curl --digest -u %s:%s 'http://localhost:8001/forest-summary.xqy?section=forest' | grep %s", username, password, forestName));
+
+        SshMachineLocation sshMachineLocation = (SshMachineLocation) markLogicNode.getLocations().iterator().next();
+
+        int exitCode = sshMachineLocation.exec(ImmutableMap.of(), checkIfExistCommand);
+        Assert.assertEquals(0, exitCode);
     }
 }

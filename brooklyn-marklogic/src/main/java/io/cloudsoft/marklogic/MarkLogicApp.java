@@ -56,6 +56,9 @@ public class MarkLogicApp extends AbstractApplication {
       LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
               cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
               ":8002/dashboard'");
+
+       MarkLogicNode masterNode = cluster.getAttribute(MarkLogicCluster.MASTER_NODE);
+       masterNode.createForest("peter", "/data", "/largeData", "/fastData", UpdatesAllowed.ALL, true, false);
    }
 
    /**
