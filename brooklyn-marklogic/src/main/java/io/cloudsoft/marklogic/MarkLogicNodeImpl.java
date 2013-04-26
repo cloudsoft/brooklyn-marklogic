@@ -232,7 +232,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void createForest(
             @NamedParameter("name") @Description("The name of the forest") String name,
-            @NamedParameter("host") @Description("Specifies the host on which the forest resides") String host,
             @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
             @NamedParameter("large-data-dir") @Description("TSpecifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
             @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
@@ -253,7 +252,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         Forest forest = getEntityManager().createEntity(BasicEntitySpec.newInstance(Forest.class)
                 .parent(this)
                 .configure(Forest.NAME, name)
-                .configure(Forest.HOST, host)
+               // .configure(Forest.HOST, host)
                 .configure(Forest.DATA_DIR, dataDir)
                 .configure(Forest.LARGE_DATA_DIR, largeDataDir)
                 .configure(Forest.FAST_DATA_DIR, fastDataDir)

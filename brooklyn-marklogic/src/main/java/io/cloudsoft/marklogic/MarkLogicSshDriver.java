@@ -45,11 +45,11 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     public int getFcount() {
         return entity.getConfig(MarkLogicNode.FCOUNT);
     }
-    
+
     public String getWebsiteUsername() {
         return entity.getConfig(MarkLogicNode.WEBSITE_USERNAME);
     }
-    
+
     public String getWebsitePassword() {
         return entity.getConfig(MarkLogicNode.WEBSITE_PASSWORD);
     }
@@ -112,7 +112,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         boolean master = isMaster();
         if (master) {
             log.info("Starting installation of MarkLogic master " + getHostname());
-             uploadFiles();
+            uploadFiles();
         } else {
             log.info("Slave " + getHostname() + " waiting for master to be up");
             uploadFiles();
@@ -153,14 +153,14 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     }
 
     private void uploadFiles(File dir, String targetDirectory) {
-        getLocation().exec(Arrays.asList("mkdir -p "+targetDirectory), MutableMap.of());
+        getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
 
         for (File file : dir.listFiles()) {
             final String targetLocation = targetDirectory + "/" + file.getName();
             if (file.isDirectory()) {
                 uploadFiles(file, targetLocation);
             } else if (file.isFile() && !file.getName().equals(".DS_Store")) {
-                log.info("Copying file: "+targetLocation);
+                log.info("Copying file: " + targetLocation);
                 getLocation().copyTo(file, targetLocation);
             }
         }
@@ -177,7 +177,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         commands.add(sudo("/etc/init.d/MarkLogic start"));
         commands.add("sleep 10"); // Have seen cases where startup takes some time
 
-       newScript(LAUNCHING)
+        newScript(LAUNCHING)
                 .failOnNonZeroResultCode()
                 .body.append(commands)
                 .execute();
@@ -211,12 +211,12 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     }
 
     //todo: method can be removed when we upgrade to brooklyn 0.6
-    public String processTemplate(File templateConfigFile, Map<String,Object> extraSubstitutions) {
-        return processTemplate(templateConfigFile.toURI().toASCIIString(),extraSubstitutions);
+    public String processTemplate(File templateConfigFile, Map<String, Object> extraSubstitutions) {
+        return processTemplate(templateConfigFile.toURI().toASCIIString(), extraSubstitutions);
     }
 
     //todo: method can be removed when we upgrade to brooklyn 0.6
-    public String processTemplate(String templateConfigUrl, Map<String,Object> extraSubstitutions) {
+    public String processTemplate(String templateConfigUrl, Map<String, Object> extraSubstitutions) {
         Map<String, Object> config = getEntity().getApplication().getManagementContext().getConfig().asMapWithStringKeys();
         Map<String, Object> substitutions = ImmutableMap.<String, Object>builder()
                 .putAll(config)
@@ -242,24 +242,29 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 
             return new String(baos.toByteArray());
         } catch (Exception e) {
-            log.warn("Error creating configuration file for "+entity, e);
+            log.warn("Error creating configuration file for " + entity, e);
             throw Exceptions.propagate(e);
         }
     }
 
     @Override
     public void createForest(Forest forest) {
-        Map<String,Object> extraSubstitutions = (Map<String,Object>)(Map)MutableMap.of("forest",forest);
+        log.info("Starting create forest" + forest.getName());
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forest);
         File installScriptFile = new File(getScriptDirectory(), "create_forest.txt");
-        String installScript = processTemplate(installScriptFile,extraSubstitutions);
+        String installScript = processTemplate(installScriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
-        newScript(INSTALLING)
+        newScript("createForest")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
+
+        log.info("Finished creating forest" + forest.getName());
+
     }
 }

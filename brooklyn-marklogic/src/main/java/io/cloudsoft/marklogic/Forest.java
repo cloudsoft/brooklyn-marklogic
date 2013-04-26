@@ -14,18 +14,17 @@ public interface Forest extends Entity {
             String.class, "marklogic.forest.name",
             "The name of the forest", null);
 
+    @SetFromFlag("host")
+    ConfigKey<String> HOST = new BasicConfigKey<String>(
+            String.class, "marklogic.forest.host",
+            "Specifies the host on which the forest resides. This is not the dnsname/ip, but an internal nummeric id.", null);
+
     @SetFromFlag("data_dir")
     ConfigKey<String> DATA_DIR = new BasicConfigKey<String>(
             String.class, "marklogic.forest.data-dir",
             "Specifies a public directory in which the forest is located. If the data directory is not specified, the " +
                     "forest will be created in the default forest directory on the host machine and the specified host " +
                     "machine cannot be changed once the forest is created.", null);
-
-    @SetFromFlag("host")
-    ConfigKey<String> HOST = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.host",
-            "Specifies the host on which the forest resides. PS: This is not the dnsname/ip, but an internal nummeric id.", null);
-
 
     @SetFromFlag("large_dataDir")
     ConfigKey<String> LARGE_DATA_DIR = new BasicConfigKey<String>(
@@ -52,8 +51,22 @@ public interface Forest extends Entity {
             Boolean.class, "marklogic.failover-enabled",
             "Enable assignment to a failover host if the primary host is down.", false);
 
+    String getName();
 
-    //todo: host
+    String getHost();
+
+    String getDataDir();
+
+    String getLargeDataDir();
+
+    String getFastDataDir();
+
+    UpdatesAllowed getUpdatesAllowed();
+
+    boolean isRebalancerEnabled();
+
+    boolean isFailoverEnabled();
+
     //todo: failoverhosts
     //todo: forest replicas
 }
