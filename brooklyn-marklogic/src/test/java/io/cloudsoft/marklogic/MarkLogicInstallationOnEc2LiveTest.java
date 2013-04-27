@@ -68,7 +68,7 @@ public class MarkLogicInstallationOnEc2LiveTest {
 
       // Also removes scriptHeader (e.g. if doing `. ~/.bashrc` and `. ~/.profile`, then that can cause "stdin: is not a tty")
       brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
-      ctx = new LocalManagementContext(brooklynProperties);
+      ctx = new LocalManagementContext((Map)brooklynProperties);
       app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
    }
 
