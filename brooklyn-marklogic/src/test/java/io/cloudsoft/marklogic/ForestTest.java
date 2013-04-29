@@ -89,7 +89,7 @@ public class ForestTest {
         String forestName = "peter"+System.currentTimeMillis();
 
         ///var/opt/MarkLogic
-        markLogicNode.createForest(forestName, null, null, null, UpdatesAllowed.ALL, true, false);
+        markLogicNode.createForest(forestName, null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
 
         String username = markLogicNode.getConfig(MarkLogicNode.USER);
         String password = markLogicNode.getConfig(MarkLogicNode.PASSWORD);
@@ -100,9 +100,6 @@ public class ForestTest {
         SshMachineLocation sshMachineLocation = (SshMachineLocation) markLogicNode.getLocations().iterator().next();
 
         int exitCode = sshMachineLocation.exec(ImmutableMap.of(), checkIfExistCommand);
-        Assert.assertEquals(0, exitCode);
-
-        LOG.error("================================================================");
-        Thread.sleep(100000000);
+        Assert.assertEquals(0, exitCode,"forest:"+forestName+" was not found");
     }
 }

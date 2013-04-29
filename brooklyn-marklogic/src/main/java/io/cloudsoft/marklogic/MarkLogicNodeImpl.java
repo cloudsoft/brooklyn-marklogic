@@ -1,6 +1,8 @@
 package io.cloudsoft.marklogic;
 
-import brooklyn.entity.basic.*;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
@@ -19,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.lang.String.format;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -230,14 +234,27 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
+    public String getMasterAddress() {
+        return getConfig(MASTER_ADDRESS);
+    }
+
+    @Override
+    public void foo() {
+        LOG.info("Foo called");
+    }
+
+    @Override
     public void createForest(
-            @NamedParameter("name") @Description("The name of the forest") String name,
-            @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
-            @NamedParameter("large-data-dir") @Description("TSpecifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
-            @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
-            @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest") UpdatesAllowed updatesAllowed,
-            @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
-            @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled) {
+            String name,
+            String dataDir,
+            String largeDataDir,
+            String fastDataDir,
+            String updatesAllowedStr,
+            String rebalancerEnabled,
+            String failoverEnabled) {
+
+        LOG.info(format("Creating forest name '%s' dataDir '%s' largeDataDir '%s' fastDataDir '%s' updatesAllowed '%s' rebalancerEnabled '%s' failoverEnabled '%s'",
+                name, dataDir, largeDataDir, fastDataDir, updatesAllowedStr, rebalancerEnabled, failoverEnabled));
 
         if (getNodeType() == NodeType.E_NODE) {
             throw new IllegalStateException("Can't create a forest on an e-node");
@@ -249,16 +266,18 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
         //todo: do we want to have the marklogicnode as parent of the forest, or should we insert a group entity in between.
 
+        UpdatesAllowed updatesAllowed = UpdatesAllowed.get(updatesAllowedStr);
+
         Forest forest = getEntityManager().createEntity(BasicEntitySpec.newInstance(Forest.class)
                 .parent(this)
                 .configure(Forest.NAME, name)
-               // .configure(Forest.HOST, host)
+                        // .configure(Forest.HOST, host)
                 .configure(Forest.DATA_DIR, dataDir)
                 .configure(Forest.LARGE_DATA_DIR, largeDataDir)
                 .configure(Forest.FAST_DATA_DIR, fastDataDir)
                 .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
-                .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
-                .configure(Forest.FAILOVER_ENABLED, failoverEnabled)
+                .configure(Forest.REBALANCER_ENABLED, true)//rebalancerEnabled)
+                .configure(Forest.FAILOVER_ENABLED, true)//failoverEnabled)
         );
 
         getDriver().createForest(forest);

@@ -1,5 +1,7 @@
 package io.cloudsoft.marklogic;
 
+import static java.lang.String.format;
+
 /**
  * specifies which operations are allowed on this forest
  */
@@ -29,6 +31,27 @@ public enum UpdatesAllowed {
     @Override
     public String toString() {
         return name;
+    }
+
+    public static UpdatesAllowed get(String s){
+        if(ALL.name.equals(s)){
+            return ALL;
+        }
+
+        if(DELETE_ONLY.name.equals(s)){
+            return DELETE_ONLY;
+        }
+
+        if(READ_ONLY.name.equals(s)){
+            return READ_ONLY;
+        }
+
+        if(FLASH_BACKUPS.name.equals(s)){
+            return FLASH_BACKUPS;
+        }
+
+        throw new IllegalArgumentException(
+                format("UpdatesAllowed value: '%s' should be one of %s,%s,%s,%s",s,ALL.name,DELETE_ONLY.name,READ_ONLY.name,FLASH_BACKUPS.name));
     }
 }
 
