@@ -1,8 +1,6 @@
 package io.cloudsoft.marklogic;
 
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
-import brooklyn.entity.basic.SoftwareProcessImpl;
+import brooklyn.entity.basic.*;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
@@ -239,11 +237,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void foo() {
-        LOG.info("Foo called");
-    }
-
-    @Override
     public void createForest(
             String name,
             String dataDir,
@@ -281,5 +274,12 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         );
 
         getDriver().createForest(forest);
+    }
+
+    @Override
+    public void createDatabase(String name) {
+        LOG.info(format("Creating database '%s'",name));
+
+        //todo: implement
     }
 }

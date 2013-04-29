@@ -1,0 +1,8 @@
+<#--
+contains the template for create a marklogic database. The database entity can be accessed using the ${database} variable.
+-->
+
+echo Creating MarkLogic database ${database.name}
+# not all forest fields are currently being passed; currently only the mandatory ones.
+curl --digest -u ${driver.user}:${driver.password} "http://${entity.masterAddress}:8001/add-database-go.xqy?database-name=${database.name}"
+echo Finished creating MarkLogic database
