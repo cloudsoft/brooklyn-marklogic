@@ -1,0 +1,22 @@
+<#--
+contains the template for create a marklogic forest. The forrest entity can be accessed using the ${forest} variable.
+the marklogic node the forest is going to be installed on, can be accessed using ${entity}.
+-->
+
+#here we convert the name of the hostmachine to the internal id. This is a work around,
+HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} 'http://${entity.masterAddress}:8001/add-forest.xqy?section=forest' | grep -i -m 1 '${driver.hostname}</option>' | grep  -Po -m1 'value=".*?"' | grep  -Po -m1 '".*?"' | tr -d '"')
+
+echo found host: $HOST_ID
+
+echo Creating MarkLogic forrest
+# not all forest fields are currently being passed; currently only the mandatory ones.
+curl --digest -u ${driver.user}:${driver.password} "http://${entity.masterAddress}:8001/add-forest-go.xqy?forest-0-forest-name=${forest.name}&forest-0-host=<#noparse>${HOST_ID}</#noparse>&forest-0-updates-allowed=${forest.updatesAllowed}&forest-0-enabled=true&forest-0-rebalancer-enable=${forest.rebalancerEnabled?string}&forest-0-failover-enable=${forest.failoverEnabled?string}&forest-0-data-directory=${forest.dataDir!""}&forest-0-large-data-directory=${forest.largeDataDir!""}&forest-0-fast-data-directory=${forest.fastDataDir!""}"
+echo Finished creating MarkLogic forrest
+
+
+#forest-0-enabled:true
+#forest-0-large-data-directory:
+#forest-0-fast-data-directory:
+#forest-0-failover-host-1:
+#forest-0-forest-id:7375501711684012498
+#forest-0-forest-replica:0
