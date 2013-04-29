@@ -34,6 +34,8 @@ brooklyn.marklogic.fcount=4
 brooklyn.marklogic.cluster=<clustername>
 brooklyn.marklogic.version=7.0-ea1_20130315
 brooklyn.marklogic.initial-cluster-size=2
+brooklyn.marklogic.website-username=<your marklogic website login name>
+brooklyn.marklogic.website-password=<your marklogic website password>
 
 Since we are relying on EC2 for the examples, the brooklyn.jclouds.aws-ec2.* properties need to be provided.
 
