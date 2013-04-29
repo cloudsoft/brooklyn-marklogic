@@ -1,31 +1,26 @@
 package io.cloudsoft.marklogic;
 
+import brooklyn.entity.basic.*;
+import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
+import brooklyn.event.feed.http.HttpFeed;
+import brooklyn.location.MachineProvisioningLocation;
+import brooklyn.location.jclouds.JcloudsLocation;
+import brooklyn.location.jclouds.JcloudsLocationCustomizer;
+import brooklyn.util.MutableMap;
+import com.google.common.base.Functions;
+import com.google.common.collect.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
-import brooklyn.event.feed.function.FunctionFeed;
-import brooklyn.event.feed.function.FunctionPollConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import brooklyn.entity.basic.SoftwareProcessImpl;
-import brooklyn.event.feed.http.HttpFeed;
-import brooklyn.location.MachineProvisioningLocation;
-import brooklyn.location.jclouds.JcloudsLocation;
-import brooklyn.location.jclouds.JcloudsLocationCustomizer;
-import brooklyn.util.MutableMap;
-
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import static java.lang.String.format;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -118,31 +113,31 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     /**
      * Configures the location so that any instances will have the required EBS volumes attached.
      * Also sets up the datadir for the given instance, to use that EBS volume.
-     *
-	 * Algorithm
-	 *                                Lock the ASG meta Lock
-	 *
-	 *                   Do I exist in the ASG List
-	 *            Yes                                No
-	 *       Reattach                       Any free slots in the ASG List
-	 *                                Yes                    No
-	 *                         Create Node             Any Dead nodes in the ASG List
-	 *                         Create Volumes       No                        yes
-	 *                         Attach             Start Standalone      Takeover Node
-	 *                                                                  Attach volumes
-	 *
-	 *                              Unlock the ASG meta lock
-	 *
-	 *                              Lock Cluster Lock
-	 *                              Check Cluster Master
-	 *                         1. none?   Become Master - Database Created?  Create DB
-	 *                         2. Dead?   Did I take over his node?  Yes I am Master, No wait for master
-	 *                         3  Alive?  Nothing to do
-	 *                              UnLock Cluster Lock
-	 *
-	 *              Same node? Nothing to do
-	 *              New node?  Join cluster
-	 *              Takeover node?  Fix host, become master if I am master
+     * <p/>
+     * Algorithm
+     * Lock the ASG meta Lock
+     * <p/>
+     * Do I exist in the ASG List
+     * Yes                                No
+     * Reattach                       Any free slots in the ASG List
+     * Yes                    No
+     * Create Node             Any Dead nodes in the ASG List
+     * Create Volumes       No                        yes
+     * Attach             Start Standalone      Takeover Node
+     * Attach volumes
+     * <p/>
+     * Unlock the ASG meta lock
+     * <p/>
+     * Lock Cluster Lock
+     * Check Cluster Master
+     * 1. none?   Become Master - Database Created?  Create DB
+     * 2. Dead?   Did I take over his node?  Yes I am Master, No wait for master
+     * 3  Alive?  Nothing to do
+     * UnLock Cluster Lock
+     * <p/>
+     * Same node? Nothing to do
+     * New node?  Join cluster
+     * Takeover node?  Fix host, become master if I am master
      */
 //    protected JcloudsLocationCustomizer getEbsVolumeCustomizer(JcloudsLocation location) {
 //        // TODO Currently only new node, and semi-handling replacing a node if configured with appropriate volume ids
@@ -183,7 +178,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 //
 //        return new CompoundJcloudsLocationCustomizer(customizers);
 //    }
-
     private String nextDeviceSuffix() {
         return Character.toString((char) deviceNameSuffix.getAndIncrement()).toLowerCase();
     }
@@ -227,5 +221,65 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             result.add(createOrAttachVolumeCustomizer(location, volumeId, mountPoint, sizeInGib));
         }
         return result;
+    }
+
+    private NodeType getNodeType() {
+        return getConfig(NODE_TYPE);
+    }
+
+    public MarkLogicDriver getDriver() {
+        return (MarkLogicDriver) super.getDriver();
+    }
+
+    @Override
+    public String getMasterAddress() {
+        return getConfig(MASTER_ADDRESS);
+    }
+
+    @Override
+    public void createForest(
+            String name,
+            String dataDir,
+            String largeDataDir,
+            String fastDataDir,
+            String updatesAllowedStr,
+            String rebalancerEnabled,
+            String failoverEnabled) {
+
+        LOG.info(format("Creating forest name '%s' dataDir '%s' largeDataDir '%s' fastDataDir '%s' updatesAllowed '%s' rebalancerEnabled '%s' failoverEnabled '%s'",
+                name, dataDir, largeDataDir, fastDataDir, updatesAllowedStr, rebalancerEnabled, failoverEnabled));
+
+        if (getNodeType() == NodeType.E_NODE) {
+            throw new IllegalStateException("Can't create a forest on an e-node");
+        }
+
+        //todo: it probably is better not to create the entity yet; if we are automatically going to sync our internal
+        //structure to what is running in the marklogic hosts, then eventually the create forest in marklogic will result in a
+        //in a forest entity in the marklogic node.
+
+        //todo: do we want to have the marklogicnode as parent of the forest, or should we insert a group entity in between.
+
+        UpdatesAllowed updatesAllowed = UpdatesAllowed.get(updatesAllowedStr);
+
+        Forest forest = getEntityManager().createEntity(BasicEntitySpec.newInstance(Forest.class)
+                .parent(this)
+                .configure(Forest.NAME, name)
+                        // .configure(Forest.HOST, host)
+                .configure(Forest.DATA_DIR, dataDir)
+                .configure(Forest.LARGE_DATA_DIR, largeDataDir)
+                .configure(Forest.FAST_DATA_DIR, fastDataDir)
+                .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
+                .configure(Forest.REBALANCER_ENABLED, true)//rebalancerEnabled)
+                .configure(Forest.FAILOVER_ENABLED, true)//failoverEnabled)
+        );
+
+        getDriver().createForest(forest);
+    }
+
+    @Override
+    public void createDatabase(String name) {
+        LOG.info(format("Creating database '%s'",name));
+
+        //todo: implement
     }
 }

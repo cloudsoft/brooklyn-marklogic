@@ -4,11 +4,20 @@ import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.MutableMap;
+import brooklyn.util.exceptions.Exceptions;
+import com.google.common.collect.ImmutableMap;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
@@ -36,11 +45,11 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     public int getFcount() {
         return entity.getConfig(MarkLogicNode.FCOUNT);
     }
-    
+
     public String getWebsiteUsername() {
         return entity.getConfig(MarkLogicNode.WEBSITE_USERNAME);
     }
-    
+
     public String getWebsitePassword() {
         return entity.getConfig(MarkLogicNode.WEBSITE_PASSWORD);
     }
@@ -98,13 +107,12 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         return new File(getBrooklynMarkLogicHome(), "upload");
     }
 
-
     @Override
     public void install() {
         boolean master = isMaster();
         if (master) {
             log.info("Starting installation of MarkLogic master " + getHostname());
-             uploadFiles();
+            uploadFiles();
         } else {
             log.info("Slave " + getHostname() + " waiting for master to be up");
             uploadFiles();
@@ -145,14 +153,14 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     }
 
     private void uploadFiles(File dir, String targetDirectory) {
-        getLocation().exec(Arrays.asList("mkdir -p "+targetDirectory), MutableMap.of());
+        getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
 
         for (File file : dir.listFiles()) {
             final String targetLocation = targetDirectory + "/" + file.getName();
             if (file.isDirectory()) {
                 uploadFiles(file, targetLocation);
             } else if (file.isFile() && !file.getName().equals(".DS_Store")) {
-                log.info("Copying file: "+targetLocation);
+                log.info("Copying file: " + targetLocation);
                 getLocation().copyTo(file, targetLocation);
             }
         }
@@ -168,15 +176,6 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         List<String> commands = new LinkedList<String>();
         commands.add(sudo("/etc/init.d/MarkLogic start"));
         commands.add("sleep 10"); // Have seen cases where startup takes some time
-
-        //// TODO Where does clusterJoin.py etc come from?
-        //if (entity.getConfig(MarkLogicNode.IS_MASTER)) {
-        //    // TODO
-        //} else {
-        //    //String masterInstance = entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
-        //    //commands.add(sudo(format("python clusterJoin.py -n hosts.txt -u ec2-user -l license.txt -c %s > init_ml", masterInstance)));
-        //    // TODO More stuff like this
-        //}
 
         newScript(LAUNCHING)
                 .failOnNonZeroResultCode()
@@ -209,5 +208,63 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .failOnNonZeroResultCode()
                 .body.append(sudo("/etc/init.d/MarkLogic stop"))
                 .execute();
+    }
+
+    //todo: method can be removed when we upgrade to brooklyn 0.6
+    public String processTemplate(File templateConfigFile, Map<String, Object> extraSubstitutions) {
+        return processTemplate(templateConfigFile.toURI().toASCIIString(), extraSubstitutions);
+    }
+
+    //todo: method can be removed when we upgrade to brooklyn 0.6
+    public String processTemplate(String templateConfigUrl, Map<String, Object> extraSubstitutions) {
+        Map<String, Object> config = getEntity().getApplication().getManagementContext().getConfig().asMapWithStringKeys();
+        Map<String, Object> substitutions = ImmutableMap.<String, Object>builder()
+                .putAll(config)
+                .put("entity", entity)
+                .put("driver", this)
+                .put("location", getLocation())
+                .putAll(extraSubstitutions)
+                .build();
+
+        try {
+            String templateConfigFile = getResourceAsString(templateConfigUrl);
+
+            Configuration cfg = new Configuration();
+            StringTemplateLoader templateLoader = new StringTemplateLoader();
+            templateLoader.putTemplate("config", templateConfigFile);
+            cfg.setTemplateLoader(templateLoader);
+            Template template = cfg.getTemplate("config");
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Writer out = new OutputStreamWriter(baos);
+            template.process(substitutions, out);
+            out.flush();
+
+            return new String(baos.toByteArray());
+        } catch (Exception e) {
+            log.warn("Error creating configuration file for " + entity, e);
+            throw Exceptions.propagate(e);
+        }
+    }
+
+    @Override
+    public void createForest(Forest forest) {
+        log.info("Starting create forest" + forest.getName());
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forest);
+        File installScriptFile = new File(getScriptDirectory(), "create_forest.txt");
+        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript("createForest")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        log.info("Finished creating forest" + forest.getName());
+
     }
 }

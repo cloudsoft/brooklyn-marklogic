@@ -23,15 +23,6 @@ import java.util.List;
  */
 public class MarkLogicApp extends AbstractApplication {
 
-    //@CatalogConfig(label="Marklogic Licensee", priority=1)
-   // public static final ConfigKey<String> DB_SETUP_SQL_URL = new BasicConfigKey<String>(String.class,
-   //         "app.db_sql", "The MarkLogic Licensee","");
-
-   // @CatalogConfig(label="Marklogic LicenseKey", priority=1)
-   // public static final ConfigKey<String> DB_SETUP_SQL_URL1 = new BasicConfigKey<String>(String.class,
-   //         "app.db_sql", "The MarkLogic License-key","");
-
-
     MarkLogicCluster cluster;
 
     @Override
@@ -56,7 +47,7 @@ public class MarkLogicApp extends AbstractApplication {
       LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
               cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
               ":8002/dashboard'");
-   }
+    }
 
    /**
      * Launches the application, along with the brooklyn web-console.
