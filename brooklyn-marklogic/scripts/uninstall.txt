@@ -1,0 +1,23 @@
+echo Starting Uninstall of MarkLogic
+
+echo Stopping MarkLogic
+(sudo -E -n -S -- /etc/init.d/MarkLogic stop)  || true
+
+echo Uninstalling MarkLogic
+(sudo rpm --erase MarkLogic) || true
+
+echo Removing /opt/MarkLogic
+(sudo rm -fr /opt/MarkLogic) || true
+
+echo  Removing /var/opt/xq
+(sudo rm -fr /var/opt/xq) || true
+
+echo  Removing /var/opt/MarkLogic
+(sudo rm -fr /var/opt/MarkLogic) || true
+
+echo Removing ~/marklogic_install
+(sudo rm -fr ~/marklogic_install/) || true
+(sudo rm -fr ~/__MACOSX/) || true
+
+echo Finished Uninstall of MarkLogic
+

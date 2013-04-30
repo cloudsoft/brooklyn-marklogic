@@ -123,12 +123,14 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
             log.info("Starting installation of MarkLogic slave " + getHostname());
         }
 
-        File installScriptFile = new File(getScriptDirectory(), "install.txt");
-        String installScript = processTemplate(installScriptFile);
+        //uninstall marklogic; this functionality is useful when machines are being reused (e.g for testing to speed things up).
+        uninstall();
+
+        String installScript = processTemplate(new File(getScriptDirectory(), "install.txt"));
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
-        newScript(INSTALLING)
+        newScript(MutableMap.of("nonStandardLayout","true"),INSTALLING)
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
@@ -139,6 +141,17 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         } else {
             log.info("Finished installation of MarkLogic slave " + getHostname());
         }
+    }
+
+    private void uninstall(){
+        String installScript = processTemplate(new File(getScriptDirectory(), "uninstall.txt"));
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript("uninstall")
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
     }
 
     private void uploadFiles() {

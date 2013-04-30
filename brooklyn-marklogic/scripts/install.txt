@@ -8,24 +8,32 @@ echo ===========================================================================
 
 echo Installing MarkLogic rpm
 sudo yum -y --nogpgcheck install lsb gdb
-mkdir -p ~/marklogic_install/
-unzip -d ~ ~/marklogic_install.zip
-cd ~/marklogic_install
-curl -o  ~/marklogic_install/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename}
-sudo -E -n -S -- rpm -i ~/marklogic_install/${driver.downloadFilename}
+
+if [ -f ~/${driver.downloadFilename} ];
+then
+    echo ~/${driver.downloadFilename} already downloaded.
+else
+    echo Downloading ${driver.downloadFilename}
+    curl -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename}
+fi
+
+sudo -E -n -S -- rpm -i ~/${driver.downloadFilename}
 echo Finished Installing the MarkLogic rpm
 
 sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
 
 pushd .
 
+mkdir -p ~/marklogic_install/
+unzip -u  -d ~ ~/marklogic_install.zip
+cd ~/marklogic_install
 echo Copying xqy files
 sudo -E -n -S -- cp join-cluster.xqy \
                      qa-restart.xqy \
                      transfer-cluster-config.xqy \
                      /opt/MarkLogic/Admin
 
-sudo -E -n -S -- mkdir /var/opt/xqy
+sudo -E -n -S -- mkdir -p /var/opt/xqy
 
 sudo -E -n -S -- cp xqy/bookmark.xqy \
                     xqy/delete.xqy \
