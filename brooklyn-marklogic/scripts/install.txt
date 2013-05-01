@@ -1,3 +1,19 @@
+function waitForMarkLogicUp(){
+  sleep 30
+  #for i in {1..60}
+  #do
+  #   if [ "curl --silent http://localhost:8001" ];
+  #   then
+  #      return
+  #   else
+  #      echo Waiting for MarkLogic to be started
+  #      sleep 1
+  #   fi
+  #done
+  #echo "The MarkLogic was not up in 60 seconds"
+  #exit 1
+}
+
 echo ==============================================================================
 <#if driver.isMaster()>
 echo  INSTALLING MARKLOGIC MASTER
@@ -7,7 +23,9 @@ echo  INSTALLING MARKLOGIC SLAVE
 echo ==============================================================================
 
 echo Installing MarkLogic rpm
-sudo yum -y --nogpgcheck install lsb gdb
+sudo yum -y --nogpgcheck install lsb gdb unzip
+
+(sudo yum -y --nogpgcheck install libc.so.6 ) || true
 
 if [ -f ~/${driver.downloadFilename} ];
 then
@@ -75,11 +93,7 @@ popd
 
 echo Starting MarkLogic
 sudo -E -n -S -- /etc/init.d/MarkLogic start
-#we are going to wait till we can connect over http
-#todo: we need a smarter way to wait till a service is available. The code below is not working. so currently doing a dumb sleep
-#echo Waiting till MarkLogic is available over http
-#curl --retry 60 --retry-delay 1 'http://localhost:8001'
-sleep 30
+waitForMarkLogicUp
 echo Finished Starting MarkLogic
 
 echo Installing new license
@@ -98,10 +112,8 @@ sleep 2
 
 echo Restarting MarkLogic
 curl 'http://localhost:8001/qa-restart.xqy'
-#todo: better mechanism needed to wait till service is available again
-sleep 60
+waitForMarkLogicUp
 echo Finished restarting MarkLogic
-
 
 <#if driver.isMaster()>
 echo  INSTALLING MARKLOGIC MASTER
@@ -118,8 +130,7 @@ echo credentials-admin-go # only needed for S3
 
 echo Restarting MarkLogic
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-#todo: better mechanism needed to wait till service is available again
-sleep 30
+waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
 echo Creating Markmail database
@@ -158,8 +169,7 @@ echo Finished transferring Cluster config
 
 echo Restarting MarkLogic
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-#todo: better mechanism needed to wait till service is available again
-sleep 30
+waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
 # Node has now joined cluster, after this it  add its forests to the DB
@@ -182,3 +192,4 @@ echo  FINISHED INSTALLING MARKLOGIC MASTER!!
 echo  FINISHED INSTALLING MARKLOGIC SLAVE!!
 </#if>
 echo ==============================================================================
+
