@@ -8,6 +8,7 @@ import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
+import brooklyn.util.MutableMap;
 
 import java.util.Collection;
 
@@ -19,10 +20,16 @@ public class MarkLogicDemoApp extends AbstractApplication {
 
     @Override
     public void init() {
+        final MutableMap<String, String> webAppProperties = MutableMap.of(
+                "marklogic.host", "ec2-174-129-97-255.compute-1.amazonaws.com",
+                "marklogic.port", "8011",
+                "marklogic.user", "admin",
+                "marklogic.password", "hap00p");
         cluster = addChild(EntitySpecs.spec(DynamicCluster.class)
                 .configure(DynamicCluster.MEMBER_SPEC, EntitySpecs.spec(JBoss7Server.class))
                 .configure("initialSize", 2)
                 .configure("httpPort", 8080)
+                .configure(JavaWebAppService.JAVA_SYSPROPS, webAppProperties)
                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"));
 
         nginx = addChild(EntitySpecs.spec(NginxController.class)

@@ -17,10 +17,10 @@ import java.io.PrintWriter;
 public class SomeServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
-        String host = "ec2-174-129-97-255.compute-1.amazonaws.com";
-        int port = 8011;
-        String user = "admin";
-        String password = "hap00p";
+        String host = System.getProperty("marklogic.host");
+        int port = Integer.parseInt(System.getProperty("marklogic.port"));
+        String user = System.getProperty("marklogic.user");
+        String password = System.getProperty("marklogic.password");
         DatabaseClientFactory.Authentication authType= DatabaseClientFactory.Authentication.DIGEST;
         DatabaseClient client = DatabaseClientFactory.newClient(host, port, user, password, authType);
         JSONDocumentManager docMgr = client.newJSONDocumentManager();
@@ -51,7 +51,7 @@ public class SomeServlet extends HttpServlet {
         // (e.g. specifying the content type, setting cookies).
 
         PrintWriter out = response.getWriter();
-        out.write("Json inserted");
+        out.write("Json inserted:");
         // Use "out" to send content to browser
     }
 }
