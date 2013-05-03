@@ -94,7 +94,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         // TODO If want to use a pre-existing security group instead, can add to
         //      obtainProvisioningFlags() something like:
         //      .put("securityGroups", groupName)
-        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(8000, 8001, 8002)));
+        //TODO: the 8011 port has been added so we can register an application on that port. In the future this needs to come
+        //from the application, but for the time being it is hard coded.
+        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(8000, 8001, 8002, 8011)));
     }
 
     @Override
