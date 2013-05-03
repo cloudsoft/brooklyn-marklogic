@@ -63,9 +63,15 @@ public class MarkLogicDemoApp extends AbstractApplication {
     public void postStart(Collection<? extends Location> locations) {
         super.postStart(locations);
 
+        String appServiceName = "ExampleService";
+        String appServicePort = "8011";
+        String databaseName = "DemoDatabase";
+
+
         MarkLogicNode masterNode = markLogicCluster.getAttribute(MarkLogicCluster.MASTER_NODE);
 
         String masterHost = masterNode.getMasterAddress();
-        masterNode.createDatabase("BananaMan");
+        masterNode.createDatabase(databaseName);
+        masterNode.createAppServer(appServiceName,databaseName, appServicePort);
     }
 }

@@ -7,4 +7,6 @@ public interface MarkLogicDriver extends SoftwareProcessDriver {
     void createForest(Forest forest);
 
     void createDatabase(String name);
+
+    void createAppServer(String name, String database, String port);
 }

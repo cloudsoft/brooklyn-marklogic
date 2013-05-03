@@ -283,6 +283,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     public void createDatabase(String name) {
         LOG.info(format("Creating database '%s'",name));
         getDriver().createDatabase(name);
-        //todo: implement
+    }
+
+    @Override
+    public void createAppServer(String name, String database, String port) {
+        LOG.info(format("Creating appServer '%s'",name));
+        getDriver().createAppServer(name,database, port);
     }
 }

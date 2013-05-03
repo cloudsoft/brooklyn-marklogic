@@ -173,4 +173,14 @@ public interface MarkLogicNode extends SoftwareProcess {
             @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") String failoverEnabled);
 
     String getMasterAddress();
+
+    MethodEffector<Void> CREATE_APPSERVER =
+            new MethodEffector<Void>(MarkLogicNode.class, "createAppServer");
+
+    @Description("Creates a new appServer")
+    void createAppServer(
+            @NamedParameter("name") @Description("The name of the appServer") String name,
+            @NamedParameter("database") @Description("The name of the database") String database,
+            @NamedParameter("port") @Description("The port of the appServer") String port);
+
 }
