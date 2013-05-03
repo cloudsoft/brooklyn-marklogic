@@ -1,24 +1,36 @@
 package io.cloudsoft.marklogic.demo;
 
 import brooklyn.entity.basic.AbstractApplication;
+import brooklyn.entity.group.DynamicCluster;
+import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.EntitySpecs;
-import brooklyn.entity.webapp.tomcat.TomcatServer;
+import brooklyn.entity.webapp.JavaWebAppService;
+import brooklyn.entity.webapp.WebAppService;
+import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
-import brooklyn.location.basic.PortRanges;
 
 import java.util.Collection;
 
 public class MarkLogicDemoApp extends AbstractApplication {
-    private TomcatServer tomcat;
+    private DynamicCluster cluster;
+    private NginxController nginx;
 
     //MarkLogicCluster cluster;
 
     @Override
     public void init() {
-        tomcat = addChild(EntitySpecs.spec(TomcatServer.class)
-                .configure(TomcatServer.SUGGESTED_VERSION, "7.0.39")
-                .configure(TomcatServer.HTTP_PORT, PortRanges.fromInteger(8080))
-                .configure(TomcatServer.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war" ));
+        cluster = addChild(EntitySpecs.spec(DynamicCluster.class)
+                .configure(DynamicCluster.MEMBER_SPEC, EntitySpecs.spec(JBoss7Server.class))
+                .configure("initialSize", 2)
+                .configure("httpPort", 8080)
+                .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"));
+
+        nginx = addChild(EntitySpecs.spec(NginxController.class)
+                .configure("cluster", cluster)
+                .configure("domain", "localhost")
+                .configure("port", 8000)
+                .configure("portNumberSensor", WebAppService.HTTP_PORT));
+
 
         //String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogic.initial-cluster-size");
         //int initialClusterSize = 2;
