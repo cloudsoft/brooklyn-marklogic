@@ -235,6 +235,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     @Override
     public String getMasterAddress() {
+        LOG.error("=============== getMasterAddress is called ["+getConfig(MASTER_ADDRESS)+"]============");
         return getConfig(MASTER_ADDRESS);
     }
 
@@ -281,7 +282,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void createDatabase(String name) {
         LOG.info(format("Creating database '%s'",name));
-
+        getDriver().createDatabase(name);
         //todo: implement
     }
 }

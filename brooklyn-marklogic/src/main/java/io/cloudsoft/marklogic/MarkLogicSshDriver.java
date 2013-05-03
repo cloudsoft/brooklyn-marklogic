@@ -278,6 +278,25 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .execute();
 
         log.info("Finished creating forest" + forest.getName());
+  }
 
+    @Override
+    public void createDatabase(String name) {
+        log.info("Starting create database" + name);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("database", name);
+        File installScriptFile = new File(getScriptDirectory(), "create_database.txt");
+        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript("createDatabase")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        log.info("Finished creating database" + name);
     }
 }
