@@ -19,8 +19,6 @@ public class MarkLogicDemoApp extends AbstractApplication {
     private NginxController nginx;
     private MarkLogicCluster markLogicCluster;
 
-    //MarkLogicCluster cluster;
-
     @Override
     public void init() {
         String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogic.initial-cluster-size");
@@ -30,33 +28,6 @@ public class MarkLogicDemoApp extends AbstractApplication {
         }
 
         markLogicCluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, initialClusterSize));
-
-
-
-        //masterHost =  "ec2-174-129-97-255.compute-1.amazonaws.com";
-        //String port = "8011";
-        //
-        //masterNode.createDatabase("foo");
-        //masterNode.createAppServer("fooApp", "foo", port);
-        //
-        //
-        //final MutableMap<String, String> webAppProperties = MutableMap.of(
-        //        "marklogic.host", masterHost,
-        //        "marklogic.port", port,
-        //        "marklogic.user", "admin",
-        //        "marklogic.password", "hap00p");
-        //jbossCluster = addChild(EntitySpecs.spec(DynamicCluster.class)
-        //        .configure(DynamicCluster.MEMBER_SPEC, EntitySpecs.spec(JBoss7Server.class))
-        //        .configure("initialSize", 2)
-        //        .configure("httpPort", 8080)
-        //        .configure(JavaWebAppService.JAVA_SYSPROPS, webAppProperties)
-        //        .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"));
-        //
-        //nginx = addChild(EntitySpecs.spec(NginxController.class)
-        //        .configure("cluster", jbossCluster)
-        //        .configure("domain", "localhost")
-        //        .configure("port", 8000)
-        //        .configure("portNumberSensor", WebAppService.HTTP_PORT));
     }
 
     @Override
@@ -67,11 +38,29 @@ public class MarkLogicDemoApp extends AbstractApplication {
         String appServicePort = "8011";
         String databaseName = "DemoDatabase";
 
-
         MarkLogicNode masterNode = markLogicCluster.getAttribute(MarkLogicCluster.MASTER_NODE);
 
         String masterHost = masterNode.getMasterAddress();
         masterNode.createDatabase(databaseName);
-        masterNode.createAppServer(appServiceName,databaseName, appServicePort);
+        masterNode.createAppServer(appServiceName, databaseName, appServicePort);
+
+        MutableMap<String, String> webAppProperties = MutableMap.of(
+                "marklogic.host", masterHost,
+                "marklogic.port", appServicePort,
+                "marklogic.user", masterNode.getConfig(MarkLogicNode.USER),
+                "marklogic.password", masterNode.getConfig(MarkLogicNode.PASSWORD));
+
+        jbossCluster = addChild(EntitySpecs.spec(DynamicCluster.class)
+                .configure(DynamicCluster.MEMBER_SPEC, EntitySpecs.spec(JBoss7Server.class))
+                .configure("initialSize", 2)
+                .configure("httpPort", 8080)
+                .configure(JavaWebAppService.JAVA_SYSPROPS, webAppProperties)
+                .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"));
+
+        nginx = addChild(EntitySpecs.spec(NginxController.class)
+                .configure("cluster", jbossCluster)
+                .configure("domain", "localhost")
+                .configure("port", 7000)
+                .configure("portNumberSensor", WebAppService.HTTP_PORT));
     }
 }
