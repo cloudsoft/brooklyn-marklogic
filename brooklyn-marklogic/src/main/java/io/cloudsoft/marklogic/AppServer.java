@@ -13,4 +13,14 @@ public interface AppServer extends Entity {
     ConfigKey<String> NAME = new BasicConfigKey<String>(
             String.class, "marklogic.appserver.name",
             "The name of the AppServer", null);
+
+    @SetFromFlag("database")
+    ConfigKey<String> DATABASE = new BasicConfigKey<String>(
+            String.class, "marklogic.appserver.database",
+            "The name of the database", null);
+
+    @SetFromFlag("port")
+    ConfigKey<Integer> PORT = new BasicConfigKey<Integer>(
+            Integer.class, "marklogic.appserver.port",
+            "The port this application can be connected to", null);
 }

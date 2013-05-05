@@ -6,11 +6,13 @@ import brooklyn.entity.basic.MethodEffector;
 import brooklyn.entity.basic.NamedParameter;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.event.AttributeSensor;
-import brooklyn.event.basic.BasicAttributeSensor;
-import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
-import brooklyn.event.basic.BasicConfigKey;
+import brooklyn.event.basic.*;
+import brooklyn.location.PortRange;
+import brooklyn.location.basic.PortRanges;
 import brooklyn.util.flags.SetFromFlag;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A node in a MarkLogic cluster, where it will be the master if {@code getConfig(IS_MASTER)}.
@@ -151,6 +153,19 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     AttributeSensor<String> URL = new BasicAttributeSensor<String>(
             String.class, "marklogic.node.url", "Base URL for MarkLogic node");
+
+    ConfigKey<Integer> BIND_PORT = new BasicConfigKey<Integer>(
+            Integer.class, "marklogic.bindPort", "The distributed protocol server socket bind internet port number.", 7999);
+
+    ConfigKey<Integer> FOREIGN_BIND_PORT = new BasicConfigKey<Integer>(
+            Integer.class, "marklogic.foreignBindPort", "The distributed protocol server socket bind internet port number.", 7998);
+
+
+
+    //TODO: This should not be here, it is a temporary hack to let the nginx loadbalancer read out the port.
+    PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
+            "http.port", "HTTP port", ImmutableList.of(8011));
+
 
     MethodEffector<Void> CREATE_DATABASE =
             new MethodEffector<Void>(MarkLogicNode.class, "createDatabase");

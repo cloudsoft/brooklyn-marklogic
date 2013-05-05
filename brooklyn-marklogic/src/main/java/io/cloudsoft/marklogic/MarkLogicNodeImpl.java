@@ -96,7 +96,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         //      .put("securityGroups", groupName)
         //TODO: the 8011 port has been added so we can register an application on that port. In the future this needs to come
         //from the application, but for the time being it is hard coded.
-        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(7999, 7998, 8000, 8001, 8002, 8011)));
+        int bindPort = getConfig(BIND_PORT);
+        int foreignBindPort=getConfig(FOREIGN_BIND_PORT);
+        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(bindPort, foreignBindPort, 8000, 8001, 8002, 8011)));
     }
 
     @Override
@@ -280,7 +282,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createDatabase(String name) {
+    public void  createDatabase(String name) {
         LOG.info(format("Creating database '%s'",name));
         getDriver().createDatabase(name);
     }
