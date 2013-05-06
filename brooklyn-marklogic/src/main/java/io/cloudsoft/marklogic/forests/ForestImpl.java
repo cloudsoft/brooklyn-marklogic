@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.basic.AbstractEntity;
 

@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.forests;
 
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;

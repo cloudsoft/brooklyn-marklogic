@@ -1,12 +1,8 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.appservers;
 
 import brooklyn.entity.basic.AbstractEntity;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
-import java.util.Collection;
-
-public class AppServerImpl extends AbstractEntity implements AppServer {
+public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
 
     //@Override
     //protected Collection<Integer> getRequiredOpenPorts() {
@@ -21,7 +17,23 @@ public class AppServerImpl extends AbstractEntity implements AppServer {
     //    return ImmutableSet.copyOf(ImmutableList.of(getPort()));
     //}
 
-    public int getPort() {
+
+    @Override
+    public String getDisplayName(){
+        return getName();
+    }
+
+    @Override
+    public String getDatabaseName() {
+        return getConfig(DATABASE_NAME);
+    }
+
+    @Override
+    public String getName() {
+       return getConfig(NAME);
+    }
+
+    public String getPort() {
         return getConfig(PORT);
     }
 }

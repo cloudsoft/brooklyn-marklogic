@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic;
 
 import brooklyn.entity.basic.SoftwareProcessDriver;
+import io.cloudsoft.marklogic.forests.Forest;
 
 public interface MarkLogicDriver extends SoftwareProcessDriver {
 

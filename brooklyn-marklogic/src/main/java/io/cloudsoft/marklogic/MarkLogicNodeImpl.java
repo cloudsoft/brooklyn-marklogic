@@ -11,6 +11,8 @@ import brooklyn.location.jclouds.JcloudsLocationCustomizer;
 import brooklyn.util.MutableMap;
 import com.google.common.base.Functions;
 import com.google.common.collect.*;
+import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,7 +290,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createAppServer(String name, String database, String port) {
+    public void createRestAppServer(String name, String database, String port) {
         LOG.info(format("Creating appServer '%s'",name));
         getDriver().createAppServer(name,database, port);
     }

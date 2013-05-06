@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import io.cloudsoft.marklogic.forests.Forest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -311,7 +312,7 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
-        newScript("createAppServer")
+        newScript("createRestAppServer")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)

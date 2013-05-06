@@ -190,10 +190,10 @@ public interface MarkLogicNode extends SoftwareProcess {
     String getMasterAddress();
 
     MethodEffector<Void> CREATE_APPSERVER =
-            new MethodEffector<Void>(MarkLogicNode.class, "createAppServer");
+            new MethodEffector<Void>(MarkLogicNode.class, "createRestAppServer");
 
     @Description("Creates a new appServer")
-    void createAppServer(
+    void createRestAppServer(
             @NamedParameter("name") @Description("The name of the appServer") String name,
             @NamedParameter("database") @Description("The name of the database") String database,
             @NamedParameter("port") @Description("The port of the appServer") String port);
