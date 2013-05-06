@@ -19,17 +19,22 @@ public interface RestAppServer extends Entity {
             String.class, "marklogic.appserver.databasename",
             "The name of the database", null);
 
+    @SetFromFlag("groupName")
+    ConfigKey<String> GROUP_NAME = new BasicConfigKey<String>(
+            String.class, "marklogic.appserver.groupname",
+            "The name of the group this RestAppServer belongs to", null);
+
     //todo: should be a port type
     @SetFromFlag("port")
     ConfigKey<String> PORT = new BasicConfigKey<String>(
             String.class, "marklogic.appserver.port",
             "The port this application can be connected to", null);
 
-
-
-    String getName();
+      String getName();
 
     String getDatabaseName();
 
     String getPort();
+
+    String getGroupName();
 }

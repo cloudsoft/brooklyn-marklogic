@@ -7,15 +7,15 @@ import brooklyn.entity.basic.NamedParameter;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
-import io.cloudsoft.marklogic.MarkLogicCluster;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.MarkLogicNode;
 
 @ImplementedBy(AppServicesImpl.class)
 public interface AppServices extends AbstractGroup {
 
     @SetFromFlag("cluster")
-    public static final BasicConfigKey<MarkLogicCluster> CLUSTER = new BasicConfigKey<MarkLogicCluster>(
-            MarkLogicCluster.class, "marklogic.appservices.cluster", "The cluster");
+    public static final BasicConfigKey<MarkLogicGroup> CLUSTER = new BasicConfigKey<MarkLogicGroup>(
+            MarkLogicGroup.class, "marklogic.appservices.cluster", "The cluster");
 
     MethodEffector<Void> CREATE_APPSERVER =
             new MethodEffector<Void>(MarkLogicNode.class, "createRestAppServer");
@@ -24,6 +24,7 @@ public interface AppServices extends AbstractGroup {
     void createRestAppServer(
             @NamedParameter("name") @Description("The name of the appServer") String name,
             @NamedParameter("database") @Description("The name of the database") String database,
+            @NamedParameter("group") @Description("The name of the group this appServer belongs to") String group,
             @NamedParameter("port") @Description("The port of the appServer") String port);
 
 }

@@ -3,7 +3,7 @@ package io.cloudsoft.marklogic.appservers;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.EntitySpecs;
-import io.cloudsoft.marklogic.MarkLogicCluster;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.MarkLogicNode;
 import io.cloudsoft.marklogic.databases.DatabasesImpl;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
 
-    public MarkLogicCluster getCluster() {
+    public MarkLogicGroup getCluster() {
         return getConfig(CLUSTER);
     }
 
@@ -25,16 +25,17 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
     }
 
     @Override
-    public void createRestAppServer(String name, String database, String port) {
+    public void createRestAppServer(String name, String database, String groupname, String port) {
         LOG.info("Creating REST appServer: " + name);
         MarkLogicNode node = getMarkLogicNode();
 
-        node.createRestAppServer(name, database, "" + port);
+        node.createRestAppServer(name, database,groupname,  "" + port);
 
         RestAppServer appServer = addChild(EntitySpecs.spec(RestAppServer.class)
                 .configure(RestAppServer.NAME, name)
                 .configure(RestAppServer.DATABASE_NAME, database)
                 .configure(RestAppServer.PORT, port)
+                .configure(RestAppServer.GROUP_NAME,groupname)
         );
         //todo: should be moved to the appServer
 
@@ -42,7 +43,7 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
     }
 
     private MarkLogicNode getMarkLogicNode() {
-        MarkLogicCluster cluster = getCluster();
+        MarkLogicGroup cluster = getCluster();
         final Iterator<Entity> iterator = cluster.getMembers().iterator();
         if (!iterator.hasNext()) {
             throw new IllegalStateException("Can't create a database, there are no members in the cluster");

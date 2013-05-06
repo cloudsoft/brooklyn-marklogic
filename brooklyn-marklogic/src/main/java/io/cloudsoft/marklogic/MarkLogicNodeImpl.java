@@ -237,9 +237,12 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return (MarkLogicDriver) super.getDriver();
     }
 
+    public String getGroup(){
+        return getConfig(GROUP);
+    }
+
     @Override
     public String getMasterAddress() {
-        LOG.error("=============== getMasterAddress is called ["+getConfig(MASTER_ADDRESS)+"]============");
         return getConfig(MASTER_ADDRESS);
     }
 
@@ -290,8 +293,13 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createRestAppServer(String name, String database, String port) {
+    public void createRestAppServer(String name, String database, String groupName, String port) {
         LOG.info(format("Creating appServer '%s'",name));
-        getDriver().createAppServer(name,database, port);
+        getDriver().createAppServer(name,database,groupName, port);
+    }
+
+    @Override
+    public void createGroup(String groupName) {
+        getDriver().createGroup(groupName);
     }
 }

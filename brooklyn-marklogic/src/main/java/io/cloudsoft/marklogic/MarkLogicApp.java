@@ -8,6 +8,7 @@ import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
 import com.google.common.collect.Lists;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
  */
 public class MarkLogicApp extends AbstractApplication {
 
-    MarkLogicCluster cluster;
+    MarkLogicGroup cluster;
 
     @Override
     public void init() {
@@ -33,28 +34,33 @@ public class MarkLogicApp extends AbstractApplication {
             initialClusterSize = Integer.parseInt(initialClusterSizeValue);
         }
 
-        cluster = addChild(EntitySpecs.spec(MarkLogicCluster.class).configure(MarkLogicCluster.INITIAL_SIZE, initialClusterSize));
+        cluster = addChild(EntitySpecs.spec(MarkLogicGroup.class).configure(MarkLogicGroup.INITIAL_SIZE, initialClusterSize));
     }
 
-   @Override
-   public void postStart(Collection<? extends Location> locations) {
-      super.postStart(locations);
-      LOG.info("MarkLogic server is available at 'http://" +
-              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) + ":8000'");
-      LOG.info("MarkLogic Cluster summary is available at 'http://" +
-              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
-              ":8001'");
-      LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
-              cluster.getAttribute(MarkLogicCluster.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
-              ":8002/dashboard'");
+    @Override
+    public void postStart(Collection<? extends Location> locations) {
+        super.postStart(locations);
+
+        MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
+        node.createGroup("E-Nodes");
+        //node.createGroup("D-Nodes");
+
+        LOG.info("MarkLogic server is available at 'http://" +
+                cluster.getAttribute(MarkLogicGroup.MASTER_NODE).getAttribute(Attributes.HOSTNAME) + ":8000'");
+        LOG.info("MarkLogic Cluster summary is available at 'http://" +
+                cluster.getAttribute(MarkLogicGroup.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
+                ":8001'");
+        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
+                cluster.getAttribute(MarkLogicGroup.MASTER_NODE).getAttribute(Attributes.HOSTNAME) +
+                ":8002/dashboard'");
     }
 
-   /**
+    /**
      * Launches the application, along with the brooklyn web-console.
      */
     public static void main(String[] argv) throws Exception {
         List<String> args = Lists.newArrayList(argv);
-        String port =  CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
+        String port = CommandLineUtil.getCommandLineOption(args, "--port", "8081+");
         String location = CommandLineUtil.getCommandLineOption(args, "--location", "localhost");
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()

@@ -9,5 +9,7 @@ public interface MarkLogicDriver extends SoftwareProcessDriver {
 
     void createDatabase(String name);
 
-    void createAppServer(String name, String database, String port);
+    void createGroup(String name);
+
+    void createAppServer(String name, String database, String groupName,String port);
 }

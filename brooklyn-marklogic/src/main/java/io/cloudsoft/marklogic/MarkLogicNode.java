@@ -76,6 +76,12 @@ public interface MarkLogicNode extends SoftwareProcess {
             String.class, "marklogic.host",
             "The internal identifier of this marklogic node", null);
 
+    @SetFromFlag("group")
+    ConfigKey<String> GROUP = new BasicConfigKey<String>(
+            String.class, "marklogic.group",
+            "The MarkLogic group this node belongs to", "Default");
+
+
     @SetFromFlag("cluster")
     ConfigKey<String> CLUSTER = new BasicConfigKey<String>(
             String.class, "marklogic.cluster", "The cluster name", null);
@@ -85,6 +91,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey<String>(
             SoftwareProcess.DOWNLOAD_URL, "http://developer.marklogic.com/download/binaries/6.0/${driver.downloadFilename}");
 
+
     @SetFromFlag("isMaster")
     ConfigKey<Boolean> IS_MASTER = new BasicConfigKey<Boolean>(
             Boolean.class, "marklogic.node.ismaster", "Whether this node in the cluster is the master", false);
@@ -92,6 +99,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     @SetFromFlag("masterAddress")
     ConfigKey<String> MASTER_ADDRESS = new BasicConfigKey<String>(
             String.class, "marklogic.node.masterAddress", "If this is not the master, specifies the master address to use", null);
+
 
     @SetFromFlag("availabilityZone")
     ConfigKey<String> AVAILABILITY_ZONE = new BasicConfigKey<String>(
@@ -160,19 +168,11 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<Integer> FOREIGN_BIND_PORT = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.foreignBindPort", "The distributed protocol server socket bind internet port number.", 7998);
 
-
-
     //TODO: This should not be here, it is a temporary hack to let the nginx loadbalancer read out the port.
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
-
-    MethodEffector<Void> CREATE_DATABASE =
-            new MethodEffector<Void>(MarkLogicNode.class, "createDatabase");
-
-    @Description("Creates a new database")
-    void createDatabase(
-            @NamedParameter("name") @Description("The name of the database") String name);
+    void createDatabase(String name);
 
     MethodEffector<Void> CREATE_FOREST =
             new MethodEffector<Void>(MarkLogicNode.class, "createForest");
@@ -189,13 +189,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getMasterAddress();
 
-    MethodEffector<Void> CREATE_APPSERVER =
-            new MethodEffector<Void>(MarkLogicNode.class, "createRestAppServer");
+    void createRestAppServer(String name,String database,String groupName,String port);
 
-    @Description("Creates a new appServer")
-    void createRestAppServer(
-            @NamedParameter("name") @Description("The name of the appServer") String name,
-            @NamedParameter("database") @Description("The name of the database") String database,
-            @NamedParameter("port") @Description("The port of the appServer") String port);
-
+    void createGroup(String groupName);
 }

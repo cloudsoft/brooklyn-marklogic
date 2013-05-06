@@ -133,29 +133,33 @@ curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-res
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
-echo Creating Markmail database
-curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_markmail_database.xqy
-echo Finished creating MarkMail database
 
-echo Creating MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
-echo Finished creating MarkMail forrest
+# todo
+# set up the groups.
 
-echo Attaching MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
-echo Finished attaching MarkMail forrest
+#echo Creating Markmail database
+#curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_markmail_database.xqy
+#echo Finished creating MarkMail database
 
-echo Creating role
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_role.xqy'
-echo Finished creating role
+#echo Creating MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
+#echo Finished creating MarkMail forrest
 
-echo Creating MarkMail appserver
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_appserver.xqy'
-echo Finished creating MarkMail appserver
+#echo Attaching MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
+#echo Finished attaching MarkMail forrest
 
-echo Setting metering on
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
-echo Finished setting metering on
+#echo Creating role
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_role.xqy'
+#echo Finished creating role
+
+#echo Creating MarkMail appserver
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_appserver.xqy'
+#echo Finished creating MarkMail appserver
+
+#echo Setting metering on
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
+#echo Finished setting metering on
 
 <#else>
 echo Joining cluster
@@ -173,17 +177,18 @@ waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
 # Node has now joined cluster, after this it  add its forests to the DB
+#echo Creating MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} \
+#   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
+#echo Finished creating MarkMail forrest
 
-echo Creating MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} \
-   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
-echo Finished creating MarkMail forrest
-
-echo Attaching MarkMail forrest
-curl --digest -u ${driver.user}:${driver.password} \
-   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
-echo Finished Attaching MarkMail forrest
+#echo Attaching MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} \
+#   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
+#echo Finished Attaching MarkMail forrest
 </#if>
+
+# todo: now we need to assign the node to a group
 
 echo ==============================================================================
 <#if driver.isMaster()>

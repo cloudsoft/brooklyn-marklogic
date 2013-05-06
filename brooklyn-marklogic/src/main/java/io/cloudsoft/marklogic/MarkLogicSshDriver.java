@@ -302,10 +302,10 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
     }
 
     @Override
-    public void createAppServer(String name, String database, String port) {
+    public void createAppServer(String name, String database, String groupName, String port) {
         log.debug("Starting create appServer " + name);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("appServer", name, "port",port,"database",database);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("appServer", name, "port",port,"database",database, "groupName",groupName);
         File installScriptFile = new File(getScriptDirectory(), "create_appserver.txt");
         String installScript = processTemplate(installScriptFile, extraSubstitutions);
 
@@ -319,5 +319,25 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
                 .execute();
 
         log.debug("Finished creating appServer" + name);
+    }
+
+    @Override
+    public void createGroup(String name) {
+        log.debug("Starting create group " + name);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("group", name);
+        File installScriptFile = new File(getScriptDirectory(), "create_group.txt");
+        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript("createGroup")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        log.debug("Finished creating group" + name);
     }
 }

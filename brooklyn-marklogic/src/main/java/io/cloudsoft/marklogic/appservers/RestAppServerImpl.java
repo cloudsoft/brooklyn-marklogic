@@ -33,6 +33,12 @@ public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
        return getConfig(NAME);
     }
 
+    @Override
+    public String getGroupName(){
+        return getConfig(GROUP_NAME);
+    }
+
+    @Override
     public String getPort() {
         return getConfig(PORT);
     }
