@@ -1,3 +1,7 @@
+echo ==============================================================================
+echo            Creating MarkLogic AppServer ${appServer}
+echo ==============================================================================
+
 DBID=$(curl --digest -u admin:hap00p 'http://localhost:8000/appservices' | sed -n 's/^.*\(<option value=.*${database}\).*/\1/p' | awk '{ print <#noparse>$2</#noparse> }' | cut -d'&' -f4 | cut -d';' -f2)
 
 echo DBID = $DBID
@@ -9,4 +13,7 @@ curl --digest -u admin:hap00p "http://localhost:8000/infostudio/endpoints/rests.
      -H "Origin: http://localhost:8000" \
      -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31" \
      -H "Content-Type: application/x-www-form-urlencoded" --data "restname=${appServer}&dbid=<#noparse>${DBID}</#noparse>&port=${port}&groupname=${groupName}"
-echo Finished creating MarkLogic AppServer ${appServer}
+
+echo ==============================================================================
+echo         Finished Creating MarkLogic AppServer ${appServer}
+echo ==============================================================================

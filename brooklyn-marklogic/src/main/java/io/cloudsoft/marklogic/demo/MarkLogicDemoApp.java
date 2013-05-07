@@ -42,14 +42,6 @@ public class MarkLogicDemoApp extends AbstractApplication {
             initialClusterSize = Integer.parseInt(initialClusterSizeValue);
         }
 
-        databases = addChild(EntitySpecs.spec(Databases.class)
-                .configure(Databases.GROUP, eNodeGroup)
-        );
-
-        appservices = addChild(EntitySpecs.spec(AppServices.class)
-                .configure(AppServices.CLUSTER, eNodeGroup)
-        );
-
         eNodeGroup = addChild(EntitySpecs.spec(MarkLogicGroup.class)
                 .configure(MarkLogicGroup.INITIAL_SIZE, initialClusterSize)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
@@ -61,6 +53,14 @@ public class MarkLogicDemoApp extends AbstractApplication {
                 .configure(MarkLogicGroup.INITIAL_SIZE, 0)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
                 .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
+        );
+
+        databases = addChild(EntitySpecs.spec(Databases.class)
+                .configure(Databases.GROUP, eNodeGroup)
+        );
+
+        appservices = addChild(EntitySpecs.spec(AppServices.class)
+                .configure(AppServices.CLUSTER, eNodeGroup)
         );
 
         marklogicNginx = addChild(EntitySpecs.spec(NginxController.class)

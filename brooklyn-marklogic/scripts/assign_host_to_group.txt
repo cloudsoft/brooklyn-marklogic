@@ -1,0 +1,31 @@
+echo ==============================================================================
+echo            ASSIGN HOST ${hostName} TO GROUP ${groupName}
+echo ==============================================================================
+
+HOST_NAME=${hostName}
+GROUP_NAME=${groupName}
+
+#first we need to figure out the host id.
+curl --digest -u admin:hap00p  "http://localhost:8001/host-summary.xqy?section=host" > foo.html
+HOST_ID=$(cat foo.html | grep -i "host-admin.xqy?section=host" | grep -i "<#noparse>${HOST_NAME}</#noparse>" | grep  -Po  'href=".*?"' | grep -Po 'host=.*?"' | sed 's/.*host=\(.*\)"[^"]*$/\1/')
+echo HOST_ID = <#noparse>${HOST_ID}</#noparse>
+
+
+#second we need to figure out the group id
+curl --digest -u admin:hap00p  "http://localhost:8001/host-admin.xqy?host=<#noparse>${HOST_ID}</#noparse>&section=host" > foo.html
+GROUP_ID=$(cat foo.html | grep "><#noparse>${GROUP_NAME}</#noparse></option>" | grep  -Po -m1 'value=".*?"'| sed 's/.*"\(.*\)"[^"]*$/\1/')
+echo GROUP_ID = <#noparse>${GROUP_ID}</#noparse>
+
+#do the actual request.
+curl --digest -u admin:hap00p "http://ec2-107-22-133-236.compute-1.amazonaws.com:8001/host-admin-go.xqy" \
+    -H "Accept-Encoding: gzip,deflate,sdch" \
+    -H "Accept-Language: en-US,en;q=0.8" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+    -H "Cache-Control: max-age=0" \
+    -H "Connection: keep-alive" \
+    --data "host=<#noparse>${HOST_ID}</#noparse>&section=host&%2Fho%3Ahosts%2Fho%3Ahost%2Fho%3Agroup=<#noparse>${GROUP_ID}</#noparse>&%2Fho%3Ahosts%2Fho%3Ahost%2Fho%3Abind-port=7999&%2Fho%3Ahosts%2Fho%3Ahost%2Fho%3Aforeign-bind-port=7998&ok.x=31&ok.y=8&ok=ok"
+
+echo ==============================================================================
+echo        FINISHED ASSIGNING HOST ${hostName} TO GROUP ${groupName}
+echo ==============================================================================

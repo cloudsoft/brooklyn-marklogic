@@ -340,4 +340,24 @@ public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver impleme
 
         log.debug("Finished creating group" + name);
     }
+
+    @Override
+    public void assignHostToGroup(String hostAddress, String groupName) {
+        log.debug("Assigning host '"+hostAddress+"'+ to group " + groupName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("groupName", groupName, "hostName",hostAddress);
+        File installScriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
+        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(installScript);
+        newScript("assignHostToGroup")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        log.debug("Finished Assigning host '"+hostAddress+"'+ to group " + groupName);
+    }
 }

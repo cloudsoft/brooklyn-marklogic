@@ -1,3 +1,9 @@
-echo Creating MarkLogic database ${database}
+echo ==============================================================================
+echo                     Creating MarkLogic database ${database}
+echo ==============================================================================
+
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8000/infostudio/endpoints/create-database.xqy?mode=json&dbName=${database}'
-echo Finished creating MarkLogic database  ${database}
+
+echo ==============================================================================
+echo                 Finished Creating MarkLogic database ${database}
+echo ==============================================================================

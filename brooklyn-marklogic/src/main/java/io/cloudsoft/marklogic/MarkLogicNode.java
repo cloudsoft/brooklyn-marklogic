@@ -189,7 +189,11 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getMasterAddress();
 
+    String getHostName();
+
     void createRestAppServer(String name,String database,String groupName,String port);
 
     void createGroup(String groupName);
+
+    void assignHostToGroup(String hostAddress, String groupName);
 }

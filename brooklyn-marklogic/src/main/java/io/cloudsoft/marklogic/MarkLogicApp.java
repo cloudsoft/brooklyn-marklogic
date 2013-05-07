@@ -43,7 +43,8 @@ public class MarkLogicApp extends AbstractApplication {
 
         MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
         node.createGroup("E-Nodes");
-        //node.createGroup("D-Nodes");
+        node.createGroup("D-Nodes");
+        node.assignHostToGroup(node.getHostName(),"E-Nodes");
 
         LOG.info("MarkLogic server is available at 'http://" +
                 cluster.getAttribute(MarkLogicGroup.MASTER_NODE).getAttribute(Attributes.HOSTNAME) + ":8000'");

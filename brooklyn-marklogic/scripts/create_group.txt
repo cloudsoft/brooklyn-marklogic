@@ -1,6 +1,10 @@
+echo ==============================================================================
+echo                     CREATE GROUP ${group}
+echo ==============================================================================
+
 curl --digest -u admin:hap00p  http://localhost:8001/add-group.xqy?section=group > foo.html
 
-GROUP_NAME="Stinky-Nodes"
+GROUP_NAME="${group}"
 
 GROUP_ID=$(cat foo.html | grep -i group-id | grep  -Po -m1 'value=".*?"' | sed 's/.*"\(.*\)"[^"]*$/\1/')
 echo GROUP_ID = <#noparse>${GROUP_ID}</#noparse>
@@ -16,3 +20,7 @@ curl --digest -u admin:hap00p "http://localhost:8001/add-group-go.xqy"  \
         -H "Accept-Language: en-US,en;q=0.8" \
         -H "Content-Type: application/x-www-form-urlencoded" \
         --data "section=group&ok.x=14&ok.y=11&ok=ok&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Agroup-name=<#noparse>${GROUP_NAME}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Agroup-id=<#noparse>${GROUP_ID}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Alist-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Alist-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-cache-size=64&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-read-size=32&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aexpanded-tree-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aexpanded-tree-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-value-cache-size=64&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-value-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aemail-address=admin%40ec2-23-22-209-58.compute-1.amazonaws.com&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asmtp-relay=localhost&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asmtp-timeout=60&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahttp-user-agent=MarkLogic+Server&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahttp-timeout=60&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-timeout=10&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahost-timeout=30&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahost-initial-timeout=240&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aretry-timeout=180&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Amodule-cache-timeout=300&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asystem-log-level=notice&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Afile-log-level=info&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Arotate-log-files=daily&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Akeep-log-files=7&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Afailover-enable=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-enabled=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-allow-sslv3=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-allow-tls=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-ciphers=ALL%3A%21LOW%3A%40STRENGTH&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aevents-activated=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Abackground-io-limit=0&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-enabled=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aperformance-metering-enabled=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ameters-database=<#noparse>${METERS_DATABASE}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aperformance-metering-period=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-raw=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-hourly=7&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-daily=31&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-monthly=365&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-domain=s3.amazonaws.com&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-protocol=http&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-server-side-encryption=none&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asecurity-database=<#noparse>${SECURITY_DATABASE}</#noparse>"
+
+echo ==============================================================================
+echo                 FINISHED CREATING GROUP ${group}
+echo ==============================================================================

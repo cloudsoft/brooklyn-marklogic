@@ -233,8 +233,13 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return getConfig(NODE_TYPE);
     }
 
+    @Override
     public MarkLogicDriver getDriver() {
         return (MarkLogicDriver) super.getDriver();
+    }
+
+    public String getHostName(){
+        return getAttribute(HOSTNAME);
     }
 
     public String getGroup(){
@@ -301,5 +306,10 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void createGroup(String groupName) {
         getDriver().createGroup(groupName);
+    }
+
+    @Override
+    public void assignHostToGroup(String hostName, String groupName) {
+        getDriver().assignHostToGroup(hostName, groupName);
     }
 }
