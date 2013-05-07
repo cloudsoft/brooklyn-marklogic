@@ -9,6 +9,7 @@ import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
 import com.google.common.collect.Lists;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 import java.util.Collection;
 import java.util.List;

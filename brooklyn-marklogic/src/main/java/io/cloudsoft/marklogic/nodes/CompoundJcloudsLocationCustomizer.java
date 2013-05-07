@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.nodes;
 
 import java.util.List;
 

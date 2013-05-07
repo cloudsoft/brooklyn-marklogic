@@ -8,7 +8,7 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 @ImplementedBy(AppServicesImpl.class)
 public interface AppServices extends AbstractGroup {

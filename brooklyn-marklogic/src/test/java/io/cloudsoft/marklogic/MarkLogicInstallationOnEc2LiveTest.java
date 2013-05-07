@@ -2,6 +2,7 @@ package io.cloudsoft.marklogic;
 
 import java.util.Map;
 
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;

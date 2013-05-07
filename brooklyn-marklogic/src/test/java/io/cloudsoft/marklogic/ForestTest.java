@@ -15,6 +15,7 @@ import brooklyn.util.MutableMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.cloudsoft.marklogic.forests.UpdatesAllowed;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

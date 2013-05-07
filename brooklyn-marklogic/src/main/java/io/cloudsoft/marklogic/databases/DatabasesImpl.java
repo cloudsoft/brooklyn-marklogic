@@ -4,7 +4,7 @@ import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.EntitySpecs;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

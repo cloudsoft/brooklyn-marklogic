@@ -7,8 +7,8 @@ import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
-import io.cloudsoft.marklogic.MarkLogicNode;
-import io.cloudsoft.marklogic.NodeType;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.NodeType;
 
 /**
  * Creates a cluster of MarkLogic nodes (where the first node is designated the master).

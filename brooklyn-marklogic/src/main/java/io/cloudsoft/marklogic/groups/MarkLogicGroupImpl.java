@@ -5,8 +5,8 @@ import brooklyn.entity.group.DynamicClusterImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.DependentConfiguration;
-import io.cloudsoft.marklogic.MarkLogicNode;
-import io.cloudsoft.marklogic.NodeType;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.NodeType;
 
 import java.util.Map;
 

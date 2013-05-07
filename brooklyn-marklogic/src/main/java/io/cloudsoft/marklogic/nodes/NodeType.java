@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.nodes;
 
 public enum NodeType {
     //will only contain appservers
