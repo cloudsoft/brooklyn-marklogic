@@ -24,12 +24,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
 
-public class MarkLogicSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicDriver {
+public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicNodeDriver {
 
     public final static AtomicInteger counter = new AtomicInteger(2);
     private final int nodeId;
 
-    public MarkLogicSshDriver(EntityLocal entity, SshMachineLocation machine) {
+    public MarkLogicNodeSshDriver(EntityLocal entity, SshMachineLocation machine) {
         super(entity, machine);
         this.nodeId = counter.getAndIncrement();
     }

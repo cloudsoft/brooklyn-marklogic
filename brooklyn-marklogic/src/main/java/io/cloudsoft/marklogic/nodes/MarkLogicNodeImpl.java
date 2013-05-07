@@ -56,7 +56,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     public Class getDriverInterface() {
-        return MarkLogicDriver.class;
+        return MarkLogicNodeDriver.class;
     }
 
     /**
@@ -234,8 +234,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public MarkLogicDriver getDriver() {
-        return (MarkLogicDriver) super.getDriver();
+    public MarkLogicNodeDriver getDriver() {
+        return (MarkLogicNodeDriver) super.getDriver();
     }
 
     public String getHostName(){
