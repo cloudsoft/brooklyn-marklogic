@@ -24,7 +24,7 @@ import java.util.List;
  * <li>Running {@code export BROOKLYN_CLASSPATH=$(pwd)/target/classes; brooklyn launch --app io.cloudsoft.marklogic.MarkLogicApp}
  * </ul>
  */
-public class MarkLogicApp extends AbstractApplication {
+public class MarkLogicTestApplication extends AbstractApplication {
 
     MarkLogicGroup cluster;
 
@@ -75,7 +75,7 @@ public class MarkLogicApp extends AbstractApplication {
         String location = CommandLineUtil.getCommandLineOption(args, "--location", "localhost");
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
-                .application(EntitySpecs.appSpec(MarkLogicApp.class).displayName("Brooklyn MarkLogic Application"))
+                .application(EntitySpecs.appSpec(MarkLogicTestApplication.class).displayName("Brooklyn MarkLogic Application"))
                 .webconsolePort(port)
                 .location(location)
                 .start();

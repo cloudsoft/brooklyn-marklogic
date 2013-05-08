@@ -2,6 +2,7 @@ package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
+import brooklyn.event.feed.ssh.SshPollValue;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.MutableMap;
 import brooklyn.util.exceptions.Exceptions;

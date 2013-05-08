@@ -22,6 +22,15 @@ echo  INSTALLING MARKLOGIC SLAVE
 </#if>
 echo ==============================================================================
 
+# A temporary workaround to change the hostname of the rackspace machine. The hostname used in rackspace is not usable
+# inside the marklogic environment and also can't be used to connect to since it isn't registered in a dns server.
+# so in case of Rackspace, the hostname seen in brooklyn will be the public ip address, and we are going to set this
+# public ip address as the hostname on that machine. In ec2 there won't be any change, since the hostname we see in
+# brooklyn, will be the same as the hostname used on that machine.
+sudo hostname ${driver.hostname}
+echo hostname after
+hostname
+
 echo Installing MarkLogic rpm
 sudo yum -y --nogpgcheck install lsb gdb unzip
 
@@ -39,16 +48,6 @@ sudo -E -n -S -- rpm -i ~/${driver.downloadFilename}
 echo Finished Installing the MarkLogic rpm
 
 sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
-
-# a temporary hack to change the hostname of the rackspace machine.
-uname -a
-cat  /etc/sysconfig/network
-echo hostname before
-hostname
-sudo -E -n -S -- sed -i 's/HOSTNAME=.*/HOSTNAME=${driver.hostname}/' /etc/sysconfig/network
-echo hostname after
-cat  /etc/sysconfig/network
-hostname
 
 pushd .
 
