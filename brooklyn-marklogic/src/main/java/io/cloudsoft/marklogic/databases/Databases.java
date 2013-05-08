@@ -18,7 +18,7 @@ public interface Databases extends AbstractGroup {
             MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
     MethodEffector<Void> CREATE_DATABASE =
-            new MethodEffector<Void>(MarkLogicNode.class, "createDatabase");
+            new MethodEffector<Void>(Databases.class, "createDatabase");
 
     @Description("Creates a new database")
     void createDatabase(

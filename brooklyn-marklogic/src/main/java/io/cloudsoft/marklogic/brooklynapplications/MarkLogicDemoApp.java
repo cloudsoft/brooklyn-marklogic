@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic.demo;
+package io.cloudsoft.marklogic.brooklynapplications;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
@@ -26,16 +26,18 @@ public class MarkLogicDemoApp extends AbstractApplication {
     private NginxController jbossNginx;
     private MarkLogicGroup eNodeGroup;
     private NginxController marklogicNginx;
+    private MarkLogicGroup dNodeGroup;
 
     private String appServiceName = "DemoService";
     private int appServicePort = 8011;
     private String databaseName = "DemoDatabase";
     private Databases databases;
     private AppServices appservices;
-    private MarkLogicGroup dNodeGroup;
 
     @Override
     public void init() {
+        //todo: we need to split up in d-node group size and e-node group size.
+
         String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogicCluster.initial-cluster-size");
         int initialClusterSize = 2;
         if (initialClusterSizeValue != null && !initialClusterSizeValue.isEmpty()) {
@@ -43,16 +45,16 @@ public class MarkLogicDemoApp extends AbstractApplication {
         }
 
         eNodeGroup = addChild(EntitySpecs.spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, initialClusterSize)
+                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "E-Nodes")
+                .configure(MarkLogicGroup.GROUP_NAME, "ENodes")
         );
 
         dNodeGroup = addChild(EntitySpecs.spec(MarkLogicGroup.class)
-                //todo: for the time being it is 0
-                .configure(MarkLogicGroup.INITIAL_SIZE, 0)
+                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
+                .configure(MarkLogicGroup.PRIMARY_STARTUP_GROUP, eNodeGroup)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
+                .configure(MarkLogicGroup.GROUP_NAME, "DNodes")
         );
 
         databases = addChild(EntitySpecs.spec(Databases.class)
@@ -72,7 +74,7 @@ public class MarkLogicDemoApp extends AbstractApplication {
 
         jbossCluster = addChild(EntitySpecs.spec(DynamicCluster.class)
                 .configure(DynamicCluster.MEMBER_SPEC, EntitySpecs.spec(JBoss7Server.class))
-                .configure("initialSize", 2)
+                .configure("initialSize", 1)
                 .configure("httpPort", 8080)
                 .configure(javaSysProp("marklogicCluster.host"), attributeWhenReady(marklogicNginx, NginxController.HOSTNAME))
                 .configure(javaSysProp("marklogicCluster.port"), "" + appServicePort)
@@ -108,8 +110,17 @@ public class MarkLogicDemoApp extends AbstractApplication {
 
         LOG.info("MarkLogic master server is available at 'http://" + masterHost + ":8000'");
         LOG.info("MarkLogic Cluster summary is available at 'http://" + masterHost + ":8001'");
+        LOG.info("E-Nodes");
         k = 1;
         for (Entity entity : eNodeGroup.getMembers()) {
+            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
+            k++;
+        }
+
+
+        LOG.info("D-Nodes");
+        k = 1;
+        for (Entity entity : dNodeGroup.getMembers()) {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }

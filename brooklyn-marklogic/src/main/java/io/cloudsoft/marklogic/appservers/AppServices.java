@@ -18,7 +18,7 @@ public interface AppServices extends AbstractGroup {
             MarkLogicGroup.class, "marklogic.appservices.cluster", "The cluster");
 
     MethodEffector<Void> CREATE_APPSERVER =
-            new MethodEffector<Void>(MarkLogicNode.class, "createRestAppServer");
+            new MethodEffector<Void>(AppServices.class, "createRestAppServer");
 
     @Description("Creates a new Rest AppServer")
     void createRestAppServer(

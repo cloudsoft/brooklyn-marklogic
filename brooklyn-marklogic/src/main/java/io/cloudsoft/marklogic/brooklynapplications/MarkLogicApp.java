@@ -1,5 +1,6 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.brooklynapplications;
 
+import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.Entities;
@@ -35,7 +36,7 @@ public class MarkLogicApp extends AbstractApplication {
             initialClusterSize = Integer.parseInt(initialClusterSizeValue);
         }
 
-        cluster = addChild(EntitySpecs.spec(MarkLogicGroup.class).configure(MarkLogicGroup.INITIAL_SIZE, initialClusterSize));
+        cluster = addChild(EntitySpecs.spec(MarkLogicGroup.class).configure(MarkLogicGroup.INITIAL_SIZE, 2));
     }
 
     @Override
@@ -43,9 +44,17 @@ public class MarkLogicApp extends AbstractApplication {
         super.postStart(locations);
 
         MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
-        node.createGroup("E-Nodes");
-        node.createGroup("D-Nodes");
-        node.assignHostToGroup(node.getHostName(),"E-Nodes");
+        //node.createGroup("E-Nodes");
+        //node.createGroup("D-Nodes");
+        //node.assignHostToGroup(node.getHostName(),"E-Nodes");
+
+        LOG.info("MarkLogic Cluster Members:");
+        int k = 1;
+        for (Entity entity : cluster.getMembers()) {
+            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8001");
+            k++;
+        }
+
 
         LOG.info("MarkLogic server is available at 'http://" +
                 cluster.getAttribute(MarkLogicGroup.MASTER_NODE).getAttribute(Attributes.HOSTNAME) + ":8000'");

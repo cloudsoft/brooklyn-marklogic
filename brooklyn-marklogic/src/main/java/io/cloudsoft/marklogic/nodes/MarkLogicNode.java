@@ -196,4 +196,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     void createGroup(String groupName);
 
     void assignHostToGroup(String hostAddress, String groupName);
+
+    String getGroupName();
 }

@@ -40,6 +40,16 @@ echo Finished Installing the MarkLogic rpm
 
 sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
 
+# a temporary hack to change the hostname of the rackspace machine.
+uname -a
+cat  /etc/sysconfig/network
+echo hostname before
+hostname
+sudo -E -n -S -- sed -i 's/HOSTNAME=.*/HOSTNAME=${driver.hostname}/' /etc/sysconfig/network
+echo hostname after
+cat  /etc/sysconfig/network
+hostname
+
 pushd .
 
 mkdir -p ~/marklogic_install/
@@ -133,7 +143,6 @@ curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-res
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
-
 # todo
 # set up the groups.
 
@@ -162,7 +171,27 @@ echo Finished restarting MarkLogic
 #echo Finished setting metering on
 
 <#else>
+
+#curl http://localhost:8001/
+
+#echo Restarting MarkLogic
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+#waitForMarkLogicUp
+#echo Finished restarting MarkLogic
+
+#echo Setting new credentials
+#curl "http://localhost:8001/security-install-go.xqy" \
+#    -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+#    -H "Content-Type: application/x-www-form-urlencoded" \
+#    --data "user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public&ok.x=32&ok.y=19&ok=ok"
+#
+#curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
+#sleep 2
+#echo Finished setting new credentials
+
+
 echo Joining cluster
+hostname
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
 echo Finished joining cluster
 
@@ -176,16 +205,6 @@ curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-res
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
-# Node has now joined cluster, after this it  add its forests to the DB
-#echo Creating MarkMail forrest
-#curl --digest -u ${driver.user}:${driver.password} \
-#   'http://${driver.masterAddress}:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
-#echo Finished creating MarkMail forrest
-
-#echo Attaching MarkMail forrest
-#curl --digest -u ${driver.user}:${driver.password} \
-#   'http://${driver.masterAddress}:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node${driver.nodeId}&cluster=${driver.cluster}'
-#echo Finished Attaching MarkMail forrest
 </#if>
 
 # todo: now we need to assign the node to a group

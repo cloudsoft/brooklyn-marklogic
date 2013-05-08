@@ -131,7 +131,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
         commands.add(installScript);
-        newScript(MutableMap.of("nonStandardLayout","true"),INSTALLING)
+        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
@@ -144,7 +144,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
-    private void uninstall(){
+    private void uninstall() {
         String installScript = processTemplate(new File(getScriptDirectory(), "uninstall.txt"));
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
@@ -182,7 +182,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void customize() {
-        // no-op; everything done in install()
+        //for the time being we are going to create the E-Nodes and D-Nodes group when the master is created.
+
+        if (isMaster()) {
+        //    createGroup("ENodes");
+        //    createGroup("DNodes");
+        }
     }
 
     @Override
@@ -279,7 +284,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .execute();
 
         log.info("Finished creating forest" + forest.getName());
-  }
+    }
 
     @Override
     public void createDatabase(String name) {
@@ -305,7 +310,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public void createAppServer(String name, String database, String groupName, String port) {
         log.debug("Starting create appServer " + name);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("appServer", name, "port",port,"database",database, "groupName",groupName);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("appServer", name, "port", port, "database", database, "groupName", groupName);
         File installScriptFile = new File(getScriptDirectory(), "create_appserver.txt");
         String installScript = processTemplate(installScriptFile, extraSubstitutions);
 
@@ -343,9 +348,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void assignHostToGroup(String hostAddress, String groupName) {
-        log.debug("Assigning host '"+hostAddress+"'+ to group " + groupName);
+        log.debug("Assigning host '" + hostAddress + "'+ to group " + groupName);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("groupName", groupName, "hostName",hostAddress);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("groupName", groupName, "hostName", hostAddress);
         File installScriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
         String installScript = processTemplate(installScriptFile, extraSubstitutions);
 
@@ -358,6 +363,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        log.debug("Finished Assigning host '"+hostAddress+"'+ to group " + groupName);
+        log.debug("Finished Assigning host '" + hostAddress + "'+ to group " + groupName);
     }
 }

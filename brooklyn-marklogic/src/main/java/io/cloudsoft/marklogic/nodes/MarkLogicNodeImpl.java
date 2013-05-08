@@ -28,12 +28,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeImpl.class);
 
-    // TODO What $node_name - what does `./get_node_name` do?
-    private static final String NODE_NAME = "mynodename";
-
     private final AtomicInteger deviceNameSuffix = new AtomicInteger('h');
 
-    private HttpFeed httpFeed;
+    private FunctionFeed serviceUp;
 
     @Override
     public void init() {
@@ -66,7 +63,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     protected void connectSensors() {
         super.connectSensors();
 
-        FunctionFeed serviceUp = FunctionFeed.builder()
+        serviceUp = FunctionFeed.builder()
                 .entity(this)
                 .period(5000)
                 .poll(new FunctionPollConfig<Boolean, Boolean>(SERVICE_UP)
@@ -83,7 +80,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     protected void disconnectSensors() {
         super.disconnectSensors();
 
-        if (httpFeed != null) httpFeed.stop();
+        if (serviceUp != null) serviceUp.stop();
     }
 
     /**
@@ -242,7 +239,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return getAttribute(HOSTNAME);
     }
 
-    public String getGroup(){
+    public String getGroupName(){
         return getConfig(GROUP);
     }
 
