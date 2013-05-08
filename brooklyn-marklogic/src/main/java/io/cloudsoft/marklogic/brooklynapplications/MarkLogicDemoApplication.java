@@ -10,11 +10,8 @@ import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
-import io.cloudsoft.marklogic.appservers.AppServices;
-import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import io.cloudsoft.marklogic.nodes.NodeType;
 
 import java.util.Collection;
 
@@ -23,52 +20,23 @@ import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
-    private MarkLogicGroup eNodeGroup;
-    private NginxController marklogicNginx;
-    private MarkLogicGroup dNodeGroup;
 
     private String appServiceName = "DemoService";
     private int appServicePort = 8011;
     private String databaseName = "DemoDatabase";
-    final String password = "hap00p";
-    final String username = "admin";
-    private Databases databases;
-    private AppServices appservices;
+    private String password = "hap00p";
+    private String username = "admin";
     private ControlledDynamicWebAppCluster web;
+    private MarkLogicCluster markLogicCluster;
+    private NginxController marklogicNginx;
 
     @Override
     public void init() {
-        //todo: we need to split up in d-node group size and e-node group size.
-
-        String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogicCluster.initial-cluster-size");
-        int initialClusterSize = 2;
-        if (initialClusterSizeValue != null && !initialClusterSizeValue.isEmpty()) {
-            initialClusterSize = Integer.parseInt(initialClusterSizeValue);
-        }
-
-        eNodeGroup = addChild(spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
-                .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "ENodes")
-        );
-
-        dNodeGroup = addChild(spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
-                .configure(MarkLogicGroup.PRIMARY_STARTUP_GROUP, eNodeGroup)
-                .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "DNodes")
-        );
-
-        databases = addChild(spec(Databases.class)
-                .configure(Databases.GROUP, eNodeGroup)
-        );
-
-        appservices = addChild(spec(AppServices.class)
-                .configure(AppServices.CLUSTER, eNodeGroup)
-        );
+        markLogicCluster = addChild(spec(MarkLogicCluster.class));
 
         marklogicNginx = addChild(spec(NginxController.class)
-                .configure("cluster", eNodeGroup)
+                .displayName("MarkLogic Nginx")
+                .configure("cluster", markLogicCluster.getENodeGroup())
                 .configure("port", appServicePort)
                         //todo: temporary hack to feed the app port to nginx.
                 .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
@@ -78,6 +46,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .displayName("WebApp cluster")
                 .configure("initialSize", 1)
                 .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, spec(NginxController.class)
+                        .displayName("WebAppCluster Nginx")
                         .configure("port", 8080)
                         .configure("portNumberSensor", WebAppService.HTTP_PORT))
                 .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
@@ -96,7 +65,16 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         super.postStart(locations);
 
-        MarkLogicNode masterNode = eNodeGroup.getAttribute(MarkLogicGroup.MASTER_NODE);
+        printInfo();
+
+        markLogicCluster.getDatabases().createDatabase(databaseName);
+        markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
+
+        LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
+    }
+
+    private void printInfo() {
+        MarkLogicNode masterNode = markLogicCluster.getENodeGroup().getAttribute(MarkLogicGroup.MASTER_NODE);
         String masterHost = masterNode.getAttribute(Attributes.HOSTNAME);
 
         LOG.info("MarkLogic Nginx http://" + marklogicNginx.getAttribute(Attributes.HOSTNAME));
@@ -111,7 +89,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         LOG.info("MarkLogic Cluster summary is available at 'http://" + masterHost + ":8001'");
         LOG.info("E-Nodes");
         k = 1;
-        for (Entity entity : eNodeGroup.getMembers()) {
+        for (Entity entity : markLogicCluster.getENodeGroup().getMembers()) {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
@@ -119,17 +97,11 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         LOG.info("D-Nodes");
         k = 1;
-        for (Entity entity : dNodeGroup.getMembers()) {
+        for (Entity entity : markLogicCluster.getDNodeGroup().getMembers()) {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
         LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" + masterHost + ":8002/dashboard'");
-
-        databases.createDatabase(databaseName);
-        appservices.createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
-
-
-        LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }
 
 }
