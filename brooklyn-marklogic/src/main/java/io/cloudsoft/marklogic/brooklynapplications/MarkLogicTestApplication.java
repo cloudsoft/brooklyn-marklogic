@@ -9,6 +9,7 @@ import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
 import com.google.common.collect.Lists;
+import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -27,6 +28,7 @@ import java.util.List;
 public class MarkLogicTestApplication extends AbstractApplication {
 
     MarkLogicGroup cluster;
+    private Databases databases;
 
     @Override
     public void init() {
@@ -36,17 +38,27 @@ public class MarkLogicTestApplication extends AbstractApplication {
             initialClusterSize = Integer.parseInt(initialClusterSizeValue);
         }
 
-        cluster = addChild(EntitySpecs.spec(MarkLogicGroup.class).configure(MarkLogicGroup.INITIAL_SIZE, 2));
+        cluster = addChild(EntitySpecs.spec(MarkLogicGroup.class)
+                .configure(MarkLogicGroup.INITIAL_SIZE, 1));
+
+        databases = addChild(EntitySpecs.spec(Databases.class)
+            .configure(Databases.GROUP, cluster)
+        );
     }
 
     @Override
     public void postStart(Collection<? extends Location> locations) {
         super.postStart(locations);
 
+        databases.createDatabase("peter");
+
+
         MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
         //node.createGroup("E-Nodes");
         //node.createGroup("D-Nodes");
         //node.assignHostToGroup(node.getHostName(),"E-Nodes");
+
+
 
         LOG.info("MarkLogic Cluster Members:");
         int k = 1;

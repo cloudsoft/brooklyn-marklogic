@@ -19,16 +19,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     }
 
     @Override
-    public String getDisplayName(){
-        return "Databases";
-    }
-
-    @Override
-    public void createDatabase(String name) {
+    public void createDatabaseWithForest(String name) {
         LOG.info("Creating database: " + name);
         MarkLogicNode node = getAnyNode();
 
-        node.createDatabase(name);
+        node.createDatabaseWithForest(name);
         addChild(EntitySpecs.spec(Database.class)
                 .configure(Database.NAME, name)
         );
@@ -43,5 +38,18 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             throw new IllegalStateException("Can't create a database, there are no members in the cluster");
         }
         return (MarkLogicNode) iterator.next();
+    }
+
+    @Override
+    public void createDatabase(String name) {
+        LOG.info("Creating database: " + name);
+        MarkLogicNode node = getAnyNode();
+
+        node.createDatabase(name);
+        addChild(EntitySpecs.spec(Database.class)
+                .configure(Database.NAME, name)
+        );
+
+        LOG.info("Successfully created database: " + name);
     }
 }

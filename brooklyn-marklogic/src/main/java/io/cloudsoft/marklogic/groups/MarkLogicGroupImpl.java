@@ -101,9 +101,4 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
     public NodeType getNodeType() {
         return getConfig(NODE_TYPE);
     }
-
-    @Override
-    public String getDisplayName() {
-        return "Group:" + getGroupName();
-    }
 }

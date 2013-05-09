@@ -9,6 +9,7 @@ import brooklyn.entity.webapp.*;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import brooklyn.policy.autoscaling.AutoScalerPolicy;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -33,8 +34,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
         );
 
         marklogicNginx = addChild(spec(NginxController.class)
@@ -75,6 +76,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         super.postStart(locations);
 
         printInfo();
+
+       //Forest forest = markLogicCluster.getForests().createForest(...);
+       //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
+       //db.assign(forest);
 
         markLogicCluster.getDatabases().createDatabase(databaseName);
         markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);

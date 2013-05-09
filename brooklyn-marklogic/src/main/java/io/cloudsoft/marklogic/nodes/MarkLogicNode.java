@@ -172,7 +172,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
-    void createDatabase(String name);
+    void createDatabaseWithForest(String name);
 
     MethodEffector<Void> CREATE_FOREST =
             new MethodEffector<Void>(MarkLogicNode.class, "createForest");
@@ -198,4 +198,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     void assignHostToGroup(String hostAddress, String groupName);
 
     String getGroupName();
+
+    void createDatabase(String name);
 }

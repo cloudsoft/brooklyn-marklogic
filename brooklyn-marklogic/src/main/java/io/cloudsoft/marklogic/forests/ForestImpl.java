@@ -1,14 +1,19 @@
 package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.basic.AbstractEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ForestImpl extends AbstractEntity implements Forest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ForestImpl.class);
+
 
     public String getName() {
         return getConfig(NAME);
     }
 
-    public String getHost(){
+    public String getHost() {
         return getConfig(HOST);
     }
 

@@ -1,8 +1,13 @@
 package io.cloudsoft.marklogic.appservers;
 
 import brooklyn.entity.basic.AbstractEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RestAppServer.class);
+
 
     //@Override
     //protected Collection<Integer> getRequiredOpenPorts() {
@@ -19,7 +24,7 @@ public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
 
 
     @Override
-    public String getDisplayName(){
+    public String getDisplayName() {
         return getName();
     }
 
@@ -30,11 +35,11 @@ public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
 
     @Override
     public String getName() {
-       return getConfig(NAME);
+        return getConfig(NAME);
     }
 
     @Override
-    public String getGroupName(){
+    public String getGroupName() {
         return getConfig(GROUP_NAME);
     }
 

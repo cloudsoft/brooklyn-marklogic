@@ -8,7 +8,6 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 @ImplementedBy(DatabasesImpl.class)
 public interface Databases extends AbstractGroup {
@@ -17,10 +16,18 @@ public interface Databases extends AbstractGroup {
     public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
             MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
-    MethodEffector<Void> CREATE_DATABASE =
-            new MethodEffector<Void>(Databases.class, "createDatabase");
+    MethodEffector<Void> CREATE_DATABASE_WITH_FOREST =
+            new MethodEffector<Void>(Databases.class, "createDatabaseWithForest");
 
-    @Description("Creates a new database")
+    @Description("Creates a new database with a forest")
+    void createDatabaseWithForest(
+            @NamedParameter("name") @Description("The name of the database") String name);
+
+    MethodEffector<Void> CREATE_DATABASE =
+            new MethodEffector<Void>(Databases.class, "createDatabaseWithForest");
+
+    @Description("Creates a new database without forests")
     void createDatabase(
             @NamedParameter("name") @Description("The name of the database") String name);
+
 }

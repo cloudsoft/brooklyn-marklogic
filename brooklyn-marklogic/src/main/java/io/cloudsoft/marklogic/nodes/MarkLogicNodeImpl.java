@@ -4,7 +4,6 @@ import brooklyn.entity.basic.*;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
-import brooklyn.event.feed.http.HttpFeed;
 import brooklyn.location.MachineProvisioningLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsLocationCustomizer;
@@ -289,7 +288,13 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void  createDatabase(String name) {
+    public void createDatabaseWithForest(String name) {
+        LOG.info(format("Creating database '%s'",name));
+        getDriver().createDatabaseWithForest(name);
+    }
+
+    @Override
+    public void createDatabase(String name) {
         LOG.info(format("Creating database '%s'",name));
         getDriver().createDatabase(name);
     }

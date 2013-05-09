@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic.brooklynapplications;
+package io.cloudsoft.marklogic.clusters;
 
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
@@ -7,6 +7,7 @@ import brooklyn.entity.trait.Startable;
 import brooklyn.event.basic.BasicConfigKey;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
+import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 @ImplementedBy(MarkLogicClusterImpl.class)
@@ -25,5 +26,7 @@ public interface MarkLogicCluster extends Entity , Startable {
     MarkLogicGroup getDNodeGroup();
 
     MarkLogicGroup getENodeGroup();
+
+    Forests getForests();
 }
 

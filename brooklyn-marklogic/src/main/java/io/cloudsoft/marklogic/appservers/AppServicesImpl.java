@@ -13,7 +13,7 @@ import java.util.Iterator;
 
 public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AppServicesImpl.class);
 
     public MarkLogicGroup getCluster() {
         return getConfig(CLUSTER);
