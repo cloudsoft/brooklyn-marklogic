@@ -32,7 +32,11 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
     @Override
     public void init() {
-        markLogicCluster = addChild(spec(MarkLogicCluster.class));
+        markLogicCluster = addChild(spec(MarkLogicCluster.class)
+                .displayName("MarkLogic Cluster")
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 2)
+        );
 
         marklogicNginx = addChild(spec(NginxController.class)
                 .displayName("MarkLogic Nginx")
@@ -93,7 +97,6 @@ public class MarkLogicDemoApplication extends AbstractApplication {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
-
 
         LOG.info("D-Nodes");
         k = 1;

@@ -186,8 +186,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         //for the time being we are going to create the E-Nodes and D-Nodes group when the master is created.
 
         if (isMaster()) {
-        //    createGroup("ENodes");
-        //    createGroup("DNodes");
+        //    createGroup("E-Nodes");
+        //    createGroup("D-Nodes");
         }
     }
 

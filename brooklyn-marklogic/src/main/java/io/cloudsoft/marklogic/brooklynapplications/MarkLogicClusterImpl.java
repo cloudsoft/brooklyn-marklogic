@@ -19,31 +19,22 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     private Databases databases;
     private AppServices appservices;
 
-
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
         setConfig(ConfigKeys.START_TIMEOUT, 240);
 
-        //todo: we need to split up in d-node group size and e-node group size.
-
-        String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogicCluster.initial-cluster-size");
-        int initialClusterSize = 2;
-        if (initialClusterSizeValue != null && !initialClusterSizeValue.isEmpty()) {
-            initialClusterSize = Integer.parseInt(initialClusterSizeValue);
-        }
-
         eNodeGroup = addChild(spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
+                .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_E_NODES_SIZE))
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "ENodes")
+                .configure(MarkLogicGroup.GROUP_NAME, "E-Nodes")
         );
 
         dNodeGroup = addChild(spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 1)
+                .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
                 .configure(MarkLogicGroup.PRIMARY_STARTUP_GROUP, eNodeGroup)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "DNodes")
+                .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
         );
 
         databases = addChild(spec(Databases.class)
@@ -73,18 +64,22 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         dNodeGroup.stop();
     }
 
+    @Override
     public AppServices getAppservices() {
         return appservices;
     }
 
+    @Override
     public Databases getDatabases() {
         return databases;
     }
 
+    @Override
     public MarkLogicGroup getDNodeGroup() {
         return dNodeGroup;
     }
 
+    @Override
     public MarkLogicGroup getENodeGroup() {
         return eNodeGroup;
     }
