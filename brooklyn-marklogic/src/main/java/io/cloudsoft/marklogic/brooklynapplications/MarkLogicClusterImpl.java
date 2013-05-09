@@ -1,24 +1,18 @@
 package io.cloudsoft.marklogic.brooklynapplications;
 
-import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractEntity;
-import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.NamedParameter;
-import brooklyn.entity.trait.Startable;
-import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
 
 import java.util.Collection;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 
-public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster, Startable {
+public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
     private MarkLogicGroup eNodeGroup;
     private MarkLogicGroup dNodeGroup;
@@ -79,7 +73,6 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         dNodeGroup.stop();
     }
 
-
     public AppServices getAppservices() {
         return appservices;
     }
@@ -95,42 +88,4 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     public MarkLogicGroup getENodeGroup() {
         return eNodeGroup;
     }
-
-    @Override
-    public void postStart(Collection<? extends Location> locations) {
-        LOG.info("=========================== MarkLogicDemoApp: Starting postStart =========================== ");
-
-
-        printInfo();
-
-        //getDatabases().createDatabase(databaseName);
-        //getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
-
-        LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
-    }
-
-    private void printInfo() {
-        MarkLogicNode masterNode = getENodeGroup().getAttribute(MarkLogicGroup.MASTER_NODE);
-        String masterHost = masterNode.getAttribute(Attributes.HOSTNAME);
-
-
-        LOG.info("MarkLogic master server is available at 'http://" + masterHost + ":8000'");
-        LOG.info("MarkLogic Cluster summary is available at 'http://" + masterHost + ":8001'");
-        LOG.info("E-Nodes");
-        int k = 1;
-        for (Entity entity : getENodeGroup().getMembers()) {
-            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
-            k++;
-        }
-
-
-        LOG.info("D-Nodes");
-        k = 1;
-        for (Entity entity : getDNodeGroup().getMembers()) {
-            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
-            k++;
-        }
-        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" + masterHost + ":8002/dashboard'");
-    }
-
 }
