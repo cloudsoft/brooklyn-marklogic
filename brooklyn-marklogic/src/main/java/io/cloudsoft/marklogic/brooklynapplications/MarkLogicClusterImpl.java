@@ -38,7 +38,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         );
 
         databases = addChild(spec(Databases.class)
-                .configure(Databases.GROUP, eNodeGroup)
+                .configure(Databases.GROUP, dNodeGroup)
         );
 
         appservices = addChild(spec(AppServices.class)

@@ -5,11 +5,10 @@ import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.BasicEntitySpec;
-import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
-import brooklyn.entity.webapp.JavaWebAppService;
-import brooklyn.entity.webapp.WebAppService;
+import brooklyn.entity.webapp.*;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
+import brooklyn.policy.autoscaling.AutoScalerPolicy;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -61,6 +60,12 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                         .configure(javaSysProp("marklogicCluster.password"), password)
                         .configure(javaSysProp("marklogicCluster.user"), username)
                         .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war")));
+
+        web.getCluster().addPolicy(AutoScalerPolicy.builder()
+                .metric(WebAppServiceConstants.REQUESTS_PER_SECOND_LAST)
+                .sizeRange(1, 5)
+                .metricRange(10, 100)
+                .build());
     }
 
     @Override

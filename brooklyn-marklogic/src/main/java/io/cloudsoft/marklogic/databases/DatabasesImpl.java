@@ -29,7 +29,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         MarkLogicNode node = getAnyNode();
 
         node.createDatabase(name);
-        Database database = addChild(EntitySpecs.spec(Database.class)
+        addChild(EntitySpecs.spec(Database.class)
                 .configure(Database.NAME, name)
         );
 
