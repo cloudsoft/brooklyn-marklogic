@@ -10,6 +10,8 @@ import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
 import com.google.common.collect.Lists;
 import io.cloudsoft.marklogic.databases.Databases;
+import io.cloudsoft.marklogic.forests.Forests;
+import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -29,6 +31,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
     MarkLogicGroup cluster;
     private Databases databases;
+    private Forests forests;
 
     @Override
     public void init() {
@@ -42,7 +45,11 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(MarkLogicGroup.INITIAL_SIZE, 1));
 
         databases = addChild(EntitySpecs.spec(Databases.class)
-            .configure(Databases.GROUP, cluster)
+                .configure(Databases.GROUP, cluster)
+        );
+
+        forests = addChild(EntitySpecs.spec(Forests.class)
+                .configure(Forests.GROUP, cluster)
         );
     }
 
@@ -50,14 +57,16 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void postStart(Collection<? extends Location> locations) {
         super.postStart(locations);
 
-        databases.createDatabase("peter");
+        MarkLogicNode node = (MarkLogicNode)cluster.getMembers().iterator().next();
+        String hostname = node.getHostName();
+        String forestName = "demoForest";
+        //databases.createDatabase("peter");
+        forests.createForest("peter",hostname,null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
 
-
-        MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
+        //MarkLogicNode node = ((MarkLogicNode) cluster.getMembers().iterator().next());
         //node.createGroup("E-Nodes");
         //node.createGroup("D-Nodes");
         //node.assignHostToGroup(node.getHostName(),"E-Nodes");
-
 
 
         LOG.info("MarkLogic Cluster Members:");

@@ -21,7 +21,7 @@ public interface Forests extends Entity {
             new MethodEffector<Void>(Forests.class, "createForest");
 
     @Description("Creates a new forest")
-    void createForest(
+    Forest createForest(
             @NamedParameter("name") @Description("The name of the forest") String name,
             @NamedParameter("hostname") @Description("The name of the forest") String hostname,
             @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,

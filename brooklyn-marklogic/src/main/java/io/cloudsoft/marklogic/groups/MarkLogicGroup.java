@@ -42,6 +42,7 @@ public interface MarkLogicGroup extends DynamicCluster {
 
     MarkLogicNode getMaster();
 
-    public boolean isUp();
+     boolean isUp();
+
 
 }
