@@ -74,10 +74,10 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                         .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
                                 .configure("initialSize", 1)
                                 .configure("httpPort", 8080)
-                                .configure(javaSysProp("marklogicCluster.host"), attributeWhenReady(marklogicGeoDns, GeoscalingDnsService.HOSTNAME))
-                                .configure(javaSysProp("marklogicCluster.port"), "" + appServicePort)
-                                .configure(javaSysProp("marklogicCluster.password"), password)
-                                .configure(javaSysProp("marklogicCluster.user"), username)
+                                .configure(javaSysProp("marklogic.host"), attributeWhenReady(marklogicGeoDns, GeoscalingDnsService.HOSTNAME))
+                                .configure(javaSysProp("marklogic.port"), "" + appServicePort)
+                                .configure(javaSysProp("marklogic.password"), password)
+                                .configure(javaSysProp("marklogic.user"), username)
                                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"))
         ));
         webGeoDns.setTargetEntityProvider(webFabric);
