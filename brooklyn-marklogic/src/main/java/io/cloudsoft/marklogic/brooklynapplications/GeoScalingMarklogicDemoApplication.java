@@ -42,28 +42,19 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
     public void init() {
         StringConfigMap config = getManagementContext().getConfig();
 
-        webGeoDns = addChild(EntitySpecs.spec(GeoscalingDnsService.class)
+        webGeoDns = getEntityManager().createEntity(EntitySpecs.spec(GeoscalingDnsService.class)
                 .displayName("Web GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
 
-        marklogicGeoDns = addChild(EntitySpecs.spec(GeoscalingDnsService.class)
+        marklogicGeoDns = getEntityManager().createEntity(EntitySpecs.spec(GeoscalingDnsService.class)
                 .displayName("Marklogic GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
-
-        markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
-                .displayName("MarkLogic Fabric")
-                .configure(NginxController.PROXY_HTTP_PORT, PortRanges.fromInteger(80))
-                .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
-                        .displayName("MarkLogic Cluster")
-                        .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
-                        .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)));
-        marklogicGeoDns.setTargetEntityProvider(markLogicFabric);
 
         webFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
                 .displayName("Web Fabric")
@@ -83,6 +74,19 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                                 .configure(javaSysProp("marklogic.user"), username)
                                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"))
                 ));
+        
+        markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
+                .displayName("MarkLogic Fabric")
+                .configure(NginxController.PROXY_HTTP_PORT, PortRanges.fromInteger(80))
+                .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
+                        .displayName("MarkLogic Cluster")
+                        .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                        .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)));
+        
+        addChild(marklogicGeoDns);
+        marklogicGeoDns.setTargetEntityProvider(markLogicFabric);
+
+        addChild(webGeoDns);
         webGeoDns.setTargetEntityProvider(webFabric);
     }
 
