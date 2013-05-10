@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.clusters;
 
+import static brooklyn.util.JavaGroovyEquivalents.elvis;
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -73,7 +74,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         loadBalancer = addChild(spec(NginxController.class)
                 .displayName("LoadBalancer")
                 .configure("cluster", getENodeGroup())
-                .configure("port", 8011)
+                .configure("port", elvis(getConfig(NginxController.PROXY_HTTP_PORT), 8011))
                         //todo: temporary hack to feed the app port to nginx.
                 .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
         );
