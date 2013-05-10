@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -279,4 +280,20 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     public void assignHostToGroup(String hostName, String groupName) {
         getDriver().assignHostToGroup(hostName, groupName);
     }
+
+    @Override
+    public Set<String> scanForests() {
+        return getDriver().scanForests();
+    }
+
+    @Override
+    public Set<String> scanDatabases() {
+        return getDriver().scanDatabases();
+    }
+
+    @Override
+    public boolean isUp(){
+        return getAttribute(SERVICE_UP);
+    }
+
 }

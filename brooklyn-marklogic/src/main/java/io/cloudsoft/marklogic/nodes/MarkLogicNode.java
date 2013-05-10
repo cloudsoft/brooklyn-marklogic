@@ -15,6 +15,8 @@ import brooklyn.util.flags.SetFromFlag;
 import com.google.common.collect.ImmutableList;
 import io.cloudsoft.marklogic.forests.Forest;
 
+import java.util.Set;
+
 /**
  * A node in a MarkLogic cluster, where it will be the master if {@code getConfig(IS_MASTER)}.
  */
@@ -190,4 +192,11 @@ public interface MarkLogicNode extends SoftwareProcess {
     String getGroupName();
 
     void createDatabase(String name);
+
+     Set<String> scanForests();
+
+    Set<String> scanDatabases();
+
+    boolean isUp();
+
 }

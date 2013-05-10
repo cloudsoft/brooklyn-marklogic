@@ -1,0 +1,1 @@
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/forest-summary.xqy?section=forest' | grep -o 'href="forest-admin.xqy?forest=.*' | grep  -Po  '">.*?</a' | sed 's/.*">\(.*\)<[^"]*$/\1/'

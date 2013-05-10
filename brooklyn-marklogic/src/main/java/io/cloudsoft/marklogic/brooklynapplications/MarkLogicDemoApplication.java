@@ -10,6 +10,7 @@ import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import brooklyn.policy.autoscaling.AutoScalerPolicy;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -34,8 +35,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 2)
         );
 
         marklogicNginx = addChild(spec(NginxController.class)
@@ -82,6 +83,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
        //db.assign(forest);
 
         markLogicCluster.getDatabases().createDatabase(databaseName);
+        MarkLogicNode node = (MarkLogicNode)markLogicCluster.getDNodeGroup().getMembers().iterator().next();
+
+        markLogicCluster.getForests().createForest("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
+
         markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
 
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");

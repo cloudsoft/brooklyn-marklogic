@@ -2,7 +2,6 @@ package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.entity.basic.EntityLocal;
-import brooklyn.event.feed.ssh.SshPollValue;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.util.MutableMap;
 import brooklyn.util.exceptions.Exceptions;
@@ -18,10 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
@@ -190,8 +186,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         //for the time being we are going to create the E-Nodes and D-Nodes group when the master is created.
 
         if (isMaster()) {
-        //    createGroup("E-Nodes");
-        //    createGroup("D-Nodes");
+            //    createGroup("E-Nodes");
+            //    createGroup("D-Nodes");
         }
     }
 
@@ -288,12 +284,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.info("Finished creating forest" + forest.getName());
+        LOG.info("Finished creating forest " + forest.getName());
     }
 
     @Override
     public void createDatabaseWithForest(String name) {
-        LOG.debug("Starting create database-with-firest" + name);
+        LOG.debug("Starting create database-with-forest" + name);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("database", name);
         File installScriptFile = new File(getScriptDirectory(), "create_database_with_forest.txt");
@@ -308,7 +304,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating database-with-forest" + name);
+        LOG.debug("Finished creating database-with-forest " + name);
     }
 
     @Override
@@ -349,7 +345,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating appServer" + name);
+        LOG.debug("Finished creating appServer " + name);
     }
 
     @Override
@@ -369,7 +365,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating group" + name);
+        LOG.debug("Finished creating group " + name);
     }
 
     @Override
@@ -390,5 +386,59 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .execute();
 
         LOG.debug("Finished Assigning host '" + hostAddress + "'+ to group " + groupName);
+    }
+
+    @Override
+    public Set<String> scanAppServices() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public Set<String> scanDatabases() {
+        File scriptFile = new File(getScriptDirectory(), "scan_databases.txt");
+        String script = processTemplate(scriptFile);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
+        String s = new String(stdout.toByteArray());
+
+        Set<String> databases = new HashSet();
+        String[] split = s.split("\n");
+        for (int k=0;k<split.length-1;k++) {
+            final String database = split[k].trim();
+            int i = database.indexOf("<");
+            databases.add(database.substring(2, i));
+        }
+        return databases;
+    }
+
+    @Override
+    public Set<String> scanForests() {
+        File scriptFile = new File(getScriptDirectory(), "scan_forests.txt");
+        String script = processTemplate(scriptFile);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
+        String s = new String(stdout.toByteArray());
+
+        Set<String> forests = new HashSet();
+        String[] split = s.split("\n");
+        for (int k=0;k<split.length-1;k++) {
+            forests.add(split[k]);
+        }
+        return forests;
+
     }
 }

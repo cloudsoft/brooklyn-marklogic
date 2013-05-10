@@ -1,0 +1,1 @@
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/database-summary.xqy?section=database' |  grep  'href="database-admin.xqy?section=database' | grep 'images/vbar20.gif'
