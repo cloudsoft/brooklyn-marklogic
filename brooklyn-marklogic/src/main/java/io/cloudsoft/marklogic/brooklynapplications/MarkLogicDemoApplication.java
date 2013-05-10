@@ -29,22 +29,13 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     private String username = "admin";
     private ControlledDynamicWebAppCluster web;
     private MarkLogicCluster markLogicCluster;
-    private NginxController marklogicNginx;
 
     @Override
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 2)
-        );
-
-        marklogicNginx = addChild(spec(NginxController.class)
-                .displayName("MarkLogic Nginx")
-                .configure("cluster", markLogicCluster.getENodeGroup())
-                .configure("port", appServicePort)
-                        //todo: temporary hack to feed the app port to nginx.
-                .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
         );
 
         web = addChild(BasicEntitySpec.newInstance(ControlledDynamicWebAppCluster.class)
@@ -57,7 +48,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
                         .configure("initialSize", 1)
                         .configure("httpPort", 8080)
-                        .configure(javaSysProp("marklogicCluster.host"), attributeWhenReady(marklogicNginx, NginxController.HOSTNAME))
+                        .configure(javaSysProp("marklogicCluster.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), NginxController.HOSTNAME))
                         .configure(javaSysProp("marklogicCluster.port"), "" + appServicePort)
                         .configure(javaSysProp("marklogicCluster.password"), password)
                         .configure(javaSysProp("marklogicCluster.user"), username)
@@ -82,10 +73,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
        //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
        //db.assign(forest);
 
-        markLogicCluster.getDatabases().createDatabase(databaseName);
+        markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
         MarkLogicNode node = (MarkLogicNode)markLogicCluster.getDNodeGroup().getMembers().iterator().next();
 
-        markLogicCluster.getForests().createForest("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
+        //markLogicCluster.getForests().createForest("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
 
         markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
 
@@ -96,7 +87,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         MarkLogicNode masterNode = markLogicCluster.getENodeGroup().getAttribute(MarkLogicGroup.MASTER_NODE);
         String masterHost = masterNode.getAttribute(Attributes.HOSTNAME);
 
-        LOG.info("MarkLogic Nginx http://" + marklogicNginx.getAttribute(Attributes.HOSTNAME));
+        LOG.info("MarkLogic Nginx http://" + markLogicCluster.getLoadBalancer().getAttribute(Attributes.HOSTNAME));
         LOG.info("Web Nginx  http://" + web.getController().getAttribute(Attributes.HOSTNAME));
         int k = 1;
         for (Entity entity : web.getCluster().getMembers()) {

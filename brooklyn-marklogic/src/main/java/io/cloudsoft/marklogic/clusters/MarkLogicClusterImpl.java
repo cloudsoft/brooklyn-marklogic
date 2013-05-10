@@ -2,11 +2,13 @@ package io.cloudsoft.marklogic.clusters;
 
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.location.Location;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     private Databases databases;
     private AppServices appservices;
     private Forests forests;
+    private NginxController loadBalancer;
 
     @Override
     public void init() {
@@ -59,24 +62,40 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .displayName("AppServices")
                 .configure(AppServices.CLUSTER, eNodeGroup)
         );
+
+        loadBalancer = addChild(spec(NginxController.class)
+                .displayName("LoadBalancer")
+                .configure("cluster", getENodeGroup())
+                .configure("port", 8011)
+                        //todo: temporary hack to feed the app port to nginx.
+                .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
+        );
+    }
+
+    @Override
+    public NginxController getLoadBalancer() {
+        return loadBalancer;
     }
 
     @Override
     public void restart() {
         eNodeGroup.restart();
         dNodeGroup.restart();
+        loadBalancer.restart();
     }
 
     @Override
     public void start(Collection<? extends Location> locations) {
         eNodeGroup.start(locations);
         dNodeGroup.start(locations);
+        loadBalancer.start(locations);
     }
 
     @Override
     public void stop() {
         eNodeGroup.stop();
         dNodeGroup.stop();
+        loadBalancer.stop();
     }
 
     @Override

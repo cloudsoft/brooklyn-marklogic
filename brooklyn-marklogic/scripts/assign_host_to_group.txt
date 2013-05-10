@@ -10,7 +10,6 @@ curl --digest -u admin:hap00p  "http://localhost:8001/host-summary.xqy?section=h
 HOST_ID=$(cat foo.html | grep -i "host-admin.xqy?section=host" | grep -i "<#noparse>${HOST_NAME}</#noparse>" | grep  -Po  'href=".*?"' | grep -Po 'host=.*?"' | sed 's/.*host=\(.*\)"[^"]*$/\1/')
 echo HOST_ID = <#noparse>${HOST_ID}</#noparse>
 
-
 #second we need to figure out the group id
 curl --digest -u admin:hap00p  "http://localhost:8001/host-admin.xqy?host=<#noparse>${HOST_ID}</#noparse>&section=host" > foo.html
 GROUP_ID=$(cat foo.html | grep "><#noparse>${GROUP_NAME}</#noparse></option>" | grep  -Po -m1 'value=".*?"'| sed 's/.*"\(.*\)"[^"]*$/\1/')

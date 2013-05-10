@@ -269,7 +269,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void createForest(Forest forest) {
-        LOG.info("Starting create forest" + forest.getName());
+        LOG.info("Starting create forest " + forest.getName());
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forest);
         File installScriptFile = new File(getScriptDirectory(), "create_forest.txt");

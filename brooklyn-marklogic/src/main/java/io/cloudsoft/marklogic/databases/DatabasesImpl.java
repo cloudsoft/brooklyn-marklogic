@@ -57,7 +57,6 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                         MarkLogicNode node = (MarkLogicNode) member;
                         if (node.isUp()) {
                             Set<String> databaseNames = node.scanDatabases();
-                            LOG.info("Found databaseNames: " + databaseNames);
                             for (String databaseName : databaseNames) {
                                 synchronized (mutex) {
                                     if (!databaseExists(databaseName)) {

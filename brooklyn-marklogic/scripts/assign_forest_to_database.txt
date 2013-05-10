@@ -1,1 +1,50 @@
-curl "http://ec2-50-19-143-132.compute-1.amazonaws.com:8001/database-forest-admin.xqy?section=database&database=9863107319430914530" -H "Authorization: Digest username=\"admin\", realm=\"public\", nonce=\"fab18c3b7958c2017821c7e6819b82ca\", uri=\"/database-forest-admin.xqy?section=database&database=9863107319430914530\", response=\"108f702d87d309c22792a58ceb3fa7c1\", opaque=\"55c33210537ce682\", qop=auth, nc=00000039, cnonce=\"903e8dca538264e1\"" -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" -H "Accept-Encoding: gzip,deflate,sdch" -H "Host: ec2-50-19-143-132.compute-1.amazonaws.com:8001" -H "Accept-Language: en-US,en;q=0.8" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" -H "Referer: http://ec2-50-19-143-132.compute-1.amazonaws.com:8001/database-admin.xqy?section=database&database=9863107319430914530" -H "Cookie: __gads=ID=eb10c78c4c231fde:T=1328189339:S=ALNI_MYDLKo76SMj6DgodtsNFpI3McnMqQ" -H "Connection: keep-alive"
+echo ==============================================================================
+echo              ATTACHING FOREST ${forestName} to DATABASE ${databaseName}
+echo ==============================================================================
+
+DATABASE_NAME=somedb7
+FOREST_NAME=someforest7
+
+DATABASE_ID=$(curl --digest -u admin:hap00p "http://localhost:8001/database-summary.xqy?section=database" \
+    | grep "database-admin.xqy?section=database&amp;database" \
+    | grep  '</a><img src="images/varspace.gif"' \
+    | grep ">${DATABASE_NAME}</a>" \
+    | grep  -Po -m1 'database=.*?"' \
+    | sed 's/.*database=\(.*\)"[^"]*$/\1/')
+echo DATABASE_ID = ${DATABASE_ID}
+
+
+curl --digest -u admin:hap00p "http://localhost:8001/database-forest-admin.xqy?section=database&database=${DATABASE_ID}" > foo.html
+FOREST_ID=$(cat foo.html \
+    | grep "${FOREST_NAME}</forest-name>" \
+    | grep  -Po  'forest=.*?"' \
+    | sed 's/.*forest=\(.*\)"[^"]*$/\1/' )
+echo FOREST_ID = ${FOREST_ID}
+
+
+curl --digest -u admin:hap00p "localhost:8001/database-forest-admin-confirm.xqy" \
+    -H "Origin: http://localhost:8001" \
+    -H "Accept-Encoding: gzip,deflate,sdch" \
+    -H "Host: localhost:8001"  \
+    -H "Accept-Language: en-US,en;q=0.8" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+    -H "Referer: localhost:8001/database-forest-admin.xqy?section=database&database=${DATABASE_ID}" \
+    -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" \
+    --data "database=${DATABASE_ID}&section=database&forest-id-1=${FOREST_ID}"
+
+
+# the post
+#curl --digest -u admin:hap00p "http://localhost:8001/database-forest-admin-confirm.xqy" \
+#    -H "Accept-Encoding: gzip,deflate,sdch" \
+#    -H "Accept-Language: en-US,en;q=0.8" \
+#    -H "Content-Type: application/x-www-form-urlencoded" \
+#    -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+#    -H "Referer: http://localhost:8001/database-forest-admin.xqy?section=database&database=${DATABASE_ID}" \
+#    -H "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.3" --data "database=${DATABASE_ID}&section=database&forest-id-1=${FOREST_ID}&ok.x=44&ok.y=15&ok=ok"
+
+
+
+echo ==============================================================================
+echo         FINISHED ATTACHING FOREST ${forestName} to DATABASE ${databaseName}
+echo ==============================================================================
