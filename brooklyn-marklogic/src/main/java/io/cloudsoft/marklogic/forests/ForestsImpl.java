@@ -75,9 +75,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                                          addChild(BasicEntitySpec.newInstance(Forest.class)
                                                 .displayName(forestName)
                                                 .configure(Forest.NAME, forestName)
-                                                .configure(Forest.REBALANCER_ENABLED, true)
-                                                .configure(Forest.FAILOVER_ENABLED, true)
-                                        );
+                                         );
                                     }
                                 }
                             }
@@ -97,8 +95,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             String largeDataDir,
             String fastDataDir,
             String updatesAllowedStr,
-            String rebalancerEnabled,
-            String failoverEnabled) {
+            boolean rebalancerEnabled,
+            boolean failoverEnabled) {
 
         LOG.info(format("Creating forest forestName '%s' dataDir '%s' largeDataDir '%s' fastDataDir '%s' updatesAllowed '%s' rebalancerEnabled '%s' failoverEnabled '%s'",
                 forestName, dataDir, largeDataDir, fastDataDir, updatesAllowedStr, rebalancerEnabled, failoverEnabled));
@@ -123,8 +121,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                     .configure(Forest.LARGE_DATA_DIR, largeDataDir)
                     .configure(Forest.FAST_DATA_DIR, fastDataDir)
                     .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
-                    .configure(Forest.REBALANCER_ENABLED, true)
-                    .configure(Forest.FAILOVER_ENABLED, true)
+                    .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
+                    .configure(Forest.FAILOVER_ENABLED, failoverEnabled)
             );
         }
 

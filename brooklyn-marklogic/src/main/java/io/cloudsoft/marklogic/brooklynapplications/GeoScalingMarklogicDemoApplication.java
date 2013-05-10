@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic.brooklynapplications;
 
 import brooklyn.config.StringConfigMap;
+import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.dns.geoscaling.GeoscalingDnsService;
 import brooklyn.entity.group.DynamicFabric;
@@ -9,17 +10,17 @@ import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.EntitySpecs;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
-import brooklyn.entity.webapp.ElasticJavaWebAppService;
 import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
+import brooklyn.location.Location;
 import brooklyn.location.basic.PortRanges;
-import com.google.common.collect.ImmutableList;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 
 import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
 import static brooklyn.entity.proxying.EntitySpecs.spec;
@@ -34,6 +35,8 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
     private String databaseName = "DemoDatabase";
     private String password = "hap00p";
     private String username = "admin";
+    private DynamicFabric markLogicFabric;
+    private GeoscalingDnsService marklogicGeoDns;
 
     @Override
     public void init() {
@@ -46,14 +49,14 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
 
-        GeoscalingDnsService marklogicGeoDns = addChild(EntitySpecs.spec(GeoscalingDnsService.class)
+        marklogicGeoDns = addChild(EntitySpecs.spec(GeoscalingDnsService.class)
                 .displayName("Marklogic GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
 
-        DynamicFabric markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
+        markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
                 .displayName("MarkLogic Fabric")
                 .configure(AbstractController.PROXY_HTTP_PORT, PortRanges.fromInteger(8011))
                 .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
@@ -79,8 +82,26 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                                 .configure(javaSysProp("marklogic.password"), password)
                                 .configure(javaSysProp("marklogic.user"), username)
                                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"))
-        ));
+                ));
         webGeoDns.setTargetEntityProvider(webFabric);
     }
+
+    @Override
+    public void postStart(Collection<? extends Location> locations) {
+        LOG.info("=========================== GeoScalingMarklogicDemoApplication: Starting postStart =========================== ");
+
+        super.postStart(locations);
+
+        for (Entity member : markLogicFabric.getMembers()) {
+            if (member instanceof MarkLogicCluster) {
+                MarkLogicCluster markLogicCluster = (MarkLogicCluster) member;
+                markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
+                markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
+            }
+        }
+
+        LOG.info("=========================== GeoScalingMarklogicDemoApplication: Finished postStart =========================== ");
+    }
+
 
 }

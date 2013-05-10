@@ -28,6 +28,6 @@ public interface Forests extends Entity {
             @NamedParameter("large-data-dir") @Description("Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
             @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
             @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest. Options are: all, delete-only, read-only, flash-backup.") String updatesAllowed,
-            @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") String rebalancerEnabled,
-            @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") String failoverEnabled);
+            @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
+            @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 }
