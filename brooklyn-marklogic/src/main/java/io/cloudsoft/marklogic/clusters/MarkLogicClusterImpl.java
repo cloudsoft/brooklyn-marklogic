@@ -16,8 +16,13 @@ import org.slf4j.LoggerFactory;
 import brooklyn.enricher.basic.SensorPropagatingEnricher;
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxy.nginx.NginxController;
+import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
@@ -88,10 +93,12 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     @Override
     public void start(Collection<? extends Location> locations) {
-        eNodeGroup.start(locations);
-        dNodeGroup.start(locations);
-        loadBalancer.start(locations);
-        
+        Entities.invokeEffectorList(
+        		this, 
+        		ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer), 
+        		Startable.START, 
+        		ImmutableMap.of("locations", locations)).getUnchecked();
+
         connectSensors();
     }
 
@@ -102,9 +109,10 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     
     @Override
     public void stop() {
-        eNodeGroup.stop();
-        dNodeGroup.stop();
-        loadBalancer.stop();
+        Entities.invokeEffectorList(
+        		this, 
+        		ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer), 
+        		Startable.STOP).getUnchecked();
     }
 
     @Override
