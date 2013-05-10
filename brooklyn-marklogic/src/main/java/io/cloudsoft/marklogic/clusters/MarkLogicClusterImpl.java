@@ -74,7 +74,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         loadBalancer = addChild(spec(NginxController.class)
                 .displayName("LoadBalancer")
                 .configure("cluster", getENodeGroup())
-                .configure("port", elvis(getConfig(NginxController.PROXY_HTTP_PORT), 8011))
+                .configure("port", 80)
                         //todo: temporary hack to feed the app port to nginx.
                 .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
         );
