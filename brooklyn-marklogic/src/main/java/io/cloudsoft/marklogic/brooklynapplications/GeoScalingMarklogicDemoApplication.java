@@ -55,7 +55,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
 
         DynamicFabric markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
                 .displayName("MarkLogic Fabric")
-                .configure(AbstractController.PROXY_HTTP_PORT, PortRanges.fromInteger(80))
+                .configure(AbstractController.PROXY_HTTP_PORT, PortRanges.fromInteger(8011))
                 .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
                         .displayName("MarkLogic Cluster")
                         .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
