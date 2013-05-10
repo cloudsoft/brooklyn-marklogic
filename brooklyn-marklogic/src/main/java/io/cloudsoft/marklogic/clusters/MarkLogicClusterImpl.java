@@ -1,21 +1,23 @@
 package io.cloudsoft.marklogic.clusters;
 
-import brooklyn.entity.basic.AbstractEntity;
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.proxy.nginx.NginxController;
-import brooklyn.location.Location;
+import static brooklyn.entity.proxying.EntitySpecs.spec;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import brooklyn.enricher.basic.SensorPropagatingEnricher;
+import brooklyn.entity.basic.AbstractEntity;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.proxy.nginx.NginxController;
+import brooklyn.location.Location;
 
 public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
@@ -89,8 +91,15 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         eNodeGroup.start(locations);
         dNodeGroup.start(locations);
         loadBalancer.start(locations);
+        
+        connectSensors();
     }
 
+    void connectSensors() {
+        SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, NginxController.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
+            	.addToEntityAndEmitAll(this);
+    }
+    
     @Override
     public void stop() {
         eNodeGroup.stop();
