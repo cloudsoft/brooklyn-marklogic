@@ -6,7 +6,7 @@ This project contains Brooklyn entities for MarkLogic, and an example applicatio
 Setting up Brooklyn
 ==================
 
-The MarkLogic Brooklyn integration relies on Brooklyn 0.5.0-rc.1
+The MarkLogic Brooklyn integration relies on Brooklyn 0.5.0
 
 Check the following page on how to install Brooklyn:
 
