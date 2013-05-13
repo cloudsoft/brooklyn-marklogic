@@ -1,16 +1,13 @@
 package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.config.ConfigKey;
-import brooklyn.entity.basic.Description;
-import brooklyn.entity.basic.MethodEffector;
-import brooklyn.entity.basic.NamedParameter;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.event.AttributeSensor;
-import brooklyn.event.basic.*;
-import brooklyn.location.PortRange;
-import brooklyn.location.basic.PortRanges;
+import brooklyn.event.basic.BasicAttributeSensor;
+import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
+import brooklyn.event.basic.BasicConfigKey;
+import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import com.google.common.collect.ImmutableList;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -180,9 +177,9 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     void createForest(Forest forest);
 
-     String getHostName();
+    String getHostName();
 
-    void createRestAppServer(String name,String database,String groupName,String port);
+    void createRestAppServer(String name, String database, String groupName, String port);
 
     void createGroup(String groupName);
 
@@ -192,7 +189,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     void createDatabase(Database database);
 
-     Set<String> scanForests();
+    Set<String> scanForests();
 
     Set<String> scanDatabases();
 

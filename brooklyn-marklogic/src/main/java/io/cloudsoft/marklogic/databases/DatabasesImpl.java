@@ -127,6 +127,6 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         LOG.info("Assign forest {} to database {}", forestName, databaseName);
 
         MarkLogicNode node = getAnyNode();
-        node.assignForestToDatabase(forestName,databaseName);
+        node.assignForestToDatabase(forestName, databaseName);
     }
 }

@@ -1,20 +1,5 @@
 package io.cloudsoft.marklogic.clusters;
 
-import static brooklyn.util.JavaGroovyEquivalents.elvis;
-import static brooklyn.entity.proxying.EntitySpecs.spec;
-import io.cloudsoft.marklogic.appservers.AppServices;
-import io.cloudsoft.marklogic.databases.Databases;
-import io.cloudsoft.marklogic.forests.Forests;
-import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import io.cloudsoft.marklogic.nodes.NodeType;
-
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import brooklyn.enricher.basic.SensorPropagatingEnricher;
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.entity.basic.ConfigKeys;
@@ -22,9 +7,21 @@ import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.cloudsoft.marklogic.appservers.AppServices;
+import io.cloudsoft.marklogic.databases.Databases;
+import io.cloudsoft.marklogic.forests.Forests;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.NodeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static brooklyn.entity.proxying.EntitySpecs.spec;
 
 public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
@@ -86,18 +83,18 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     @Override
     public boolean claimToBecomeInitialHost() {
-        return initialHostClaimed.compareAndSet(false,true);
+        return initialHostClaimed.compareAndSet(false, true);
     }
 
     @Override
     public MarkLogicNode getAnyNodeOrWait() {
-        for(;;){
+        for (; ; ) {
 
             MarkLogicNode node = dNodeGroup.getAnyStartedMember();
-            if(node!=null)return node;
+            if (node != null) return node;
 
             node = eNodeGroup.getAnyStartedMember();
-            if(node!=null) return node;
+            if (node != null) return node;
 
             try {
                 Thread.sleep(5000);
@@ -121,25 +118,25 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     @Override
     public void start(Collection<? extends Location> locations) {
         Entities.invokeEffectorList(
-        		this, 
-        		ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer), 
-        		Startable.START, 
-        		ImmutableMap.of("locations", locations)).getUnchecked();
+                this,
+                ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer),
+                Startable.START,
+                ImmutableMap.of("locations", locations)).getUnchecked();
 
         connectSensors();
     }
 
     void connectSensors() {
         SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, NginxController.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
-            	.addToEntityAndEmitAll(this);
+                .addToEntityAndEmitAll(this);
     }
-    
+
     @Override
     public void stop() {
         Entities.invokeEffectorList(
-        		this, 
-        		ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer), 
-        		Startable.STOP).getUnchecked();
+                this,
+                ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer),
+                Startable.STOP).getUnchecked();
     }
 
     @Override

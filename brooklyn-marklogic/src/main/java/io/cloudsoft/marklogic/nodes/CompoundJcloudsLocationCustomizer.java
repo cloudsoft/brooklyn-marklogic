@@ -1,15 +1,13 @@
 package io.cloudsoft.marklogic.nodes;
 
-import java.util.List;
-
+import brooklyn.location.jclouds.JcloudsLocationCustomizer;
+import brooklyn.location.jclouds.JcloudsSshMachineLocation;
+import com.google.common.collect.ImmutableList;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
 
-import brooklyn.location.jclouds.JcloudsLocationCustomizer;
-import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 /**
  * A customizer that calls a sequence of other customizers.

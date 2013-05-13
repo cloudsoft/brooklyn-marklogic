@@ -5,7 +5,6 @@ import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.EntitySpecs;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import io.cloudsoft.marklogic.databases.DatabasesImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +28,13 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
         LOG.info("Creating REST appServer: " + name);
         MarkLogicNode node = getMarkLogicNode();
 
-        node.createRestAppServer(name, database,groupName,  "" + port);
+        node.createRestAppServer(name, database, groupName, "" + port);
 
         RestAppServer appServer = addChild(EntitySpecs.spec(RestAppServer.class)
                 .configure(RestAppServer.NAME, name)
                 .configure(RestAppServer.DATABASE_NAME, database)
                 .configure(RestAppServer.PORT, port)
-                .configure(RestAppServer.GROUP_NAME,groupName)
+                .configure(RestAppServer.GROUP_NAME, groupName)
         );
         //todo: should be moved to the appServer
 

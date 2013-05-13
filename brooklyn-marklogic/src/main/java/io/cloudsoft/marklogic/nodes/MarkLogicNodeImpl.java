@@ -1,6 +1,8 @@
 package io.cloudsoft.marklogic.nodes;
 
-import brooklyn.entity.basic.*;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
 import brooklyn.location.MachineProvisioningLocation;
@@ -96,7 +98,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         //TODO: the 8011 port has been added so we can register an application on that port. In the future this needs to come
         //from the application, but for the time being it is hard coded.
         int bindPort = getConfig(BIND_PORT);
-        int foreignBindPort=getConfig(FOREIGN_BIND_PORT);
+        int foreignBindPort = getConfig(FOREIGN_BIND_PORT);
         return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(bindPort, foreignBindPort, 8000, 8001, 8002, 8011)));
     }
 
@@ -235,35 +237,35 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return (MarkLogicNodeDriver) super.getDriver();
     }
 
-    public String getHostName(){
+    public String getHostName() {
         return getAttribute(HOSTNAME);
     }
 
-    public String getGroupName(){
+    public String getGroupName() {
         return getConfig(GROUP);
     }
 
-      @Override
+    @Override
     public void createForest(Forest forest) {
-         getDriver().createForest(forest);
+        getDriver().createForest(forest);
     }
 
     @Override
     public void createDatabaseWithForest(String name) {
-        LOG.info(format("Creating database '%s'",name));
+        LOG.info(format("Creating database '%s'", name));
         getDriver().createDatabaseWithForest(name);
     }
 
     @Override
     public void createDatabase(Database database) {
-        LOG.info(format("Creating database '%s'",database.getName()));
+        LOG.info(format("Creating database '%s'", database.getName()));
         getDriver().createDatabase(database);
     }
 
     @Override
     public void createRestAppServer(String name, String database, String groupName, String port) {
-        LOG.info(format("Creating appServer '%s'",name));
-        getDriver().createAppServer(name,database,groupName, port);
+        LOG.info(format("Creating appServer '%s'", name));
+        getDriver().createAppServer(name, database, groupName, port);
     }
 
     @Override
@@ -292,7 +294,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public boolean isUp(){
+    public boolean isUp() {
         return getAttribute(SERVICE_UP);
     }
 

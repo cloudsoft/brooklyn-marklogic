@@ -30,7 +30,7 @@ public interface RestAppServer extends Entity {
             String.class, "marklogic.appserver.port",
             "The port this application can be connected to", null);
 
-      String getName();
+    String getName();
 
     String getDatabaseName();
 

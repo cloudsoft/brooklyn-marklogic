@@ -27,7 +27,7 @@ public interface MarkLogicCluster extends Entity, Startable {
     //spec for nginx; need to be changed to load balancer to prevent be dependent to nginx
     @SetFromFlag("nginxSpec")
 
-   BasicAttributeSensorAndConfigKey<EntitySpec<? extends NginxController>> NGINX_SPEC = new BasicAttributeSensorAndConfigKey(
+    BasicAttributeSensorAndConfigKey<EntitySpec<? extends NginxController>> NGINX_SPEC = new BasicAttributeSensorAndConfigKey(
             EntitySpec.class, "marklogic.cluster.nginx-spec", "Spec for nginx in front of marklogic", null);
 
 

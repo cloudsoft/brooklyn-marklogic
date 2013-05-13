@@ -74,7 +74,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                                 .configure(javaSysProp("marklogic.user"), username)
                                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"))
                 ));
-        
+
         markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
                 .displayName("MarkLogic Fabric")
                 .configure(NginxController.PROXY_HTTP_PORT, PortRanges.fromInteger(80))
@@ -82,7 +82,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                         .displayName("MarkLogic Cluster")
                         .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
                         .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)));
-        
+
         addChild(marklogicGeoDns);
         marklogicGeoDns.setTargetEntityProvider(markLogicFabric);
 

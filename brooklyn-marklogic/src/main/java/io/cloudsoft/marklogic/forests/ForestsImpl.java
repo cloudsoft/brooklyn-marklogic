@@ -41,7 +41,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         throw new IllegalStateException(format("Can't create a forest, no node with hostname '%s' found", hostname));
     }
 
-    private boolean forestExists(String forestName){
+    private boolean forestExists(String forestName) {
         for (Entity member : getChildren()) {
             if (member instanceof Forest) {
                 Forest forest = (Forest) member;
@@ -55,27 +55,27 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public void init(){
-             super.init();
+    public void init() {
+        super.init();
 
-        Runnable task = new Runnable(){
+        Runnable task = new Runnable() {
             @Override
             public void run() {
                 MarkLogicGroup cluster = getGroup();
                 Collection<Entity> markLogicNodes = cluster.getMembers();
-                if(markLogicNodes.isEmpty()) return;
-                for(Entity member: markLogicNodes){
-                    if(member instanceof MarkLogicNode){
-                        MarkLogicNode node = (MarkLogicNode)member;
-                        if(node.isUp()){
+                if (markLogicNodes.isEmpty()) return;
+                for (Entity member : markLogicNodes) {
+                    if (member instanceof MarkLogicNode) {
+                        MarkLogicNode node = (MarkLogicNode) member;
+                        if (node.isUp()) {
                             Set<String> forests = node.scanForests();
-                            for(String forestName: forests){
-                                synchronized (mutex){
-                                    if(!forestExists(forestName)){
-                                         addChild(BasicEntitySpec.newInstance(Forest.class)
+                            for (String forestName : forests) {
+                                synchronized (mutex) {
+                                    if (!forestExists(forestName)) {
+                                        addChild(BasicEntitySpec.newInstance(Forest.class)
                                                 .displayName(forestName)
                                                 .configure(Forest.NAME, forestName)
-                                         );
+                                        );
                                     }
                                 }
                             }
@@ -84,7 +84,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                 }
             }
         };
-        scheduler.scheduleAtFixedRate(task, 0,5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 5, TimeUnit.SECONDS);
     }
 
     @Override
@@ -109,8 +109,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         Forest forest;
         synchronized (mutex) {
-            if(forestExists(forestName)){
-                 throw new IllegalArgumentException(format("A forest with name '%s' already exists",forestName));
+            if (forestExists(forestName)) {
+                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
             }
 
             forest = addChild(BasicEntitySpec.newInstance(Forest.class)

@@ -5,13 +5,14 @@ import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.BasicEntitySpec;
-import brooklyn.entity.webapp.*;
+import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
+import brooklyn.entity.webapp.JavaWebAppService;
+import brooklyn.entity.webapp.WebAppService;
+import brooklyn.entity.webapp.WebAppServiceConstants;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import brooklyn.policy.autoscaling.AutoScalerPolicy;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
-import io.cloudsoft.marklogic.forests.UpdatesAllowed;
-import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 import java.util.Collection;
@@ -69,12 +70,12 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         printInfo();
 
-       //Forest forest = markLogicCluster.getForests().createForest(...);
-       //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-       //db.assign(forest);
+        //Forest forest = markLogicCluster.getForests().createForest(...);
+        //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
+        //db.assign(forest);
 
         markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-        MarkLogicNode node = (MarkLogicNode)markLogicCluster.getDNodeGroup().getMembers().iterator().next();
+        MarkLogicNode node = (MarkLogicNode) markLogicCluster.getDNodeGroup().getMembers().iterator().next();
 
         //markLogicCluster.getForests().createForest("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
 

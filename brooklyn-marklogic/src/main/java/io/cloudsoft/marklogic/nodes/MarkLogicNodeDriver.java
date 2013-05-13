@@ -16,7 +16,7 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
     void createGroup(String name);
 
-    void createAppServer(String name, String database, String groupName,String port);
+    void createAppServer(String name, String database, String groupName, String port);
 
     void assignHostToGroup(String hostAddress, String groupName);
 

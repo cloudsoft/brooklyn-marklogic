@@ -3,8 +3,6 @@ package io.cloudsoft.marklogic.groups;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.group.DynamicCluster;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.event.AttributeSensor;
-import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;

@@ -33,25 +33,25 @@ public enum UpdatesAllowed {
         return name;
     }
 
-    public static UpdatesAllowed get(String s){
-        if(ALL.name.equals(s)){
+    public static UpdatesAllowed get(String s) {
+        if (ALL.name.equals(s)) {
             return ALL;
         }
 
-        if(DELETE_ONLY.name.equals(s)){
+        if (DELETE_ONLY.name.equals(s)) {
             return DELETE_ONLY;
         }
 
-        if(READ_ONLY.name.equals(s)){
+        if (READ_ONLY.name.equals(s)) {
             return READ_ONLY;
         }
 
-        if(FLASH_BACKUPS.name.equals(s)){
+        if (FLASH_BACKUPS.name.equals(s)) {
             return FLASH_BACKUPS;
         }
 
         throw new IllegalArgumentException(
-                format("UpdatesAllowed value: '%s' should be one of %s,%s,%s,%s",s,ALL.name,DELETE_ONLY.name,READ_ONLY.name,FLASH_BACKUPS.name));
+                format("UpdatesAllowed value: '%s' should be one of %s,%s,%s,%s", s, ALL.name, DELETE_ONLY.name, READ_ONLY.name, FLASH_BACKUPS.name));
     }
 }
 
