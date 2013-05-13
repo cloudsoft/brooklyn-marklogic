@@ -1,0 +1,70 @@
+function waitForMarkLogicUp(){
+  sleep 30
+  #for i in {1..60}
+  #do
+  #   if [ "curl --silent http://localhost:8001" ];
+  #   then
+  #      return
+  #   else
+  #      echo Waiting for MarkLogic to be started
+  #      sleep 1
+  #   fi
+  #done
+  #echo "The MarkLogic was not up in 60 seconds"
+  #exit 1
+}
+
+echo ==============================================================================
+echo  CUSTOMIZING MARKLOGIC INITIAL HOST
+echo ==============================================================================
+
+cd ~/marklogic_install
+
+echo Setting new credentials
+curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
+sleep 2
+echo Finished setting new credentials
+
+echo credentials-admin-go # only needed for S3
+#curl --digest -u ${driver.user}:${driver.password} \
+#   'http://localhost:8001/credentials-admin-go.xqy?/sec:credentials/sec:aws-access-key=${driver.awsAccessKey}&/sec:credentials/sec:aws-secret-key=${driver.awsSecretKey}'
+#sleep 2
+
+echo Restarting MarkLogic
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+waitForMarkLogicUp
+echo Finished restarting MarkLogic
+
+# todo
+# set up the groups.
+
+#echo Creating Markmail database
+#curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_markmail_database.xqy
+#echo Finished creating MarkMail database
+
+#todo: the driver.clusterName should be changed to entity.cluster.name
+
+#echo Creating MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=${driver.clusterName}'
+#echo Finished creating MarkMail forrest
+
+#echo Attaching MarkMail forrest
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=${driver.clusterName}'
+#echo Finished attaching MarkMail forrest
+
+#echo Creating role
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_role.xqy'
+#echo Finished creating role
+
+#echo Creating MarkMail appserver
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_appserver.xqy'
+#echo Finished creating MarkMail appserver
+
+#echo Setting metering on
+#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
+#echo Finished setting metering on
+
+echo ==============================================================================
+echo  FINISHED CUSTOMIZING INITIAL HOST
+echo ==============================================================================
+

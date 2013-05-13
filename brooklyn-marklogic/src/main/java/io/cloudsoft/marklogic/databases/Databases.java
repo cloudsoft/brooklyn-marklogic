@@ -27,7 +27,13 @@ public interface Databases extends AbstractGroup {
             new MethodEffector<Void>(Databases.class, "createDatabase");
 
     @Description("Creates a new database without forests attached to it.")
-    void createDatabase(
+    Database createDatabase(
             @NamedParameter("name") @Description("The name of the database") String name);
 
+    MethodEffector<Void> ASSIGN_FOREST_TO_DATABASE =
+            new MethodEffector<Void>(Databases.class, "assignForestToDatabase");
+
+    @Description("Assigns a forest to a database.")
+    void assignForestToDatabase(@NamedParameter("forestName") @Description("The name of the forest") String forestName,
+                                @NamedParameter("databaseName") @Description("The name of the database") String databaseName);
 }

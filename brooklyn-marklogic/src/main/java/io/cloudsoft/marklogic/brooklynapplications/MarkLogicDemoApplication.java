@@ -34,8 +34,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 4)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 4)
         );
 
         web = addChild(BasicEntitySpec.newInstance(ControlledDynamicWebAppCluster.class)
@@ -84,8 +84,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     }
 
     private void printInfo() {
-        MarkLogicNode masterNode = markLogicCluster.getENodeGroup().getAttribute(MarkLogicGroup.MASTER_NODE);
-        String masterHost = masterNode.getAttribute(Attributes.HOSTNAME);
+        MarkLogicNode node = markLogicCluster.getENodeGroup().getAnyStartedMember();
+        String hostName = node.getHostName();
 
         LOG.info("MarkLogic Nginx http://" + markLogicCluster.getLoadBalancer().getAttribute(Attributes.HOSTNAME));
         LOG.info("Web Nginx  http://" + web.getController().getAttribute(Attributes.HOSTNAME));
@@ -95,8 +95,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
             k++;
         }
 
-        LOG.info("MarkLogic master server is available at 'http://" + masterHost + ":8000'");
-        LOG.info("MarkLogic Cluster summary is available at 'http://" + masterHost + ":8001'");
+        LOG.info("MarkLogic Cluster is available at 'http://" + hostName + ":8000'");
+        LOG.info("MarkLogic Cluster summary is available at 'http://" + hostName + ":8001'");
         LOG.info("E-Nodes");
         k = 1;
         for (Entity entity : markLogicCluster.getENodeGroup().getMembers()) {
@@ -110,7 +110,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
-        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" + masterHost + ":8002/dashboard'");
+        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" + hostName + ":8002/dashboard'");
     }
 
 }

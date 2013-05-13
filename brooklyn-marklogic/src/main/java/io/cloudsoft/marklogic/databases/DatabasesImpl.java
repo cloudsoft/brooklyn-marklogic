@@ -4,7 +4,6 @@ import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.EntitySpecs;
-import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -105,21 +104,29 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     }
 
     @Override
-    public void createDatabase(String name) {
+    public Database createDatabase(String name) {
         LOG.info("Creating database: " + name);
+        Database database;
         synchronized (mutex) {
             if (databaseExists(name)) {
                 throw new IllegalArgumentException(format("A database with name '%s' already exists", name));
             }
 
-            addChild(EntitySpecs.spec(Database.class)
+            database = addChild(EntitySpecs.spec(Database.class)
                     .configure(Database.NAME, name)
             );
         }
         MarkLogicNode node = getAnyNode();
-        node.createDatabase(name);
-
-
+        node.createDatabase(database);
         LOG.info("Successfully created database: " + name);
+        return database;
+    }
+
+    @Override
+    public void assignForestToDatabase(String forestName, String databaseName) {
+        LOG.info("Assign forest {} to database {}", forestName, databaseName);
+
+        MarkLogicNode node = getAnyNode();
+        node.assignForestToDatabase(forestName,databaseName);
     }
 }

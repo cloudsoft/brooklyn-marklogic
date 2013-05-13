@@ -1,0 +1,39 @@
+function waitForMarkLogicUp(){
+  sleep 30
+  #for i in {1..60}
+  #do
+  #   if [ "curl --silent http://localhost:8001" ];
+  #   then
+  #      return
+  #   else
+  #      echo Waiting for MarkLogic to be started
+  #      sleep 1
+  #   fi
+  #done
+  #echo "The MarkLogic was not up in 60 seconds"
+  #exit 1
+}
+
+echo ==============================================================================
+echo  CUSTOMIZING MARKLOGIC ADDITIONAL HOST
+echo ==============================================================================
+
+echo Joining cluster
+hostname
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${clusterHostName}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
+echo Finished joining cluster
+
+echo Transferring Cluster Config
+curl --digest -u ${driver.user}:${driver.password} \
+   'http://${clusterHostName}:8001/transfer-cluster-config.xqy?server=${clusterHostName}&joiner=${driver.hostname}'
+echo Finished transferring Cluster config
+
+echo Restarting Host
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+waitForMarkLogicUp
+echo Finished restarting Host
+
+echo ==============================================================================
+echo  FINISHED CUSTOMIZING MARKLOGIC ADDITIONAL HOST
+echo ==============================================================================
+

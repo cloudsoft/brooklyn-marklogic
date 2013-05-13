@@ -1,7 +1,6 @@
 package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.*;
-import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
 import brooklyn.location.MachineProvisioningLocation;
@@ -10,8 +9,9 @@ import brooklyn.location.jclouds.JcloudsLocationCustomizer;
 import brooklyn.util.MutableMap;
 import com.google.common.base.Functions;
 import com.google.common.collect.*;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
-import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
         setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
         setConfig(FCOUNT, Integer.parseInt(getManagementContext().getConfig().getFirst("brooklyn.marklogic.fcount")));
-        setConfig(CLUSTER, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
+        setConfig(CLUSTER_NAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
         String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");
         if (configuredVersion != null && !configuredVersion.isEmpty()) {
             setConfig(SoftwareProcess.SUGGESTED_VERSION, configuredVersion);
@@ -243,12 +243,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return getConfig(GROUP);
     }
 
-    @Override
-    public String getMasterAddress() {
-        return getConfig(MASTER_ADDRESS);
-    }
-
-    @Override
+      @Override
     public void createForest(Forest forest) {
          getDriver().createForest(forest);
     }
@@ -260,15 +255,20 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createDatabase(String name) {
-        LOG.info(format("Creating database '%s'",name));
-        getDriver().createDatabase(name);
+    public void createDatabase(Database database) {
+        LOG.info(format("Creating database '%s'",database.getName()));
+        getDriver().createDatabase(database);
     }
 
     @Override
     public void createRestAppServer(String name, String database, String groupName, String port) {
         LOG.info(format("Creating appServer '%s'",name));
         getDriver().createAppServer(name,database,groupName, port);
+    }
+
+    @Override
+    public void assignForestToDatabase(String forestName, String databaseName) {
+        getDriver().assignForestToDatabase(forestName, databaseName);
     }
 
     @Override
@@ -296,4 +296,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return getAttribute(SERVICE_UP);
     }
 
+    @Override
+    public MarkLogicCluster getCluster() {
+        return getConfig(CLUSTER);
+    }
 }

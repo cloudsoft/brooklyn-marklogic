@@ -13,15 +13,22 @@ import brooklyn.location.PortRange;
 import brooklyn.location.basic.PortRanges;
 import brooklyn.util.flags.SetFromFlag;
 import com.google.common.collect.ImmutableList;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 
 import java.util.Set;
 
 /**
- * A node in a MarkLogic cluster, where it will be the master if {@code getConfig(IS_MASTER)}.
+ * A node in a MarkLogic cluster.
  */
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {
+
+    @SetFromFlag("cluster")
+    ConfigKey<MarkLogicCluster> CLUSTER = new BasicConfigKey<MarkLogicCluster>(
+            MarkLogicCluster.class, "marklogic.node.cluster",
+            "The cluster this node belongs to", null);
 
     @SetFromFlag("version")
     ConfigKey<NodeType> NODE_TYPE = new BasicConfigKey<NodeType>(
@@ -84,25 +91,19 @@ public interface MarkLogicNode extends SoftwareProcess {
             String.class, "marklogic.group",
             "The MarkLogic group this node belongs to", "Default");
 
-
     @SetFromFlag("cluster")
-    ConfigKey<String> CLUSTER = new BasicConfigKey<String>(
+    ConfigKey<String> CLUSTER_NAME = new BasicConfigKey<String>(
             String.class, "marklogic.cluster", "The cluster name", null);
+
 
     // FIXME This doesn't work because gives 403 unless you include username/password in curl
     @SetFromFlag("downloadUrl")
     BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey<String>(
             SoftwareProcess.DOWNLOAD_URL, "http://developer.marklogic.com/download/binaries/6.0/${driver.downloadFilename}");
 
-
-    @SetFromFlag("isMaster")
-    ConfigKey<Boolean> IS_MASTER = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.node.ismaster", "Whether this node in the cluster is the master", false);
-
-    @SetFromFlag("masterAddress")
-    ConfigKey<String> MASTER_ADDRESS = new BasicConfigKey<String>(
-            String.class, "marklogic.node.masterAddress", "If this is not the master, specifies the master address to use", null);
-
+    @SetFromFlag("isInitialHost")
+    ConfigKey<Boolean> IS_INITIAL_HOST = new BasicConfigKey<Boolean>(
+            Boolean.class, "marklogic.node.isInitialHost", "Whether this node in the cluster is the initialHost", false);
 
     @SetFromFlag("availabilityZone")
     ConfigKey<String> AVAILABILITY_ZONE = new BasicConfigKey<String>(
@@ -179,9 +180,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     void createForest(Forest forest);
 
-    String getMasterAddress();
-
-    String getHostName();
+     String getHostName();
 
     void createRestAppServer(String name,String database,String groupName,String port);
 
@@ -191,7 +190,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getGroupName();
 
-    void createDatabase(String name);
+    void createDatabase(Database database);
 
      Set<String> scanForests();
 
@@ -199,4 +198,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     boolean isUp();
 
+    void assignForestToDatabase(String forestName, String databaseName);
+
+    MarkLogicCluster getCluster();
 }

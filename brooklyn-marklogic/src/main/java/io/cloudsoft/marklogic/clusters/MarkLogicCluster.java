@@ -13,6 +13,7 @@ import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 @ImplementedBy(MarkLogicClusterImpl.class)
 public interface MarkLogicCluster extends Entity, Startable {
@@ -41,5 +42,9 @@ public interface MarkLogicCluster extends Entity, Startable {
     Forests getForests();
 
     NginxController getLoadBalancer();
+
+    boolean claimToBecomeInitialHost();
+
+    MarkLogicNode getAnyNodeOrWait();
 }
 

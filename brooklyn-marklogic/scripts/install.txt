@@ -15,11 +15,7 @@ function waitForMarkLogicUp(){
 }
 
 echo ==============================================================================
-<#if driver.isMaster()>
-echo  INSTALLING MARKLOGIC MASTER
-<#else>
-echo  INSTALLING MARKLOGIC SLAVE
-</#if>
+echo  INSTALLING MARKLOGIC HOST
 echo ==============================================================================
 
 # A temporary workaround to change the hostname of the rackspace machine. The hostname used in rackspace is not usable
@@ -124,95 +120,7 @@ curl 'http://localhost:8001/qa-restart.xqy'
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
-<#if driver.isMaster()>
-echo  INSTALLING MARKLOGIC MASTER
-
-echo Setting new credentials
-curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
-sleep 2
-echo Finished setting new credentials
-
-echo credentials-admin-go # only needed for S3
-#curl --digest -u ${driver.user}:${driver.password} \
-#   'http://localhost:8001/credentials-admin-go.xqy?/sec:credentials/sec:aws-access-key=${driver.awsAccessKey}&/sec:credentials/sec:aws-secret-key=${driver.awsSecretKey}'
-#sleep 2
-
-echo Restarting MarkLogic
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-waitForMarkLogicUp
-echo Finished restarting MarkLogic
-
-# todo
-# set up the groups.
-
-#echo Creating Markmail database
-#curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/create_markmail_database.xqy
-#echo Finished creating MarkMail database
-
-#echo Creating MarkMail forrest
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_forests.xqy?datadir=/var/opt/mldata&fcount=4&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
-#echo Finished creating MarkMail forrest
-
-#echo Attaching MarkMail forrest
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/attach_markmail_forests.xqy?fcount=${driver.fcount}&host=${driver.hostname}&node=node1&cluster=${driver.cluster}'
-#echo Finished attaching MarkMail forrest
-
-#echo Creating role
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_role.xqy'
-#echo Finished creating role
-
-#echo Creating MarkMail appserver
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/create_markmail_appserver.xqy'
-#echo Finished creating MarkMail appserver
-
-#echo Setting metering on
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/set_metering_on.xqy'
-#echo Finished setting metering on
-
-<#else>
-
-#curl http://localhost:8001/
-
-#echo Restarting MarkLogic
-#curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-#waitForMarkLogicUp
-#echo Finished restarting MarkLogic
-
-#echo Setting new credentials
-#curl "http://localhost:8001/security-install-go.xqy" \
-#    -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-#    -H "Content-Type: application/x-www-form-urlencoded" \
-#    --data "user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public&ok.x=32&ok.y=19&ok=ok"
-#
-#curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
-#sleep 2
-#echo Finished setting new credentials
-
-
-echo Joining cluster
-hostname
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
-echo Finished joining cluster
-
-echo Transferring Cluster Config
-curl --digest -u ${driver.user}:${driver.password} \
-   'http://${driver.masterAddress}:8001/transfer-cluster-config.xqy?server=${driver.masterAddress}&joiner=${driver.hostname}'
-echo Finished transferring Cluster config
-
-echo Restarting MarkLogic
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-waitForMarkLogicUp
-echo Finished restarting MarkLogic
-
-</#if>
-
-# todo: now we need to assign the node to a group
-
 echo ==============================================================================
-<#if driver.isMaster()>
-echo  FINISHED INSTALLING MARKLOGIC MASTER!!
-<#else>
-echo  FINISHED INSTALLING MARKLOGIC SLAVE!!
-</#if>
+echo  FINISHED INSTALLING MARKLOGIC HOST
 echo ==============================================================================
 

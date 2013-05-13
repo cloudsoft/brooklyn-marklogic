@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableMap;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,16 +82,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return entity.getConfig(MarkLogicNode.LICENSEE).replace(" ", "%20");
     }
 
-    public String getCluster() {
-        return entity.getConfig(MarkLogicNode.CLUSTER).replace(" ", "%20");
+    public String getClusterName() {
+        return entity.getConfig(MarkLogicNode.CLUSTER_NAME).replace(" ", "%20");
     }
 
-    public String getMasterAddress() {
-        return entity.getConfig(MarkLogicNode.MASTER_ADDRESS);
-    }
-
-    public boolean isMaster() {
-        return entity.getConfig(MarkLogicNode.IS_MASTER);
+    public boolean isInitialHost() {
+        return entity.getConfig(MarkLogicNode.IS_INITIAL_HOST);
     }
 
     public File getBrooklynMarkLogicHome() {
@@ -111,38 +109,22 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void install() {
-        boolean master = isMaster();
-        if (master) {
-            LOG.info("Starting installation of MarkLogic master " + getHostname());
-            uploadFiles();
-        } else {
-            LOG.info("Slave " + getHostname() + " waiting for master to be up");
-            uploadFiles();
+        LOG.info("Starting installation of MarkLogic host {}", getHostname());
 
-            //a very nasty hack to wait on the service up from the
-
-            entity.getConfig(MarkLogicNode.IS_BACKUP_EBS);
-            LOG.info("Starting installation of MarkLogic slave " + getHostname());
-        }
-
-        //uninstall marklogic; this functionality is useful when machines are being reused (e.g for testing to speed things up).
         uninstall();
+        uploadFiles();
 
-        String installScript = processTemplate(new File(getScriptDirectory(), "install.txt"));
+        String script = processTemplate(new File(getScriptDirectory(), "install.txt"));
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 
-        if (master) {
-            LOG.info("Finished installation of MarkLogic master " + getHostname());
-        } else {
-            LOG.info("Finished installation of MarkLogic slave " + getHostname());
-        }
+        LOG.info("Finished installation of MarkLogic host {}", getHostname());
     }
 
     private void uninstall() {
@@ -157,14 +139,14 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private void uploadFiles() {
-        LOG.info("Starting upload to" + getHostname());
+        LOG.info("Starting upload to {}", getHostname());
 
 
         File uploadDirectory = getUploadDirectory();
         String targetDirectory = "./";
         uploadFiles(uploadDirectory, targetDirectory);
 
-        LOG.info("Finished upload to " + getHostname());
+        LOG.info("Finished upload to {}", getHostname());
     }
 
     private void uploadFiles(File dir, String targetDirectory) {
@@ -181,13 +163,41 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+
     @Override
     public void customize() {
-        //for the time being we are going to create the E-Nodes and D-Nodes group when the master is created.
+        final MarkLogicCluster cluster = ((MarkLogicNode) getEntity()).getCluster();
+        boolean isInitialHost = cluster == null || cluster.claimToBecomeInitialHost();
+        getEntity().setConfig(MarkLogicNode.IS_INITIAL_HOST, isInitialHost);
 
-        if (isMaster()) {
-            //    createGroup("E-Nodes");
-            //    createGroup("D-Nodes");
+        File scriptFile;
+        Map<String, Object> substitutions = new HashMap<String, Object>();
+        if (isInitialHost) {
+            LOG.info("Starting customize of MarkLogic initial host {}", getHostname());
+            scriptFile = new File(getScriptDirectory(), "customize_initial_host.txt");
+            substitutions = new HashMap<String, Object>();
+        } else {
+            LOG.info("Additional host {} waiting for initial host to be up", getHostname());
+            MarkLogicNode node = cluster.getAnyNodeOrWait();
+            LOG.info("Starting customize of Marklogic additional host {}", getHostname());
+            scriptFile = new File(getScriptDirectory(), "customize_additional_host.txt");
+            substitutions.put("clusterHostName", node.getHostName());
+        }
+
+        String script = processTemplate(scriptFile, substitutions);
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        if (isInitialHost) {
+            LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
+        } else {
+            LOG.info("Finished customize of additional host {}", getHostname());
         }
     }
 
@@ -202,11 +212,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        if (isMaster()) {
-            LOG.info("Successfully launched MarkLogic master " + getHostname());
-        } else {
-            LOG.info("Successfully launched MarkLogic slave " + getHostname());
-        }
+        LOG.info("Successfully launched MarkLogic  host {}", getHostname());
     }
 
     @Override
@@ -269,55 +275,55 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void createForest(Forest forest) {
-        LOG.info("Starting create forest " + forest.getName());
+        LOG.info("Starting create forest {}", forest.getName());
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forest);
-        File installScriptFile = new File(getScriptDirectory(), "create_forest.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("createForest")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 
-        LOG.info("Finished creating forest " + forest.getName());
+        LOG.info("Finished creating forest {}", forest.getName());
     }
 
     @Override
     public void createDatabaseWithForest(String name) {
-        LOG.debug("Starting create database-with-forest" + name);
+        LOG.debug("Starting create database-with-forest {}", name);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("database", name);
-        File installScriptFile = new File(getScriptDirectory(), "create_database_with_forest.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        File scriptFile = new File(getScriptDirectory(), "create_database_with_forest.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("createDatabaseWithForest")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating database-with-forest " + name);
+        LOG.debug("Finished creating database-with-forest {}", name);
     }
 
     @Override
-    public void createDatabase(String name) {
-        LOG.debug("Starting create database " + name);
+    public void createDatabase(Database database) {
+        LOG.debug("Starting create database {}", database.getName());
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("databaseName", name);
-        File installScriptFile = new File(getScriptDirectory(), "create_database.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("database", database);
+        File scriptFile = new File(getScriptDirectory(), "create_database.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("create_database")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
@@ -325,47 +331,47 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .execute();
 
 
-        LOG.debug("Finished create database " + name);
+        LOG.debug("Finished create database {}", database.getName());
     }
 
     @Override
     public void createAppServer(String name, String database, String groupName, String port) {
-        LOG.debug("Starting create appServer " + name);
+        LOG.debug("Starting create appServer{} ", name);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("appServer", name, "port", port, "database", database, "groupName", groupName);
-        File installScriptFile = new File(getScriptDirectory(), "create_appserver.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        File scriptFile = new File(getScriptDirectory(), "create_appserver.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("createRestAppServer")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating appServer " + name);
+        LOG.debug("Finished creating appServer {}", name);
     }
 
     @Override
     public void createGroup(String name) {
-        LOG.debug("Starting create group " + name);
+        LOG.debug("Starting create group {}", name);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("group", name);
-        File installScriptFile = new File(getScriptDirectory(), "create_group.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        File scriptFile = new File(getScriptDirectory(), "create_group.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("createGroup")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating group " + name);
+        LOG.debug("Finished creating group {}", name);
     }
 
     @Override
@@ -373,12 +379,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         LOG.debug("Assigning host '" + hostAddress + "'+ to group " + groupName);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("groupName", groupName, "hostName", hostAddress);
-        File installScriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
-        String installScript = processTemplate(installScriptFile, extraSubstitutions);
+        File scriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
 
         List<String> commands = new LinkedList<String>();
         commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
+        commands.add(script);
         newScript("assignHostToGroup")
                 .failOnNonZeroResultCode()
                 .setFlag("allocatePTY", true)
@@ -386,6 +392,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .execute();
 
         LOG.debug("Finished Assigning host '" + hostAddress + "'+ to group " + groupName);
+    }
+
+    @Override
+    public void assignForestToDatabase(String forestName, String databaseName) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -405,12 +416,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
+        //todo:
         int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
         String s = new String(stdout.toByteArray());
 
         Set<String> databases = new HashSet();
         String[] split = s.split("\n");
-        for (int k=0;k<split.length-1;k++) {
+        for (int k = 0; k < split.length - 1; k++) {
             final String database = split[k].trim();
             int i = database.indexOf("<");
             databases.add(database.substring(2, i));
@@ -430,12 +442,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
+        //todo:
         int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
         String s = new String(stdout.toByteArray());
 
         Set<String> forests = new HashSet();
         String[] split = s.split("\n");
-        for (int k=0;k<split.length-1;k++) {
+        for (int k = 0; k < split.length - 1; k++) {
             forests.add(split[k]);
         }
         return forests;

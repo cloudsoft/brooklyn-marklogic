@@ -10,6 +10,7 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +47,13 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_E_NODES_SIZE))
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
                 .configure(MarkLogicGroup.GROUP_NAME, "E-Nodes")
+                .configure(MarkLogicGroup.CLUSTER, this)
         );
 
         dNodeGroup = addChild(spec(MarkLogicGroup.class)
                 .displayName("D-Nodes")
                 .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
-                .configure(MarkLogicGroup.PRIMARY_STARTUP_GROUP, eNodeGroup)
+                .configure(MarkLogicGroup.CLUSTER, this)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
                 .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
         );
@@ -78,6 +80,30 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                         //todo: temporary hack to feed the app port to nginx.
                 .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
         );
+    }
+
+    private final AtomicBoolean initialHostClaimed = new AtomicBoolean();
+
+    @Override
+    public boolean claimToBecomeInitialHost() {
+        return initialHostClaimed.compareAndSet(false,true);
+    }
+
+    @Override
+    public MarkLogicNode getAnyNodeOrWait() {
+        for(;;){
+
+            MarkLogicNode node = dNodeGroup.getAnyStartedMember();
+            if(node!=null)return node;
+
+            node = eNodeGroup.getAnyStartedMember();
+            if(node!=null) return node;
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     @Override

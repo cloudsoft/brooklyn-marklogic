@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.SoftwareProcessDriver;
+import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 
 import java.util.Set;
@@ -11,7 +12,7 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
     void createDatabaseWithForest(String name);
 
-    void createDatabase(String name);
+    void createDatabase(Database database);
 
     void createGroup(String name);
 
@@ -24,4 +25,6 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
     Set<String> scanAppServices();
 
     Set<String> scanForests();
+
+    void assignForestToDatabase(String forestName, String databaseName);
 }
