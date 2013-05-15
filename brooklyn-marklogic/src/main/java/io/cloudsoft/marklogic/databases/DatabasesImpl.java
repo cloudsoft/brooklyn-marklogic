@@ -49,9 +49,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             @Override
             public void run() {
                 MarkLogicGroup cluster = getGroup();
-                Collection<Entity> markLogicNodes = cluster.getMembers();
-                if (markLogicNodes.isEmpty()) return;
-                for (Entity member : markLogicNodes) {
+                for (Entity member : cluster.getMembers()) {
                     if (member instanceof MarkLogicNode) {
                         MarkLogicNode node = (MarkLogicNode) member;
                         if (node.isUp()) {

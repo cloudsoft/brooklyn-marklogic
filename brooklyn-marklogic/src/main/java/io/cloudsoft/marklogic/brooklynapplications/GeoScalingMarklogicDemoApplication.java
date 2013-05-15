@@ -13,8 +13,8 @@ import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
-import brooklyn.location.basic.PortRanges;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +77,12 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
 
         markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
                 .displayName("MarkLogic Fabric")
-                .configure(NginxController.PROXY_HTTP_PORT, PortRanges.fromInteger(80))
+                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
+                        .displayName("LoadBalancer")
+                        .configure("port", 80)
+                                //todo: temporary hack to feed the app port to nginx.
+                        .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
+                )
                 .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
                         .displayName("MarkLogic Cluster")
                         .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)

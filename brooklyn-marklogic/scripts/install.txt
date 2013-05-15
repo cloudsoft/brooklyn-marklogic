@@ -18,6 +18,14 @@ echo ===========================================================================
 echo  INSTALLING MARKLOGIC HOST
 echo ==============================================================================
 
+if [ -f ~/${driver.downloadFilename} ];
+then
+    echo ~/${driver.downloadFilename} already downloaded.
+else
+    echo Downloading ${driver.downloadFilename}
+    curl -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename} &
+fi
+
 # A temporary workaround to change the hostname of the rackspace machine. The hostname used in rackspace is not usable
 # inside the marklogic environment and also can't be used to connect to since it isn't registered in a dns server.
 # so in case of Rackspace, the hostname seen in brooklyn will be the public ip address, and we are going to set this
@@ -27,19 +35,15 @@ sudo hostname ${driver.hostname}
 echo hostname after
 hostname
 
-echo Installing MarkLogic rpm
+echo Installing MarkLogic dependencies
 sudo yum -y --nogpgcheck install lsb gdb unzip
-
 (sudo yum -y --nogpgcheck install libc.so.6 ) || true
+echo Finished installing MarkLogic dependencies
 
-if [ -f ~/${driver.downloadFilename} ];
-then
-    echo ~/${driver.downloadFilename} already downloaded.
-else
-    echo Downloading ${driver.downloadFilename}
-    curl -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename}
-fi
-
+#wait for the rpm to be downloaded.
+echo "Waiting for marklogic rpm download to complete"
+wait
+echo Installing MarkLogic rpm
 sudo -E -n -S -- rpm -i ~/${driver.downloadFilename}
 echo Finished Installing the MarkLogic rpm
 

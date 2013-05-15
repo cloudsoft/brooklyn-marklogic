@@ -3,6 +3,8 @@ package io.cloudsoft.marklogic.brooklynapplications;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
+import brooklyn.entity.proxy.AbstractController;
+import brooklyn.entity.proxy.LoadBalancer;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
@@ -35,8 +37,14 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 4)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 4)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC,spec(NginxController.class)
+                        .displayName("LoadBalancer")
+                        .configure("port", 80)
+                        //todo: temporary hack to feed the app port to nginx.
+                        .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
+                )
         );
 
         web = addChild(BasicEntitySpec.newInstance(ControlledDynamicWebAppCluster.class)
@@ -49,7 +57,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
                         .configure("initialSize", 1)
                         .configure("httpPort", 8080)
-                        .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), NginxController.HOSTNAME))
+
+                        .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), AbstractController.HOSTNAME))
                         .configure(javaSysProp("marklogic.port"), "" + appServicePort)
                         .configure(javaSysProp("marklogic.password"), password)
                         .configure(javaSysProp("marklogic.user"), username)

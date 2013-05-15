@@ -1,13 +1,15 @@
 package io.cloudsoft.marklogic.clusters;
 
 import brooklyn.enricher.basic.SensorPropagatingEnricher;
+import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.Entities;
+import brooklyn.entity.proxy.AbstractController;
 import brooklyn.entity.proxy.nginx.NginxController;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -19,9 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
+import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
 
 public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
@@ -32,7 +37,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     private Databases databases;
     private AppServices appservices;
     private Forests forests;
-    private NginxController loadBalancer;
+    private AbstractController loadBalancer;
 
     @Override
     public void init() {
@@ -70,13 +75,12 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .configure(AppServices.CLUSTER, eNodeGroup)
         );
 
-        loadBalancer = addChild(spec(NginxController.class)
-                .displayName("LoadBalancer")
-                .configure("cluster", getENodeGroup())
-                .configure("port", 80)
-                        //todo: temporary hack to feed the app port to nginx.
-                .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
-        );
+        EntitySpec<? extends AbstractController> loadBalancerSpec = getConfig(LOAD_BALANCER_SPEC);
+        if (loadBalancerSpec != null) {
+            //the cluster needs to be set.
+            loadBalancerSpec = wrapSpec(loadBalancerSpec).configure("cluster",getENodeGroup());
+            loadBalancer = addChild(loadBalancerSpec);
+        }
     }
 
     private final AtomicBoolean initialHostClaimed = new AtomicBoolean();
@@ -104,22 +108,33 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     }
 
     @Override
-    public NginxController getLoadBalancer() {
+    public AbstractController getLoadBalancer() {
         return loadBalancer;
     }
 
     @Override
     public void restart() {
-        eNodeGroup.restart();
-        dNodeGroup.restart();
-        loadBalancer.restart();
+        Entities.invokeEffectorList(
+                this,
+                getStartableChildren(),
+                Startable.RESTART).getUnchecked();
+    }
+
+    protected List<? extends Entity> getStartableChildren() {
+        LinkedList result = new LinkedList();
+        for (Entity entity : getChildren()) {
+            if (entity instanceof Startable) {
+                result.add(entity);
+            }
+        }
+        return result;
     }
 
     @Override
     public void start(Collection<? extends Location> locations) {
         Entities.invokeEffectorList(
                 this,
-                ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer),
+                getStartableChildren(),
                 Startable.START,
                 ImmutableMap.of("locations", locations)).getUnchecked();
 
@@ -127,15 +142,17 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     }
 
     void connectSensors() {
-        SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, NginxController.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
-                .addToEntityAndEmitAll(this);
+        if (loadBalancer != null) {
+            SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, NginxController.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
+                    .addToEntityAndEmitAll(this);
+        }
     }
 
     @Override
     public void stop() {
         Entities.invokeEffectorList(
                 this,
-                ImmutableList.of(eNodeGroup, dNodeGroup, loadBalancer),
+                getStartableChildren(),
                 Startable.STOP).getUnchecked();
     }
 

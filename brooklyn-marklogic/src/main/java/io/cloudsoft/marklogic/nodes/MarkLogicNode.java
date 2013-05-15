@@ -92,12 +92,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<String> CLUSTER_NAME = new BasicConfigKey<String>(
             String.class, "marklogic.cluster", "The cluster name", null);
 
-
-    // FIXME This doesn't work because gives 403 unless you include username/password in curl
-    @SetFromFlag("downloadUrl")
-    BasicAttributeSensorAndConfigKey<String> DOWNLOAD_URL = new BasicAttributeSensorAndConfigKey<String>(
-            SoftwareProcess.DOWNLOAD_URL, "http://developer.marklogic.com/download/binaries/6.0/${driver.downloadFilename}");
-
     @SetFromFlag("isInitialHost")
     ConfigKey<Boolean> IS_INITIAL_HOST = new BasicConfigKey<Boolean>(
             Boolean.class, "marklogic.node.isInitialHost", "Whether this node in the cluster is the initialHost", false);
