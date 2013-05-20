@@ -395,8 +395,23 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void assignForestToDatabase(String forestName, String databaseName) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void attachForestToDatabase(String forestName, String databaseName) {
+        LOG.debug("Attach forest {} to database {}",forestName,databaseName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName, "databaseName", databaseName);
+        File scriptFile = new File(getScriptDirectory(), "attach_forest_to_database.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript("attachForestToDatabase")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        LOG.debug("Finished attaching forest {} to database {}",forestName,databaseName);
     }
 
     @Override

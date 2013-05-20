@@ -36,14 +36,8 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
     @Override
     public void init() {
-        String initialClusterSizeValue = getManagementContext().getConfig().getFirst("brooklyn.marklogic.initial-cluster-size");
-        int initialClusterSize = 2;
-        if (initialClusterSizeValue != null && !initialClusterSizeValue.isEmpty()) {
-            initialClusterSize = Integer.parseInt(initialClusterSizeValue);
-        }
-
         group = addChild(EntitySpecs.spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 2));
+                .configure(MarkLogicGroup.INITIAL_SIZE, 1));
 
         databases = addChild(EntitySpecs.spec(Databases.class)
                 .configure(Databases.GROUP, group)
@@ -79,7 +73,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
         String forestName = "forest-peter";
         Database database = databases.createDatabase("database-peter");
         Forest forest = forests.createForest(forestName, hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
-        //databases.assignForestToDatabase(database.getName(), forest.getName());
+        databases.attachForestToDatabase(forest.getName(),database.getName());
     }
 
     /**

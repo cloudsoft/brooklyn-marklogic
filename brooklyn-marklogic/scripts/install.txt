@@ -76,6 +76,8 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     http-server-status.xqy \
                     get-hosts.xqy \
                     attach_replica.xqy \
+                    attach_forests.xqy \
+                    attach_forest.xqy \
                     detach_replica.xqy \
                     create_markmail_forests.xqy \
                     create_forests.xqy \

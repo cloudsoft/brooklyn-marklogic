@@ -9,7 +9,6 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -121,10 +120,10 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     }
 
     @Override
-    public void assignForestToDatabase(String forestName, String databaseName) {
-        LOG.info("Assign forest {} to database {}", forestName, databaseName);
+    public void attachForestToDatabase(String forestName, String databaseName) {
+        LOG.info("Attach forest {} to database {}", forestName, databaseName);
 
         MarkLogicNode node = getAnyNode();
-        node.assignForestToDatabase(forestName, databaseName);
+        node.attachForestToDatabase(forestName, databaseName);
     }
 }

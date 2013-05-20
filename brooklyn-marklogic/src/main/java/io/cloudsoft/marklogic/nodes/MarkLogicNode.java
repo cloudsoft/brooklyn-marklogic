@@ -189,7 +189,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     boolean isUp();
 
-    void assignForestToDatabase(String forestName, String databaseName);
+    void attachForestToDatabase(String forestName, String databaseName);
 
     MarkLogicCluster getCluster();
 }

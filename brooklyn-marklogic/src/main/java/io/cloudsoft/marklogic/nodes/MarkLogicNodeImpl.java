@@ -269,8 +269,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void assignForestToDatabase(String forestName, String databaseName) {
-        getDriver().assignForestToDatabase(forestName, databaseName);
+    public void attachForestToDatabase(String forestName, String databaseName) {
+        getDriver().attachForestToDatabase(forestName, databaseName);
     }
 
     @Override
