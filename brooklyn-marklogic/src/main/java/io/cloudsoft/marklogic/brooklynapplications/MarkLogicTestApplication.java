@@ -70,10 +70,11 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         MarkLogicNode node = group.getAnyStartedMember();
         String hostname = node.getHostName();
-        String forestName = "forest-peter";
         Database database = databases.createDatabase("database-peter");
-        Forest forest = forests.createForest(forestName, hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
-        databases.attachForestToDatabase(forest.getName(),database.getName());
+        Forest forest1 = forests.createForest("forest-peter1", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
+        Forest forest2 = forests.createForest("forest-peter2", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
+        databases.attachForestToDatabase(forest1.getName(), database.getName());
+        databases.attachForestToDatabase(forest2.getName(), database.getName());
     }
 
     /**

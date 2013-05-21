@@ -4,6 +4,7 @@ import brooklyn.entity.Entity;
 import brooklyn.entity.basic.Description;
 import brooklyn.entity.basic.MethodEffector;
 import brooklyn.entity.basic.NamedParameter;
+import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
@@ -19,6 +20,8 @@ public interface Forests extends Entity {
 
     MethodEffector<Void> CREATE_FOREST =
             new MethodEffector<Void>(Forests.class, "createForest");
+
+    Forest createForest(BasicEntitySpec<Forest, ?> forestSpec);
 
     @Description("Creates a new forest")
     Forest createForest(

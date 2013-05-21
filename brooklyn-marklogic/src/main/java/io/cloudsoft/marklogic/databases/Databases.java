@@ -4,9 +4,11 @@ import brooklyn.entity.basic.AbstractGroup;
 import brooklyn.entity.basic.Description;
 import brooklyn.entity.basic.MethodEffector;
 import brooklyn.entity.basic.NamedParameter;
+import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
+import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 @ImplementedBy(DatabasesImpl.class)
@@ -36,4 +38,7 @@ public interface Databases extends AbstractGroup {
     @Description("Attaches a forest to a database.")
     void attachForestToDatabase(@NamedParameter("forestName") @Description("The name of the forest") String forestName,
                                 @NamedParameter("databaseName") @Description("The name of the database") String databaseName);
+
+    Database createDatabase(BasicEntitySpec<Database, ?> databaseSpec);
+
 }

@@ -88,6 +88,32 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
+    public Forest createForest(BasicEntitySpec<Forest, ?> forestSpec) {
+        String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
+        String hostName = (String) forestSpec.getConfig().get(Forest.HOST);
+
+        LOG.info("Creating forest {} on host {}", forestName, hostName);
+
+
+        MarkLogicNode node = getNode(hostName);
+
+        Forest forest;
+        synchronized (mutex) {
+            if (forestExists(forestName)) {
+                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
+            }
+
+            forest = addChild(forestSpec);
+        }
+
+        node.createForest(forest);
+
+        LOG.info("Finished creating forest {} on host {}", forestName, hostName);
+
+        return forest;
+    }
+
+    @Override
     public Forest createForest(
             String forestName,
             String hostname,
@@ -98,36 +124,16 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             boolean rebalancerEnabled,
             boolean failoverEnabled) {
 
-        LOG.info(format("Creating forest forestName '%s' dataDir '%s' largeDataDir '%s' fastDataDir '%s' updatesAllowed '%s' rebalancerEnabled '%s' failoverEnabled '%s'",
-                forestName, dataDir, largeDataDir, fastDataDir, updatesAllowedStr, rebalancerEnabled, failoverEnabled));
-
-        UpdatesAllowed updatesAllowed = UpdatesAllowed.get(updatesAllowedStr);
-
-        MarkLogicNode node = getNode(hostname);
-
-        LOG.info("Creating forest on host:" + hostname);
-
-        Forest forest;
-        synchronized (mutex) {
-            if (forestExists(forestName)) {
-                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
-            }
-
-            forest = addChild(BasicEntitySpec.newInstance(Forest.class)
-                    .displayName(forestName)
-                    .configure(Forest.NAME, forestName)
-                    .configure(Forest.HOST, hostname)
-                    .configure(Forest.DATA_DIR, dataDir)
-                    .configure(Forest.LARGE_DATA_DIR, largeDataDir)
-                    .configure(Forest.FAST_DATA_DIR, fastDataDir)
-                    .configure(Forest.UPDATES_ALLOWED, updatesAllowed)
-                    .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
-                    .configure(Forest.FAILOVER_ENABLED, failoverEnabled)
-            );
-        }
-
-        node.createForest(forest);
-
-        return forest;
+        BasicEntitySpec<Forest, ?> forestSpec = BasicEntitySpec.newInstance(Forest.class)
+                .displayName(forestName)
+                .configure(Forest.NAME, forestName)
+                .configure(Forest.HOST, hostname)
+                .configure(Forest.DATA_DIR, dataDir)
+                .configure(Forest.LARGE_DATA_DIR, largeDataDir)
+                .configure(Forest.FAST_DATA_DIR, fastDataDir)
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.get(updatesAllowedStr))
+                .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
+                .configure(Forest.FAILOVER_ENABLED, failoverEnabled);
+        return createForest(forestSpec);
     }
 }
