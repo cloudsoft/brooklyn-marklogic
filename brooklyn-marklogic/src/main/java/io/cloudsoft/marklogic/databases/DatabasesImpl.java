@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
 
 public class DatabasesImpl extends AbstractGroupImpl implements Databases {
@@ -82,7 +83,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                 throw new IllegalArgumentException(format("A database with name '%s' already exists", name));
             }
 
-            addChild(EntitySpecs.spec(Database.class)
+            addChild(spec(Database.class)
                     .configure(Database.NAME, name)
             );
         }
@@ -103,8 +104,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public Database createDatabase(String name) {
-        final BasicEntitySpec<Database, ?> databaseSpec = EntitySpecs.spec(Database.class);
-        return createDatabase(databaseSpec);
+        return createDatabase(spec(Database.class).configure(Database.NAME,name));
     }
 
     @Override
