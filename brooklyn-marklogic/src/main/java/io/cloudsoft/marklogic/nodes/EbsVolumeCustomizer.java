@@ -1,24 +1,36 @@
 package io.cloudsoft.marklogic.nodes;
 
-import brooklyn.location.jclouds.BasicJcloudsLocationCustomizer;
-import brooklyn.location.jclouds.JcloudsLocationCustomizer;
-import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-import brooklyn.util.MutableMap;
+import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.CommonCommands.sudo;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.compute.options.EC2TemplateOptions;
+import org.jclouds.ec2.domain.Attachment;
+import org.jclouds.ec2.domain.Volume;
+import org.jclouds.ec2.features.TagApi;
+import org.jclouds.ec2.options.DetachVolumeOptions;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Map;
+import brooklyn.location.jclouds.BasicJcloudsLocationCustomizer;
+import brooklyn.location.jclouds.JcloudsLocation;
+import brooklyn.location.jclouds.JcloudsLocationCustomizer;
+import brooklyn.location.jclouds.JcloudsSshMachineLocation;
+import brooklyn.util.MutableMap;
+import brooklyn.util.internal.Repeater;
 
-import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
-import static brooklyn.util.ssh.CommonCommands.sudo;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * Customization hooks to ensure that any EC2 instances provisioned via a corresponding jclouds location become associated
@@ -28,7 +40,10 @@ public class EbsVolumeCustomizer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EbsVolumeCustomizer.class);
 
-
+    // Prevent construction: helper class.
+    private EbsVolumeCustomizer() {
+    }
+    
     /**
      * Returns a location customizer that:
      * <ul>
@@ -40,7 +55,7 @@ public class EbsVolumeCustomizer {
      * </ul>
      */
     public static JcloudsLocationCustomizer withNewVolume(final String ec2DeviceName, final String osDeviceName, final String mountPoint, final String filesystemType,
-                                                          final String availabilityZone, final int sizeInGib, final boolean deleteOnTermination) {
+            final String availabilityZone, final int sizeInGib, final boolean deleteOnTermination) {
 
         return new BasicJcloudsLocationCustomizer() {
             public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
@@ -53,7 +68,7 @@ public class EbsVolumeCustomizer {
 
             public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
                 createFilesystem(machine, osDeviceName, filesystemType);
-                mountFilesystem(machine, osDeviceName, mountPoint);
+                mountFilesystem(machine, osDeviceName, mountPoint, filesystemType);
             }
         };
     }
@@ -68,7 +83,7 @@ public class EbsVolumeCustomizer {
      * </ul>
      */
     public static JcloudsLocationCustomizer withExistingSnapshot(final String ec2DeviceName, final String osDeviceName, final String mountPoint,
-                                                                 final String availabilityZone, final String snapshotId, final int sizeInGib, final boolean deleteOnTermination) {
+            final String availabilityZone, final String snapshotId, final int sizeInGib, final boolean deleteOnTermination) {
 
         return new BasicJcloudsLocationCustomizer() {
             public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
@@ -94,7 +109,7 @@ public class EbsVolumeCustomizer {
      * </ul>
      */
     public static JcloudsLocationCustomizer withExistingVolume(final String ec2DeviceName, final String osDeviceName, final String mountPoint,
-                                                               final String region, final String availabilityZone, final String volumeId) {
+            final String region, final String availabilityZone, final String volumeId) {
 
         return new BasicJcloudsLocationCustomizer() {
             public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
@@ -102,42 +117,188 @@ public class EbsVolumeCustomizer {
             }
 
             public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
-                EC2Client ec2Client = computeService.getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
-                ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
-                LOG.info("volumeId: "+volumeId+" ec2DeviceName: "+ec2DeviceName);
-                ebsClient.attachVolumeInRegion(region, volumeId, machine.getJcloudsId(), ec2DeviceName);
+            	attachVolume(machine, volumeId, ec2DeviceName);
                 mountFilesystem(machine, osDeviceName, mountPoint);
             }
         };
     }
 
-    private static void createFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String filesystemType) {
-        // NOTE: also adds an entry to fstab so the mount remains available after a reboot.
-        Map flags = MutableMap.of("allocatePTY", true);
-
-        machine.execCommands(flags, "Creating filesystem on EBS volume", Arrays.asList(
-                dontRequireTtyForSudo(),
-                sudo("/sbin/mkfs -t " + filesystemType + " " + osDeviceName)
-        ));
+    /**
+     * Creates a new volume in the same availability zone as the given machine, and attaches + mounts it.
+     */
+    public static String createAttachAndMountNewVolume(JcloudsSshMachineLocation machine,
+            final String ec2DeviceName, final String osDeviceName, final String mountPoint, final String filesystemType,
+            final String availabilityZone, final int sizeInGib, Map<String,String> tags) {
+    	String volumeId = createNewVolume(machine.getParent(), machine.getNode().getLocation().getId(), sizeInGib, tags);
+    	attachVolume(machine, volumeId, ec2DeviceName);
+		createFilesystem(machine, osDeviceName, filesystemType);
+		mountFilesystem(machine, osDeviceName, mountPoint);
+		return volumeId;
     }
 
-    private static void mountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String mountPoint) {
+    /**
+     * Creates a new volume in the given availability zone.
+     */
+    public static String createNewVolume(JcloudsLocation location, String availabilityZone, int size, Map<String,String> tags) {
+        LOG.info("Creating volume: location={}; availabilityZone={}; size={}", new Object[] {location, availabilityZone, size});
+        
+        EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
+        TagApi tagClient = ec2Client.getTagApi().get();
+        
+        Volume volume = ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
+        if (tags != null && tags.size() > 0) {
+        	tagClient.applyToResources(tags, ImmutableList.of(volume.getId()));
+        }
+        
+        return volume.getId();
+    }
+    
+    /**
+     * Attaches the given volume to the given VM.
+     */
+    public static void attachVolume(JcloudsSshMachineLocation machine, String volumeId, String ec2DeviceName) {
+        LOG.info("Attaching volume: machine={}; volume={}; ec2DeviceName={}", new Object[] {machine, volumeId, ec2DeviceName});
+        
+    	JcloudsLocation location = machine.getParent();
+    	String region = location.getRegion();
+        EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
+        Attachment attachment = ebsClient.attachVolumeInRegion(region, volumeId, machine.getNode().getProviderId(), ec2DeviceName);
+        // TODO return attachment.getId();
+    }
+
+    /**
+     * Attaches the given volume to the given VM, and mounts it.
+     */
+    public static void attachAndMountVolume(JcloudsSshMachineLocation machine, String volumeId, String ec2DeviceName, String osDeviceName, String mountPoint) {
+        attachAndMountVolume(machine, volumeId, ec2DeviceName, osDeviceName, mountPoint, "auto");
+    }
+    
+    public static void attachAndMountVolume(JcloudsSshMachineLocation machine, String volumeId, String ec2DeviceName, String osDeviceName, String mountPoint, String filesystemType) {
+    	attachVolume(machine, volumeId, ec2DeviceName);
+    	mountFilesystem(machine, osDeviceName, mountPoint, filesystemType);
+    }
+    
+    /**
+     * Detaches the given volume from the given VM.
+     */
+    public static void detachVolume(JcloudsSshMachineLocation machine, final String volumeId, String ec2DeviceName) {
+        LOG.info("Detaching volume: machine={}; volume={}; ec2DeviceName={}", new Object[] {machine, volumeId, ec2DeviceName});
+        
+        final JcloudsLocation location = machine.getParent();
+    	String region = location.getRegion();
+    	String instanceId = machine.getNode().getProviderId();
+        EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
+		ebsClient.detachVolumeInRegion(region, volumeId, true, DetachVolumeOptions.Builder.fromDevice(ec2DeviceName).fromInstance(instanceId));
+		
+		// Wait for detached
+		boolean detached = Repeater.create("wait for detached "+volumeId+" from "+machine)
+				.every(1, TimeUnit.SECONDS)
+				.limitTimeTo(60, TimeUnit.SECONDS)
+				//.repeat(Callables.returning(null))
+				.until(new Callable<Boolean>() {
+					@Override public Boolean call() throws Exception {
+						Volume volume = describeVolume(location, volumeId);
+						return volume.getStatus() == Volume.Status.AVAILABLE;
+					}})
+				.run();
+		
+		if (!detached) {
+			LOG.error("Volume {}->{} still not detached from {}; continuing...", new Object[] {volumeId, ec2DeviceName, machine});
+		}
+    }
+    
+    /**
+     * Deletes the given volume.
+     */
+    public static void deleteVolume(JcloudsLocation location, String volumeId) {
+        LOG.info("Deleting volume: location={}; volume={}", new Object[] {location, volumeId});
+        
+    	String region = location.getRegion();
+        EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
+        ebsClient.deleteVolumeInRegion(region, volumeId);
+    }
+    
+    /**
+     * Describes the given volume. Or returns null if it is not found.
+     */
+    public static Volume describeVolume(JcloudsLocation location, String volumeId) {
+        if (LOG.isDebugEnabled()) LOG.debug("Describing volume: location={}; volume={}", new Object[] {location, volumeId});
+        
+    	String region = location.getRegion();
+        EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
+        Set<Volume> volumes = ebsClient.describeVolumesInRegion(region, volumeId);
+        return Iterables.getFirst(volumes, null);
+    }
+    
+    public static void createFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String filesystemType) {
+        LOG.info("Creating filesystem: machine={}; osDeviceName={}; filesystemType={}", new Object[] {machine, osDeviceName, filesystemType});
+        
         // NOTE: also adds an entry to fstab so the mount remains available after a reboot.
-        Map flags = MutableMap.of("allocatePTY", true);
-        machine.execCommands(flags, "Mounting EBS volume", Arrays.asList(
+        Map<String,?> flags = MutableMap.of("allocatePTY", true);
+
+        machine.execCommands(flags, "Creating filesystem on EBS volume", ImmutableList.of(
+                dontRequireTtyForSudo(),
+                waitForFileCmd(osDeviceName, 60),
+                sudo("/sbin/mkfs -t " + filesystemType + " " + osDeviceName)));
+    }
+
+    public static void mountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String mountPoint) {
+        mountFilesystem(machine, osDeviceName, mountPoint, "auto");
+    }
+    
+    public static void mountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String mountPoint, String filesystemType) {
+        LOG.info("Mounting filesystem: machine={}; osDeviceName={}; mountPoint={}; filesystemType={}", new Object[] {machine, osDeviceName, mountPoint, filesystemType});
+        
+        // NOTE: also adds an entry to fstab so the mount remains available after a reboot.
+        Map<String,?> flags = MutableMap.of("allocatePTY", true);
+        machine.execCommands(flags, "Mounting EBS volume", ImmutableList.of(
                 dontRequireTtyForSudo(),
                 "echo making dir",
-                sudo(" mkdir -p -m 000 " + mountPoint),
+                sudo(" mkdir -p -m 755 " + mountPoint),
                 "echo updating fstab",
-                "echo \"" + osDeviceName + " " + mountPoint + " auto noatime 0 0\" | " + sudo("tee -a /etc/fstab"),
+                waitForFileCmd(osDeviceName, 60),
+                "echo \"" + osDeviceName + " " + mountPoint + " " + filesystemType + " noatime 0 0\" | " + sudo("tee -a /etc/fstab"),
                 "echo mounting device",
                 sudo("mount " + mountPoint),
                 "echo device mounted"
         ));
     }
-
-    // Prevent construction: helper class.
-    private EbsVolumeCustomizer() {
+    
+    public static void unmountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName) {
+        LOG.info("Unmounting filesystem: machine={}; osDeviceName={}", new Object[] {machine, osDeviceName});
+        String osDeviceNameEscaped = osDeviceName.replaceAll("/", "\\\\/");
+        
+        // NOTE: also strips out entry from fstab
+        Map<String,?> flags = MutableMap.of("allocatePTY", true);
+        machine.execCommands(flags, "Unmounting EBS volume", ImmutableList.of(
+                dontRequireTtyForSudo(),
+                "echo unmounting "+osDeviceName,
+                sudo("sed -i.bk '/"+osDeviceNameEscaped+"/d' /etc/fstab"),
+                sudo("umount " + osDeviceName),
+                "echo unmounted "+osDeviceName
+        ));
     }
-
+    
+    // TODO Move to CommonCommands
+    private static String waitForFileCmd(String file, int timeoutSecs) {
+        return "found=false; "+
+                "for i in {1.."+timeoutSecs+"}; do "+
+                    "if [ -a "+file+" ]; then "+
+                        "echo \"file "+file+" found\"; "+
+                        "found=true; "+
+                        "break; "+
+                    "else "+
+                        "echo \"file "+file+" does not exist (waiting)\"; "+
+                        "sleep 1; "+
+                    "fi; "+
+                "done; "+
+                "if [ \"$found\" == \"false\" ]; then "+
+                    "exit 1; "+
+                "fi";
+    }
 }
