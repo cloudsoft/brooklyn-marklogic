@@ -67,7 +67,7 @@ public class ForestTest {
         Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
         String locationSpec = format("%s:%s", "ec2", regionName);
 
-        ctx = new LocalManagementContext((Map) brooklynProperties);
+        ctx = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
         group = app.createAndManageChild(spec(MarkLogicGroup.class));
