@@ -5,22 +5,24 @@ import static org.testng.Assert.assertNotNull;
 
 import java.util.Map;
 
-import org.jclouds.ec2.domain.Volume;
+import org.jclouds.openstack.cinder.v1.domain.Volume;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import brooklyn.location.NoMachinesAvailableException;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 import brooklyn.util.collections.MutableMap;
 
-public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
+public class RackspaceVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
 
-    public static final String PROVIDER = "aws-ec2";
-    public static final String REGION_NAME = "us-east-1";
-    public static final String AVAILABILITY_ZONE_NAME = REGION_NAME + "c";
-    public static final String LOCATION_SPEC = PROVIDER + (REGION_NAME == null ? "" : ":" + REGION_NAME);
-    public static final String TINY_HARDWARE_ID = "t1.micro";
-    public static final String SMALL_HARDWARE_ID = "m1.small";
-    
+    private static final Logger LOG = LoggerFactory.getLogger(RackspaceVolumeManagerLiveTest.class);
+
+    public static final String PROVIDER = "rackspace-cloudservers-uk";
+    public static final String LOCATION_SPEC = PROVIDER;
+    public static final String TINY_HARDWARE_ID = "1";
+    public static final String SMALL_HARDWARE_ID = "2";
+
     @Override
     protected String getProvider() {
         return PROVIDER;
@@ -33,31 +35,32 @@ public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
     
     @Override
     protected VolumeManager createVolumeManager() {
-        return new EbsVolumeManager();
+        return new RackspaceVolumeManager();
     }
 
     @Override
     protected int getVolumeSize() {
-        return 1;
+        return 100; // min on rackspace is 100
     }
 
     @Override
     protected String getDefaultAvailabilityZone() {
-        return AVAILABILITY_ZONE_NAME;
+        return null;
     }
 
     @Override
     protected void assertVolumeAvailable(String volumeId) {
-        Volume volume = ((EbsVolumeManager)volumeManager).describeVolume(jcloudsLocation, volumeId);
+        Volume volume = ((RackspaceVolumeManager)volumeManager).describeVolume(jcloudsLocation, volumeId);
         assertNotNull(volume);
         assertEquals(volume.getStatus(), Volume.Status.AVAILABLE);
     }
 
     @Override
     protected JcloudsSshMachineLocation rebindJcloudsMachine() throws NoMachinesAvailableException {
-        Map<String, ?> machineFlags = MutableMap.of("id", "i-4e904625", 
-                "hostname", "ec2-54-224-215-144.compute-1.amazonaws.com", 
-                "user", "aled", 
+        Map<String, ?> machineFlags = MutableMap.of("id", "LON/dab52345-9b6f-4b60-94de-64881a3f91d9", 
+                "hostname", "162.13.8.61", 
+                "user", "root", 
+                "password", "Bko8gLpZs6CJ",
                 JcloudsLocation.PUBLIC_KEY_FILE.getName(), "/Users/aled/.ssh/id_rsa");
         return jcloudsLocation.rebindMachine(jcloudsLocation.getConfigBag().putAll(machineFlags));
     }
