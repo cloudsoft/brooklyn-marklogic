@@ -2,12 +2,12 @@ echo ===========================================================================
 echo            Creating MarkLogic AppServer ${appServer}
 echo ==============================================================================
 
-DBID=$(curl --digest -u admin:hap00p 'http://localhost:8000/appservices' | sed -n 's/^.*\(<option value=.*${database}\).*/\1/p' | awk '{ print <#noparse>$2</#noparse> }' | cut -d'&' -f4 | cut -d';' -f2)
+DBID=$(curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8000/appservices' | sed -n 's/^.*\(<option value=.*${database}\).*/\1/p' | awk '{ print <#noparse>$2</#noparse> }' | cut -d'&' -f4 | cut -d';' -f2)
 
 echo DBID = $DBID
 
 echo Creating MarkLogic AppServer ${appServer}
-curl --digest -u admin:hap00p "http://localhost:8000/infostudio/endpoints/rests.xqy" \
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8000/infostudio/endpoints/rests.xqy" \
      -H "Accept: application/json, text/javascript, */*; q=0.01" \
      -H "Referer: http://localhost:8000/infostudio/database.xqy?dbid=$DBID" \
      -H "Origin: http://localhost:8000" \

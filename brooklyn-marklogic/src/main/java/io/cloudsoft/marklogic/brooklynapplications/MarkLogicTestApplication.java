@@ -107,7 +107,8 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         //now we are going to convert our primary to replica
         forests.enableForest(primaryForest.getName(), false);
-        forests.enableForest(primaryForest.getName(),true);
+        forests.deleteForestConfiguration(primaryForest.getName());
+        //forests.enableForest(primaryForest.getName(),true);
     }
 
     /**

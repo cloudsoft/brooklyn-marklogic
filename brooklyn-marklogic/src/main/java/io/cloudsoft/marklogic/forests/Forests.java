@@ -37,4 +37,6 @@ public interface Forests extends Entity {
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
     void enableForest(String forestName, boolean enabled);
+
+    void deleteForestConfiguration(String forestName);
 }

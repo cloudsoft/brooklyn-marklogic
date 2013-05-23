@@ -157,4 +157,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info("Finished Enabling forest {} {}", forestName,enabled);
     }
+
+    @Override
+    public void deleteForestConfiguration(String forestName) {
+        LOG.info("Delete configuration for forest {}", forestName);
+
+        MarkLogicNode node = getGroup().getAnyStartedMember();
+        node.deleteForestConfiguration(forestName);
+
+        LOG.info("Finished Delete configuration for forest {}", forestName);
+    }
 }

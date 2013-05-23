@@ -1,0 +1,24 @@
+echo ==============================================================================
+echo         Delete configuration for forest ${forestName}
+echo ==============================================================================
+
+FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password}  "http://localhost:8001/forest-summary.xqy?section=forest" \
+    | grep 'href="forest-admin.xqy' \
+    | grep -i '>${forestName}<' \
+    | grep  -Po -m1 'href=".*?"' \
+    | sed 's/.*"forest-admin.xqy?forest=\(.*\)"[^"]*$/\1/')
+
+echo FOREST_ID $FOREST_ID
+
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/drop-forest-go.xqy" \
+ -d section=forest \
+ -d action=delete \
+ -d forest=$FOREST_ID \
+ -d delete_type=config \
+ -d ok.x=42 \
+ -d ok.y=12 \
+ -d ok=ok
+
+echo ==============================================================================
+echo    Finished delete configuration for forest ${forestName}
+echo ==============================================================================

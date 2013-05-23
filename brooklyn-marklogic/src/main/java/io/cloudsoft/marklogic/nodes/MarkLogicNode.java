@@ -197,4 +197,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
     void enableForest(String forestName, boolean enabled);
+
+    void deleteForestConfiguration(String forestName);
 }

@@ -505,6 +505,26 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
+    public void deleteForestConfiguration(String forestName) {
+        LOG.debug("Deleting configuration for forest {}", forestName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName);
+        File scriptFile = new File(getScriptDirectory(), "delete_forest_config_only.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript("deleteForest")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        LOG.debug("Finished deleting configuration for forest {}", forestName);
+    }
+
+    @Override
     public Set<String> scanAppServices() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }

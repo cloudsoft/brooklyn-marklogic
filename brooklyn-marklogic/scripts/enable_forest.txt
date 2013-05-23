@@ -2,7 +2,7 @@ echo ===========================================================================
 echo         Enabling forest forest ${forestName} ${enabled?string}
 echo ==============================================================================
 
-FOREST_ID=$(curl --digest -u admin:hap00p  "http://localhost:8001/forest-summary.xqy?section=forest" \
+FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest-summary.xqy?section=forest" \
     | grep 'href="forest-admin.xqy' \
     | grep -i '>${forestName}<' \
     | grep  -Po -m1 'href=".*?"' \
@@ -11,7 +11,7 @@ FOREST_ID=$(curl --digest -u admin:hap00p  "http://localhost:8001/forest-summary
 echo FOREST_ID $FOREST_ID
 
 <#if enabled>
-curl --digest -u admin:hap00p "http://localhost:8001/toggle-forest-go.xqy" \
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/toggle-forest-go.xqy" \
   -d section=forest \
   -d name=${forestName} \
   -d enabled=true \
@@ -19,7 +19,7 @@ curl --digest -u admin:hap00p "http://localhost:8001/toggle-forest-go.xqy" \
   -d forest=$FOREST_ID
 
 <#else>
-curl --digest -u admin:hap00p "http://localhost:8001/toggle-forest-go.xqy" \
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/toggle-forest-go.xqy" \
   -d section=forest \
   -d name=${forestName} \
   -d enabled=false \

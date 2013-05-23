@@ -2,7 +2,7 @@ echo ===========================================================================
 echo                     CREATE GROUP ${group}
 echo ==============================================================================
 
-curl --digest -u admin:hap00p  http://localhost:8001/add-group.xqy?section=group > foo.html
+curl --digest -u ${driver.user}:${driver.password}  http://localhost:8001/add-group.xqy?section=group > foo.html
 
 GROUP_NAME="${group}"
 
@@ -15,7 +15,7 @@ echo SECURITY_DATABASE = <#noparse>${SECURITY_DATABASE}</#noparse>
 METERS_DATABASE=$(cat foo.html | grep "selected=\"true\">Meters</option>" | grep  -Po -m1 'value=".*?"'| sed 's/.*"\(.*\)"[^"]*$/\1/')
 echo METERS_DATABASE = <#noparse>${METERS_DATABASE}</#noparse>
 
-curl --digest -u admin:hap00p "http://localhost:8001/add-group-go.xqy"  \
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-group-go.xqy"  \
         -H "Accept-Encoding: gzip,deflate,sdch" \
         -H "Accept-Language: en-US,en;q=0.8" \
         -H "Content-Type: application/x-www-form-urlencoded" \

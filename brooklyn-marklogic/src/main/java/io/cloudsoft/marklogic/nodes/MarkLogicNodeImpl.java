@@ -311,7 +311,12 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void enableForest(String forestName, boolean enabled) {
+       public void enableForest(String forestName, boolean enabled) {
         getDriver().enableForest(forestName,enabled);
+    }
+
+    @Override
+    public void deleteForestConfiguration(String forestName) {
+        getDriver().deleteForestConfiguration(forestName);
     }
 }

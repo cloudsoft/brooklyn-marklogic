@@ -93,6 +93,7 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     attach_markmail_forests.xqy \
                     create_httpserver.xqy \
                     create_role.xqy \
+                    enable_forest.xqy \
                     rewrite-hostname.xqy \
                     rewrite-assignments.xqy \
                     transfer-cluster-config.xqy \
