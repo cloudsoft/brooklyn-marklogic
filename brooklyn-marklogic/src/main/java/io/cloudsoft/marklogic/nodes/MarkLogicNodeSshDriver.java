@@ -415,6 +415,28 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
+    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
+
+        LOG.debug("Attach replica forest {} to forest {}",replicaForestName,primaryForestName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("databaseName", databaseName, "primaryForestName", primaryForestName,"replicaForestName",replicaForestName);
+        File scriptFile = new File(getScriptDirectory(), "attach_replica_forest.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript("attachReplicaForest")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        LOG.debug("Finished Attach replica forest {} to forest {}",replicaForestName,primaryForestName);
+
+    }
+
+    @Override
     public Set<String> scanAppServices() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }

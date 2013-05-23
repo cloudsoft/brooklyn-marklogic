@@ -27,10 +27,9 @@ public interface MarkLogicCluster extends Entity, Startable {
             Integer.class, "marklogic.cluster.e-nodes.initial", "The initial number of e-nodes.", 1);
 
     //the cluster doesn't need to be set on this loadbalancer spec, that will be done by the MarkLogicCluster
-    //if the loadbalancerspec is null, then no loadbalancer will be started (useul for testing to speed things up).
     @SetFromFlag("loadBalancerSpec")
     BasicAttributeSensorAndConfigKey<EntitySpec<? extends AbstractController>> LOAD_BALANCER_SPEC = new BasicAttributeSensorAndConfigKey(
-            EntitySpec.class, "marklogic.cluster.nginx-spec", "Spec for nginx in front of marklogic", null);
+            EntitySpec.class, "marklogic.cluster.loadbalancer.spec", "Spec for nginx in front of marklogic", null);
 
     AppServices getAppservices();
 

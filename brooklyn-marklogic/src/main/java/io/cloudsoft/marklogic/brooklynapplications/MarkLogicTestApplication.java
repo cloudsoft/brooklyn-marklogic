@@ -8,6 +8,7 @@ import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
 import com.google.common.collect.Lists;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -18,6 +19,8 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 import java.util.Collection;
 import java.util.List;
+
+import static brooklyn.entity.proxying.EntitySpecs.spec;
 
 /**
  * App to create a MarkLogic cluster (in a single availability zone).
@@ -33,19 +36,18 @@ public class MarkLogicTestApplication extends AbstractApplication {
     private MarkLogicGroup group;
     private Databases databases;
     private Forests forests;
+    MarkLogicCluster markLogicCluster;
 
     @Override
     public void init() {
-        group = addChild(EntitySpecs.spec(MarkLogicGroup.class)
-                .configure(MarkLogicGroup.INITIAL_SIZE, 1));
-
-        databases = addChild(EntitySpecs.spec(Databases.class)
-                .configure(Databases.GROUP, group)
-        );
-
-        forests = addChild(EntitySpecs.spec(Forests.class)
-                .configure(Forests.GROUP, group)
-        );
+        markLogicCluster = addChild(spec(MarkLogicCluster.class)
+                .displayName("MarkLogic Cluster")
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
+         );
+        databases = markLogicCluster.getDatabases();
+        forests = markLogicCluster.getForests();
+        group = markLogicCluster.getDNodeGroup();
     }
 
     @Override
@@ -68,13 +70,39 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 group.getAnyStartedMember().getHostName() +
                 ":8002/dashboard'");
 
-        MarkLogicNode node = group.getAnyStartedMember();
-        String hostname = node.getHostName();
+        MarkLogicNode node1 = group.getAnyStartedMember();
+        MarkLogicNode node2 = group.getAnyOtherStartedMember(node1.getHostName());
+
         Database database = databases.createDatabase("database-peter");
-        Forest forest1 = forests.createForest("forest-peter1", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
-        Forest forest2 = forests.createForest("forest-peter2", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
-        databases.attachForestToDatabase(forest1.getName(), database.getName());
-        databases.attachForestToDatabase(forest2.getName(), database.getName());
+
+
+        Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.NAME, "peter-forest")
+                .configure(Forest.DATA_DIR,"/tmp")
+                .configure(Forest.LARGE_DATA_DIR,"/tmp")
+                .configure(Forest.FAST_DATA_DIR,"/tmp")
+                .configure(Forest.HOST, node1.getHostName())
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true)
+        );
+
+        //Forest forest2 = forests.createForestWithSpec("forest-peter2", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        //databases.attachForestToDatabase(forest2.getName(), database.getName());
+
+        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.NAME, "peter-forest-replica")
+                .configure(Forest.DATA_DIR,"/tmp")
+                .configure(Forest.LARGE_DATA_DIR,"/tmp")
+                .configure(Forest.FAST_DATA_DIR,"/tmp")
+                .configure(Forest.HOST, node2.getHostName())
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true)
+        );
+
+        forests.attachReplicaForest(database.getName(), primaryForest.getName(),replicaForest.getName());
     }
 
     /**

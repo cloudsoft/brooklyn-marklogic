@@ -38,4 +38,6 @@ public interface MarkLogicGroup extends DynamicCluster {
     boolean isUp();
 
     MarkLogicNode getAnyStartedMember();
+
+    MarkLogicNode getAnyOtherStartedMember(String hostName);
 }

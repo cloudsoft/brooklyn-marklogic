@@ -21,7 +21,7 @@ public interface Forests extends Entity {
     MethodEffector<Void> CREATE_FOREST =
             new MethodEffector<Void>(Forests.class, "createForest");
 
-    Forest createForest(BasicEntitySpec<Forest, ?> forestSpec);
+    Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
 
     @Description("Creates a new forest")
     Forest createForest(
@@ -33,4 +33,6 @@ public interface Forests extends Entity {
             @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest. Options are: all, delete-only, read-only, flash-backup.") String updatesAllowed,
             @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
+
+    void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName);
 }

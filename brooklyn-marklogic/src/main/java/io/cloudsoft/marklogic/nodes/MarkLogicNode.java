@@ -193,4 +193,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     void attachForestToDatabase(String forestName, String databaseName);
 
     MarkLogicCluster getCluster();
+
+    void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName);
 }

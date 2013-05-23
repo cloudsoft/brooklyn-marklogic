@@ -3,8 +3,12 @@ package io.cloudsoft.marklogic.forests;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collection;
 
 @ImplementedBy(ForestImpl.class)
 public interface Forest extends Entity {
@@ -43,12 +47,12 @@ public interface Forest extends Entity {
 
     @SetFromFlag("rebalancer_enable")
     ConfigKey<Boolean> REBALANCER_ENABLED = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.rebalancer-enabled",
+            Boolean.class, "marklogic.forest.rebalancer-enabled",
             "Enable automatic rebalancing after configuration changes.", true);
 
     @SetFromFlag("failover_enable")
     ConfigKey<Boolean> FAILOVER_ENABLED = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.failover-enabled",
+            Boolean.class, "marklogic.forest.failover-enabled",
             "Enable assignment to a failover host if the primary host is down.", false);
 
     String getName();

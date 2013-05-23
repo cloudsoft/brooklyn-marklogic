@@ -4,6 +4,8 @@ import brooklyn.entity.basic.AbstractEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+
 public class ForestImpl extends AbstractEntity implements Forest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ForestImpl.class);

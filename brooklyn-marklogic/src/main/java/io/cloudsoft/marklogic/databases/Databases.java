@@ -39,6 +39,6 @@ public interface Databases extends AbstractGroup {
     void attachForestToDatabase(@NamedParameter("forestName") @Description("The name of the forest") String forestName,
                                 @NamedParameter("databaseName") @Description("The name of the database") String databaseName);
 
-    Database createDatabase(BasicEntitySpec<Database, ?> databaseSpec);
+    Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec);
 
 }

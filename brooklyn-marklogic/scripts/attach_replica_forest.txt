@@ -1,0 +1,12 @@
+echo ==============================================================================
+echo         Attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo ==============================================================================
+
+curl --digest -u admin:hap00p "http://localhost:8001/attach_replica.xqy" \
+  -d dbname=${databaseName} \
+  -d fname=${primaryForestName} \
+  -d repname=${replicaForestName}
+
+echo ==============================================================================
+echo         Finished attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo ==============================================================================

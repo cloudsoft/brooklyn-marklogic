@@ -108,7 +108,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         if (location instanceof JcloudsLocation) {
             return MutableMap.<String, Object>builder()
                     .putAll(super.obtainProvisioningFlags(location))
-                    .put("customizer", getEbsVolumeCustomizer((JcloudsLocation) location))
+         //           .put("customizer", getEbsVolumeCustomizer((JcloudsLocation) location))
                     .build();
         } else {
             LOG.warn("Location {} is not a jclouds-location, so cannot setup EBS volumes for {}", location, this);
@@ -303,5 +303,10 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public MarkLogicCluster getCluster() {
         return getConfig(CLUSTER);
+    }
+
+    @Override
+    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
+        getDriver().attachReplicaForest(databaseName,primaryForestName,replicaForestName);
     }
 }

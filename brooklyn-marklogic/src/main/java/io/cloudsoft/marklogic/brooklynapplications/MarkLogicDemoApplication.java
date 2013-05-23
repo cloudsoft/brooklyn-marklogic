@@ -42,10 +42,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .displayName("MarkLogic Cluster")
                 .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
-                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC,spec(NginxController.class)
+                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
                         .displayName("LoadBalancer")
                         .configure("port", 80)
-                        //todo: temporary hack to feed the app port to nginx.
+                                //todo: temporary hack to feed the app port to nginx.
                         .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
                 )
         );
@@ -87,14 +87,14 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         Forest forest = markLogicCluster.getForests().createForest("demoForest", targetHost, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
 
 
-        //Forest forest = markLogicCluster.getForests().createForest(...);
+        //Forest forest = markLogicCluster.getForests().createForestWithSpec(...);
         //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
         //db.assign(forest);
 
         //markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
         //MarkLogicNode node = (MarkLogicNode) markLogicCluster.getDNodeGroup().getMembers().iterator().next();
 
-        //markLogicCluster.getForests().createForest("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
+        //markLogicCluster.getForests().createForestWithSpec("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
 
         markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
 

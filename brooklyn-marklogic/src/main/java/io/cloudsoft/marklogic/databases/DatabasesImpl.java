@@ -3,9 +3,6 @@ package io.cloudsoft.marklogic.databases;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
-import brooklyn.entity.proxying.EntitySpecs;
-import io.cloudsoft.marklogic.forests.Forest;
-import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -104,11 +101,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public Database createDatabase(String name) {
-        return createDatabase(spec(Database.class).configure(Database.NAME,name));
+        return createDatabaseWithSpec(spec(Database.class).configure(Database.NAME, name));
     }
 
     @Override
-    public Database createDatabase(BasicEntitySpec<Database, ?> databaseSpec) {
+    public Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec) {
         String databaseName = (String) databaseSpec.getConfig().get(Database.NAME);
         LOG.info("Creating database {}", databaseName);
         Database database;

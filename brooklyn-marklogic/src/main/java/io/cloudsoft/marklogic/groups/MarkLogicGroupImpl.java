@@ -52,6 +52,21 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
         return null;
     }
 
+
+    @Override
+    public MarkLogicNode getAnyOtherStartedMember(String hostName) {
+        for (Entity member : getMembers()) {
+            if (member instanceof MarkLogicNode) {
+                MarkLogicNode node = (MarkLogicNode) member;
+                if (node.isUp() && !hostName.equals(node.getHostName())) {
+                    return node;
+                }
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public String getGroupName() {
         return getConfig(GROUP_NAME);

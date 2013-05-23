@@ -41,6 +41,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         throw new IllegalStateException(format("Can't create a forest, no node with hostname '%s' found", hostname));
     }
 
+
     private boolean forestExists(String forestName) {
         for (Entity member : getChildren()) {
             if (member instanceof Forest) {
@@ -88,7 +89,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public Forest createForest(BasicEntitySpec<Forest, ?> forestSpec) {
+    public Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec) {
         String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
         String hostName = (String) forestSpec.getConfig().get(Forest.HOST);
 
@@ -134,6 +135,16 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.get(updatesAllowedStr))
                 .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
                 .configure(Forest.FAILOVER_ENABLED, failoverEnabled);
-        return createForest(forestSpec);
+        return createForestWithSpec(forestSpec);
+    }
+
+    @Override
+    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
+        LOG.info("Attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
+
+        MarkLogicNode node = getGroup().getAnyStartedMember();
+        node.attachReplicaForest(databaseName,primaryForestName,replicaForestName);
+
+        LOG.info("Finished attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
     }
 }
