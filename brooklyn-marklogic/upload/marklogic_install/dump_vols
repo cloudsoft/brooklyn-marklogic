@@ -1,0 +1,9 @@
+# Get the launch config variables
+
+MARKLOGIC_AWS_ACCESS_KEY=AKIAJFEVG7RSZONJC57Q
+MARKLOGIC_AWS_SECRET_KEY=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
+
+
+/opt/aws/bin/ec2-describe-volumes  -O $MARKLOGIC_AWS_ACCESS_KEY  -W $MARKLOGIC_AWS_SECRET_KEY 
+
+

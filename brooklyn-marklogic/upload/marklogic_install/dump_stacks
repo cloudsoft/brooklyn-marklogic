@@ -1,0 +1,6 @@
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+
+/etc/init.d/MarkLogic pstack | awk 'BEGIN { s = ""; } /^Thread/ { print s; s = ""; } /^\#/ { if (s != "" ) { s = s "," $4} else { s = $4 } } END { print s }' | sort | uniq -c | sort -r -n -k 1,1 >> /tmp/pstack-summary.log
+sleep 1
+done

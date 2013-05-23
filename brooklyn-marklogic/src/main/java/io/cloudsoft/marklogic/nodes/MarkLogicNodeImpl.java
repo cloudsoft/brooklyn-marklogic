@@ -306,7 +306,12 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
-        getDriver().attachReplicaForest(databaseName,primaryForestName,replicaForestName);
+    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
+        getDriver().attachReplicaForest(primaryForestName,replicaForestName);
+    }
+
+    @Override
+    public void enableForest(String forestName, boolean enabled) {
+        getDriver().enableForest(forestName,enabled);
     }
 }

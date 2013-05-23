@@ -36,6 +36,6 @@ waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
 echo ==============================================================================
-echo  FINISHED CUSTOMIZING INITIAL HOST
+echo  FINISHED CUSTOMIZING MARKLOGIC INITIAL HOST
 echo ==============================================================================
 

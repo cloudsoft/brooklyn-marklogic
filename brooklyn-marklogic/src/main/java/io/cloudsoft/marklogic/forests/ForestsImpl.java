@@ -139,12 +139,22 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
+    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
         LOG.info("Attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
-        node.attachReplicaForest(databaseName,primaryForestName,replicaForestName);
+        node.attachReplicaForest(primaryForestName, replicaForestName);
 
         LOG.info("Finished attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
+    }
+
+    @Override
+    public void enableForest(String forestName, boolean enabled) {
+        LOG.info("Enabling forest {} {}", forestName,enabled);
+
+        MarkLogicNode node = getGroup().getAnyStartedMember();
+        node.enableForest(forestName, enabled);
+
+        LOG.info("Finished Enabling forest {} {}", forestName,enabled);
     }
 }

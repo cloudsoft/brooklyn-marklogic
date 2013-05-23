@@ -15,12 +15,12 @@ import io.cloudsoft.marklogic.forests.Forest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
@@ -140,27 +140,74 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     private void uploadFiles() {
         LOG.info("Starting upload to {}", getHostname());
-
-
-        File uploadDirectory = getUploadDirectory();
-        String targetDirectory = "./";
-        uploadFiles(uploadDirectory, targetDirectory);
+        try {
+            File dir = getUploadDirectory();
+            File zipFile = File.createTempFile("upload", "zip");
+            zipFile.deleteOnExit();
+            zip(dir, zipFile);
+            getLocation().copyTo(zipFile, "./upload.zip");
+            zipFile.delete();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         LOG.info("Finished upload to {}", getHostname());
+
     }
 
-    private void uploadFiles(File dir, String targetDirectory) {
-        getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
-
-        for (File file : dir.listFiles()) {
-            final String targetLocation = targetDirectory + "/" + file.getName();
-            if (file.isDirectory()) {
-                uploadFiles(file, targetLocation);
-            } else if (file.isFile() && !file.getName().equals(".DS_Store")) {
-                LOG.info("Copying file: " + targetLocation);
-                getLocation().copyTo(file, targetLocation);
+    public static void zip(File directory, File zipfile) throws IOException {
+        URI base = directory.toURI();
+        Deque<File> queue = new LinkedList<File>();
+        queue.push(directory);
+        OutputStream out = new FileOutputStream(zipfile);
+        Closeable res = out;
+        try {
+            ZipOutputStream zout = new ZipOutputStream(out);
+            res = zout;
+            while (!queue.isEmpty()) {
+                directory = queue.pop();
+                for (File kid : directory.listFiles()) {
+                    String name = base.relativize(kid.toURI()).getPath();
+                    if (kid.isDirectory()) {
+                        queue.push(kid);
+                        name = name.endsWith("/") ? name : name + "/";
+                        zout.putNextEntry(new ZipEntry(name));
+                    } else if(!kid.getName().equals(".DS_Store")){
+                        zout.putNextEntry(new ZipEntry(name));
+                        copy(kid, zout);
+                        zout.closeEntry();
+                    }
+                }
             }
+        } finally {
+            res.close();
         }
+    }
+
+    private static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int readCount = in.read(buffer);
+            if (readCount < 0) {
+                break;
+            }
+            out.write(buffer, 0, readCount);
+        }
+    }
+
+    private static void copy(File file, OutputStream out) throws IOException {
+        InputStream in = new FileInputStream(file);
+        try {
+            copy(in, out);
+        } finally {
+            in.close();
+        }
+    }
+
+
+    private void uploadFiles(File file, String targetDirectory) {
+        getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
+        getLocation().copyTo(file, targetDirectory);
     }
 
 
@@ -177,7 +224,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             scriptFile = new File(getScriptDirectory(), "customize_initial_host.txt");
             substitutions = new HashMap<String, Object>();
         } else {
-            LOG.info("Additional host {} waiting for initial host to be up", getHostname());
+            LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
             MarkLogicNode node = cluster.getAnyNodeOrWait();
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
             scriptFile = new File(getScriptDirectory(), "customize_additional_host.txt");
@@ -197,7 +244,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if (isInitialHost) {
             LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
         } else {
-            LOG.info("Finished customize of additional host {}", getHostname());
+            LOG.info("Finished customize of Marklogic additional host {}", getHostname());
         }
     }
 
@@ -396,7 +443,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
-        LOG.debug("Attach forest {} to database {}",forestName,databaseName);
+        LOG.debug("Attach forest {} to database {}", forestName, databaseName);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName, "databaseName", databaseName);
         File scriptFile = new File(getScriptDirectory(), "attach_forest_to_database.txt");
@@ -411,15 +458,15 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished attaching forest {} to database {}",forestName,databaseName);
+        LOG.debug("Finished attaching forest {} to database {}", forestName, databaseName);
     }
 
     @Override
-    public void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName) {
+    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
 
-        LOG.debug("Attach replica forest {} to forest {}",replicaForestName,primaryForestName);
+        LOG.debug("Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("databaseName", databaseName, "primaryForestName", primaryForestName,"replicaForestName",replicaForestName);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("primaryForestName", primaryForestName, "replicaForestName", replicaForestName);
         File scriptFile = new File(getScriptDirectory(), "attach_replica_forest.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -432,8 +479,29 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished Attach replica forest {} to forest {}",replicaForestName,primaryForestName);
+        LOG.debug("Finished Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
 
+    }
+
+    @Override
+    public void enableForest(String forestName, boolean enabled) {
+
+        LOG.debug("Enabling forest {} {}", forestName, enabled);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName, "enabled", enabled);
+        File scriptFile = new File(getScriptDirectory(), "enable_forest.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript("enableForest")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        LOG.debug("Finished Enabling forest {} {}", forestName, enabled);
     }
 
     @Override

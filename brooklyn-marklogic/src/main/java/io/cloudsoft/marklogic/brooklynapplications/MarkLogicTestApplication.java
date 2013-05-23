@@ -42,7 +42,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
          );
         databases = markLogicCluster.getDatabases();
@@ -75,6 +75,16 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         Database database = databases.createDatabase("database-peter");
 
+        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.NAME, "peter-forest-replica")
+                .configure(Forest.DATA_DIR,"/tmp")
+                .configure(Forest.LARGE_DATA_DIR,"/tmp")
+                .configure(Forest.FAST_DATA_DIR,"/tmp")
+                .configure(Forest.HOST, node2.getHostName())
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true)
+        );
 
         Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.NAME, "peter-forest")
@@ -87,22 +97,17 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(Forest.FAILOVER_ENABLED, true)
         );
 
-        //Forest forest2 = forests.createForestWithSpec("forest-peter2", hostname, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-        //databases.attachForestToDatabase(forest2.getName(), database.getName());
+        forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
 
-        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-                .configure(Forest.NAME, "peter-forest-replica")
-                .configure(Forest.DATA_DIR,"/tmp")
-                .configure(Forest.LARGE_DATA_DIR,"/tmp")
-                .configure(Forest.FAST_DATA_DIR,"/tmp")
-                .configure(Forest.HOST, node2.getHostName())
-                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-                .configure(Forest.REBALANCER_ENABLED, true)
-                .configure(Forest.FAILOVER_ENABLED, true)
-        );
+        try {
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+        }
 
-        forests.attachReplicaForest(database.getName(), primaryForest.getName(),replicaForest.getName());
+        //now we are going to convert our primary to replica
+        forests.enableForest(primaryForest.getName(), false);
+        forests.enableForest(primaryForest.getName(),true);
     }
 
     /**

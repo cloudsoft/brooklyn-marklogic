@@ -34,5 +34,7 @@ public interface Forests extends Entity {
             @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 
-    void attachReplicaForest(String databaseName, String primaryForestName, String replicaForestName);
+    void attachReplicaForest(String primaryForestName, String replicaForestName);
+
+    void enableForest(String forestName, boolean enabled);
 }

@@ -1,0 +1,116 @@
+set -x
+MARKLOGIC_AWS_ACCESS_KEY=AKIAJFEVG7RSZONJC57Q
+MARKLOGIC_AWS_SECRET_KEY=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
+
+# Get the launch config variables
+
+old_node_name=$1
+if [ "$old_node_name" == "" ]
+then
+	echo "Must give source node name"
+        exit
+fi
+
+volume_name=$2
+if [ "$volume_name" == "" ]
+then
+	echo "Must give volume name"
+        exit
+fi
+
+new_node_name=$3
+if [ "$new_node_name" == "" ]
+then
+	echo "Must give dest node name"
+        exit
+fi
+
+# Detach from source
+# Attach to dest
+# Change the mount_points counts
+# Fix up assignments on the master
+
+/opt/aws/bin/ec2-metadata -d | awk '{for (i=2;i<=NF;i++){if ($i == "export"){printf "\n%s ",$i}else {printf "%s",$i}}}' > setup
+source setup
+export HOME=/root
+sdb_bucket_name=`echo $MARKLOGIC_AUTO_SCALE_GROUP | sed 's/--/__/'`
+
+
+
+# Need to lock the simpledb bucket while we attach
+
+locked=1
+while [ $locked -eq 1 ]
+do
+
+# Note error from simpledb on stderr, redirect 
+locked=`./simpledb put-conditional $sdb_bucket_name meta lock 0 lock=1 2>&1 | grep -c ERROR`
+if [ $locked -eq 1 ]
+then
+   sleep 10
+fi
+
+done
+
+printf "./simpledb select 'select *  from $sdb_bucket_name where ItemName() = \"$old_node_name\"  ' | grep -v mount | grep $volume_name | awk ' BEGIN{FS=\"=\"}  {print \$2} '\n" > get_volume
+chmod 777 ./get_volume
+ebs_volume_name=`./get_volume`
+
+printf "./simpledb select 'select *  from $sdb_bucket_name where ItemName() = \"$old_node_name\"  ' | grep mount_point_$volume_name | awk ' BEGIN{FS=\"=\"}  {print \$2} '\n" > get_mount
+chmod 777 ./get_mount
+mount_point=`./get_mount`
+
+old_az=`./simpledb get $sdb_bucket_name $old_node_name az | awk 'BEGIN{FS="="}{print $2}'`
+new_az=`./simpledb get $sdb_bucket_name $new_node_name az | awk 'BEGIN{FS="="}{print $2}'`
+old_ip=`./simpledb get $sdb_bucket_name $old_node_name ip | awk 'BEGIN{FS="="}{print $2}'`
+new_ip=`./simpledb get $sdb_bucket_name $new_node_name ip | awk 'BEGIN{FS="="}{print $2}'`
+old_mount_points=`./simpledb get $sdb_bucket_name $old_node_name mount_points | awk 'BEGIN{FS="="}{print $2}'`
+new_mount_points=`./simpledb get $sdb_bucket_name $new_node_name mount_points | awk 'BEGIN{FS="="}{print $2}'`
+
+# Whats our dbname
+#dbname=`./simpledb get $sdb_bucket_name meta dbname | awk 'BEGIN{FS="="}{print $2}'`
+
+
+if [ "$ebs_volume_name" == "" ] || [ "$mount_point" == "" ]
+then
+	echo "Volume or Mount point not in Simple DB"
+        ./simpledb put-replace $sdb_bucket_name meta lock=0
+        exit 1
+fi
+
+if [ "$old_az" != "$new_az" ]
+then
+	echo "Source and Dest instances not in the same AZ, cannot move"
+        ./simpledb put-replace $sdb_bucket_name meta lock=0
+        exit 1
+fi
+
+old_instance_id=`./simpledb get $sdb_bucket_name $old_node_name instance | awk 'BEGIN{FS="="}{print $2}'`
+new_instance_id=`./simpledb get $sdb_bucket_name $new_node_name instance | awk 'BEGIN{FS="="}{print $2}'`
+echo "$ebs_volume_name $mount_point $old_instance_id $new_instance_id $old_az $new_az "
+
+
+
+
+
+./simpledb get $sdb_bucket_name $new_node_name | grep -v mount | grep volume_ | awk ' BEGIN{FS="="}  {printf "%s_\n", $1}' > volume_slots
+./simpledb get $sdb_bucket_name $new_node_name | grep mount_point_ | grep volume_ | awk ' BEGIN{FS="="}  {printf "%s_\n", $1}' > mount_slots
+
+
+# Find a free slot
+not_found=1
+k=0
+while [ $not_found -eq 1 ] 
+do
+     k=$(expr $k + 1)
+     not_found=`grep volume_$k\_ volume_slots | wc -l`
+done
+
+i=$(expr $k + 104)
+hex_representation=$( printf "%X" ${i} )
+fdev=`printf "sd\x$hex_representation\n"`
+
+
+echo "Mount select $fdev"
+./simpledb put-replace $sdb_bucket_name meta lock=0
+

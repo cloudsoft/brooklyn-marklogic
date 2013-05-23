@@ -1,0 +1,7 @@
+set -x
+curl http://localhost:8001/license-go.xqy?license-key=3681-9D4D-6863-3B33-99B9-DD19-DAC6-66B9-B1DD-AE69-73DB-DED0-D6A6-B4BD-AD0F-6F6B-8B9C-D0E6-E6BB-B1BD-ADE3-ACDB-0000\&licensee=MarkLogic%20-%20Denis%20Sheahan\&ok
+sleep 10
+curl http://localhost:8001/agree-go.xqy?accepted-agreement=development
+sleep 10
+curl http://localhost:8001/initialize-go.xqy
+sleep 10

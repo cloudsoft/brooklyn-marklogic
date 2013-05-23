@@ -1,0 +1,28 @@
+set -x 
+#i=$1
+
+#sudo mkdir /space
+#sudo chmod 777 /space
+sudo /etc/init.d/MarkLogic stop
+sudo rpm -e MarkLogic
+sudo rm -rf /opt/MarkLogic /var/opt/MarkLogic /space/mldata/*
+sudo rpm -i MarkLogic-6.0-20121121.x86_64.rpm
+
+#mkdir /space/mldata
+#mkdir /space/xqy
+sudo sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysconfig/MarkLogic
+
+sudo /etc/init.d/MarkLogic start
+sudo cp join-cluster.xqy qa-restart.xqy transfer-cluster-config.xqy /opt/MarkLogic/Admin
+cp xqy/bookmark.xqy xqy/delete.xqy xqy/search-debug.xqy xqy/search.xqy	xqy/update.xqy xqy/verify.xqy xqy/view.xqy /space/xqy
+
+sudo cp get_db_id.xqy stats.xqy http-server-status.xqy get-hosts.xqy create_forests.xqy create_database.xqy attach_forests.xqy create_appserver.xqy create_httpserver.xqy create_role.xqy /opt/MarkLogic/Admin
+ec2_name=`wget -q -O - http://169.254.169.254/latest/meta-data/public-hostname`
+echo $ec2_name > hosts.txt
+#python clusterBuild.py -n $ec2_name  -u ec2-user -l license.txt 
+python clusterJoin.py -n hosts.txt -u ec2-user -l license.txt  > init_ml
+chmod 777 init_ml
+./init_ml
+curl --digest -u admin:admin http://localhost:8001/create_forests.xqy?datadir=/space/mldata\&fcount=8
+sleep 10
+curl --digest -u admin:admin http://localhost:8001/attach_forests.xqy

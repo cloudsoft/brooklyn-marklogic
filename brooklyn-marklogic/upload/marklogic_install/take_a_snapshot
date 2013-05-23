@@ -1,0 +1,63 @@
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-1
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-2
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-3
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-4
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-5
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-6
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-7
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-8
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-9
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-10
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-11
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-12
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-13
+umount /var/opt/mldata/marklogic__sdbv19_1a-node1-14
+umount /var/opt
+
+/opt/aws/bin/ec2-detach-volume vol-1c22446c  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-2c23455c  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-688ae718  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-7fe68b0f  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-09325b79  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-496a0339  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-ab99f1db  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-5ce9812c  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-1ea1ca6e  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-a8b5ded8  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-ea99f29a  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-37284247  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-7dc6ab0d  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-fa0f658a  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+/opt/aws/bin/ec2-detach-volume vol-fb25438b  -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol1 snapshot $1" vol-1c22446c
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol2 snapshot $1" vol-2c23455c
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol3 snapshot $1" vol-688ae718
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol4 snapshot $1" vol-7fe68b0f
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol5 snapshot $1" vol-09325b79
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol6 snapshot $1" vol-496a0339
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol7 snapshot $1" vol-ab99f1db
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol8 snapshot $1" vol-5ce9812c
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol9 snapshot $1" vol-1ea1ca6e
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol10 snapshot $1" vol-a8b5ded8
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol11 snapshot $1" vol-ea99f29a
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol12 snapshot $1" vol-37284247
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol13 snapshot $1" vol-7dc6ab0d
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol14 snapshot $1" vol-fa0f658a
+sleep 10
+/opt/aws/bin/ec2-create-snapshot -O AKIAJFEVG7RSZONJC57Q -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX -d "vol_opt snapshot $1" vol-fb25438b
+
+

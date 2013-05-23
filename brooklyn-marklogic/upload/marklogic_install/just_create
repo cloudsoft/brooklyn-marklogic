@@ -1,0 +1,57 @@
+
+sleep 30
+curl --digest -u admin:admin http://localhost:8001/create_database.xqy
+date
+date
+curl --digest -u admin:admin http://localhost:8001/create_forests.xqy?datadir=/var/opt/mldata\&fcount=8\&host=$ec2_name
+date
+curl --digest -u admin:admin http://localhost:8001/attach_forests.xqy?host=$ec2_name
+sleep 10
+date
+curl --digest -u admin:admin http://localhost:8001/create_role.xqy
+sleep 10
+
+
+
+# Let slaves in
+rm /home/ec2-user/startup.lock
+
+date
+curl --digest -u admin:admin http://localhost:8001/create_httpserver.xqy
+sleep  10
+date
+curl --digest -u admin:admin http://localhost:8001/create_appserver.xqy
+date
+
+else
+/opt/aws/bin/ec2addtag  -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX $instance_id --tag ML=Slave
+
+echo "Waiting"
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "lockfile startup.lock"
+./init_ml
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "rm startup.lock"
+sleep 10
+
+
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "lockfile create.lock"
+curl --trace-ascii -  --digest -u admin:admin http://$cluster_owner:8001/create_forests.xqy?datadir=/var/opt/mldata\&fcount=8\&host=$ec2_name
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "rm create.lock"
+sleep 10
+
+
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "lockfile attach.lock"
+curl --trace-ascii -  --digest -u admin:admin http://$cluster_owner:8001/attach_forests.xqy?host=$ec2_name
+ssh -i /home/ec2-user/ml_demo.pem -o LogLevel=quiet -o StrictHostKeyChecking=no  ec2-user@$cluster_owner "rm attach.lock"
+sleep 10
+
+
+
+echo "Finished"
+
+
+
+python clusterEnd.py -n hosts.txt -u ec2-user -l license.txt  > init_ml
+chmod 777 init_ml
+./init_ml
+fi
+

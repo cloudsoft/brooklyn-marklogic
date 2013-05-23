@@ -1,0 +1,54 @@
+set -x
+# Get the launch config variables
+
+/opt/aws/bin/ec2-metadata -d | awk '{for (i=2;i<=NF;i++){if ($i == "export"){printf "\n%s ",$i}else {printf "%s",$i}}}' > setup
+source setup
+export HOME=/root
+node_name=$1
+
+instance_id=`/opt/aws/bin/ec2-metadata -i | awk '{print $2}'`
+region=`/opt/aws/bin/ec2-metadata -z | awk '{print $2}'`
+instance_name=`wget -q -O - http://169.254.169.254/latest/meta-data/public-hostname`
+instance_type=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-type`
+
+i=0
+character=$(expr $i + 68)
+dev=`printf "sd\x$character"`
+sdb_bucket_name=`echo $MARKLOGIC_AUTO_SCALE_GROUP | sed 's/--/__/'`
+
+# Extract our meta data from simple db
+# Is the storage EBS or Ephemeral
+storage=`./simpledb get $sdb_bucket_name meta storage | awk 'BEGIN{FS="="}{print $2}'`
+
+# Are we using provisioned IOPs
+iops=`./simpledb get $sdb_bucket_name meta iops | awk 'BEGIN{FS="="}{print $2}'`
+
+
+# How many mounts per node
+mount_count=`./simpledb get $sdb_bucket_name meta mount_points | awk 'BEGIN{FS="="}{print $2}'`
+if [ "$mount_count" == "" ]
+then
+    mount_count=8
+fi
+
+# Whats our volume size
+volume_size=`./simpledb get $sdb_bucket_name meta volume_size | awk 'BEGIN{FS="="}{print $2}'`
+if [ "$volume_size" == "" ]
+then
+    volume_size=100
+fi
+
+volume_name=`./simpledb get $sdb_bucket_name $node_name volume | awk 'BEGIN{FS="="}{print $2}'`
+/opt/aws/bin/ec2-delete-volume  $volume_name -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+
+        # Delete mount volumes
+        vol_count=1
+        while [ $vol_count -le $mount_count ]
+        do
+
+           volume_name=`./simpledb get $sdb_bucket_name $node_name mount_point_vol_$vol_count | awk 'BEGIN{FS="="}{print $2}'`
+           /opt/aws/bin/ec2-delete-volume  $volume_name -O AKIAJFEVG7RSZONJC57Q  -W Ar13VsmVJkXVNYySc/heDES4ac4+efrMcfiSqhTX
+
+          vol_count=$(expr $vol_count + 1)
+        done
+
