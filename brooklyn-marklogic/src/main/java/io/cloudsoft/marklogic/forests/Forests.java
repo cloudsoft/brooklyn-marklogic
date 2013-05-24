@@ -36,7 +36,17 @@ public interface Forests extends Entity {
 
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
-    void enableForest(String forestName, boolean enabled);
+    MethodEffector<Void> ENABLE_FOREST =
+            new MethodEffector<Void>(Forests.class, "enableForest");
 
-    void deleteForestConfiguration(String forestName);
+    @Description("Enables a forest")
+    void enableForest(@NamedParameter("forestName") @Description("The name of the forest") String forestName,
+                      @NamedParameter("enabled") @Description("If the forest should be enabled") boolean enabled);
+
+    MethodEffector<Void> DELETE_FOREST_CONFIGURATION =
+            new MethodEffector<Void>(Forests.class, "deleteForestConfiguration");
+
+    @Description("Deletes the configuration of a forest")
+    void deleteForestConfiguration(
+            @NamedParameter("forestName") @Description("The name of the forest to delete") String forestName);
 }
