@@ -78,7 +78,6 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     attach_replica.xqy \
                     attach_forests.xqy \
                     attach_forest.xqy \
-                    detach_replica.xqy \
                     create_markmail_forests.xqy \
                     create_forests.xqy \
                     create_forests_with_fastdir.xqy \
@@ -93,6 +92,15 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     attach_markmail_forests.xqy \
                     create_httpserver.xqy \
                     create_role.xqy \
+                    database-get-id.xqy \
+                    database-list.xqy \
+                    detach_replica.xqy \
+                    forest-get-id.xqy \
+                    forest-list.xqy \
+                    forest-detailed-status.xqy \
+                    group-get-id.xqy \
+                    host-get-id.xqy \
+                    generate-id.xqy \
                     enable_forest.xqy \
                     rewrite-hostname.xqy \
                     rewrite-assignments.xqy \

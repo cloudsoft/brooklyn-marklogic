@@ -42,29 +42,34 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public void init() {
-        super.init();
 
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                MarkLogicGroup cluster = getGroup();
-                for (Entity member : cluster.getMembers()) {
-                    if (member instanceof MarkLogicNode) {
-                        MarkLogicNode node = (MarkLogicNode) member;
-                        if (node.isUp()) {
-                            Set<String> databaseNames = node.scanDatabases();
-                            for (String databaseName : databaseNames) {
-                                synchronized (mutex) {
-                                    if (!databaseExists(databaseName)) {
-                                        addChild(BasicEntitySpec.newInstance(Database.class)
-                                                .displayName(databaseName)
-                                                .configure(Database.NAME, databaseName)
-                                        );
+                try {
+
+                    MarkLogicGroup cluster = getGroup();
+                    for (Entity member : cluster.getMembers()) {
+                        if (member instanceof MarkLogicNode) {
+                            MarkLogicNode node = (MarkLogicNode) member;
+                            if (node.isUp()) {
+                                Set<String> databaseNames = node.scanDatabases();
+                                for (String databaseName : databaseNames) {
+                                    synchronized (mutex) {
+                                        if (!databaseExists(databaseName)) {
+                                            LOG.info("Sucking in database {}", databaseName);
+                                            addChild(BasicEntitySpec.newInstance(Database.class)
+                                                    .displayName(databaseName)
+                                                    .configure(Database.NAME, databaseName)
+                                            );
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                } catch (Exception e) {
+                    LOG.error("Failed to sync databases",e);
                 }
             }
         };

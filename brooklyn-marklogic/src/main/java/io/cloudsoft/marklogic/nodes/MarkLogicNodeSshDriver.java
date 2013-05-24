@@ -172,7 +172,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                         queue.push(kid);
                         name = name.endsWith("/") ? name : name + "/";
                         zout.putNextEntry(new ZipEntry(name));
-                    } else if(!kid.getName().equals(".DS_Store")){
+                    } else if (!kid.getName().equals(".DS_Store")) {
                         zout.putNextEntry(new ZipEntry(name));
                         copy(kid, zout);
                         zout.closeEntry();
@@ -531,6 +531,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public Set<String> scanDatabases() {
+        LOG.debug("Scanning databases");
+
+
         File scriptFile = new File(getScriptDirectory(), "scan_databases.txt");
         String script = processTemplate(scriptFile);
 
@@ -543,20 +546,25 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
         //todo:
         int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
+        if (exitStatus != 0) {
+            LOG.error("Failed to databases");
+            return Collections.EMPTY_SET;
+        }
         String s = new String(stdout.toByteArray());
 
         Set<String> databases = new HashSet();
         String[] split = s.split("\n");
         for (int k = 0; k < split.length - 1; k++) {
-            final String database = split[k].trim();
-            int i = database.indexOf("<");
-            databases.add(database.substring(2, i));
+            databases.add(split[k]);
         }
+
         return databases;
     }
 
     @Override
     public Set<String> scanForests() {
+        LOG.debug("Scanning forests");
+
         File scriptFile = new File(getScriptDirectory(), "scan_forests.txt");
         String script = processTemplate(scriptFile);
 
@@ -569,6 +577,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
         //todo:
         int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
+        if (exitStatus != 0) {
+            LOG.error("Failed to scan forests");
+            return Collections.EMPTY_SET;
+        }
         String s = new String(stdout.toByteArray());
 
         Set<String> forests = new HashSet();
@@ -577,6 +589,5 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             forests.add(split[k]);
         }
         return forests;
-
     }
 }

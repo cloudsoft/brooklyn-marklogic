@@ -3,8 +3,7 @@ contains the template for create a marklogic forest. The forrest entity can be a
 the marklogic node the forest is going to be installed on, can be accessed using ${entity}.
 -->
 
-#here we convert the name of the hostmachine to the internal id. This is a work around,
-HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/add-forest.xqy?section=forest' | grep -i -m 1 '${driver.hostname}</option>' | grep  -Po -m1 'value=".*?"' | grep  -Po -m1 '".*?"' | tr -d '"')
+HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host-get-id.xqy?host=${driver.hostname}")
 echo found HOST_ID: $HOST_ID
 
 echo Creating MarkLogic forrest

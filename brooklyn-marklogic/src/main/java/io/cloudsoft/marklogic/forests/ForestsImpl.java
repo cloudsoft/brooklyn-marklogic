@@ -41,18 +41,21 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         throw new IllegalStateException(format("Can't create a forest, no node with hostname '%s' found", hostname));
     }
 
-
     private boolean forestExists(String forestName) {
+        return getForest(forestName)!=null;
+    }
+
+    private Forest getForest(String forestName) {
         for (Entity member : getChildren()) {
             if (member instanceof Forest) {
                 Forest forest = (Forest) member;
                 if (forestName.equals(forest.getName())) {
-                    return true;
+                    return forest;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     @Override
@@ -73,6 +76,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                             for (String forestName : forests) {
                                 synchronized (mutex) {
                                     if (!forestExists(forestName)) {
+                                        LOG.info("Sucking in forest {}", forestName);
+
                                         addChild(BasicEntitySpec.newInstance(Forest.class)
                                                 .displayName(forestName)
                                                 .configure(Forest.NAME, forestName)
@@ -100,9 +105,10 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         Forest forest;
         synchronized (mutex) {
-            if (forestExists(forestName)) {
-                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
-            }
+            //todo: needs to be enabled again
+            //if (forestExists(forestName)) {
+            //    throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
+            //}
 
             forest = addChild(forestSpec);
         }
@@ -140,12 +146,12 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void attachReplicaForest(String primaryForestName, String replicaForestName) {
-        LOG.info("Attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
+        LOG.info("Attaching replica-forest {} to primary-forest {}", replicaForestName, primaryForestName);
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
         node.attachReplicaForest(primaryForestName, replicaForestName);
 
-        LOG.info("Finished attaching replica forest {} to primary forest {}", replicaForestName, primaryForestName);
+        LOG.info("Finished attaching replica-forest {} to primary-forest {}", replicaForestName, primaryForestName);
     }
 
     @Override
@@ -155,16 +161,28 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         MarkLogicNode node = getGroup().getAnyStartedMember();
         node.enableForest(forestName, enabled);
 
-        LOG.info("Finished Enabling forest {} {}", forestName,enabled);
+        LOG.info("Finished enabling forest {} {}", forestName,enabled);
     }
 
     @Override
     public void deleteForestConfiguration(String forestName) {
-        LOG.info("Delete configuration for forest {}", forestName);
+        LOG.info("Delete forest {} configuration", forestName);
+
+        synchronized (mutex){
+            Forest forest = getForest(forestName);
+            if(forest!=null){
+                forest.clearParent();
+
+                LOG.info("Forest {} still found after delete:", forestExists(forestName));
+
+            }else{
+                LOG.info("Forest {} not found in Brooklyn", forestName);
+            }
+        }
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
         node.deleteForestConfiguration(forestName);
 
-        LOG.info("Finished Delete configuration for forest {}", forestName);
+        LOG.info("Finished deleting forest {} configuration", forestName);
     }
 }

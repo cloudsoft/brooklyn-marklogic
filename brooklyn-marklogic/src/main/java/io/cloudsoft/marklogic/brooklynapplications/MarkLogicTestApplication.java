@@ -3,6 +3,7 @@ package io.cloudsoft.marklogic.brooklynapplications;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Entities;
+import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.EntitySpecs;
 import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
@@ -42,7 +43,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
          );
         databases = markLogicCluster.getDatabases();
@@ -86,29 +87,50 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(Forest.FAILOVER_ENABLED, true)
         );
 
-        Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
+        final BasicEntitySpec<Forest,?> primaryForestSpec = spec(Forest.class)
                 .configure(Forest.NAME, "peter-forest")
-                .configure(Forest.DATA_DIR,"/tmp")
-                .configure(Forest.LARGE_DATA_DIR,"/tmp")
-                .configure(Forest.FAST_DATA_DIR,"/tmp")
+                .configure(Forest.DATA_DIR, "/tmp")
+                .configure(Forest.LARGE_DATA_DIR, "/tmp")
+                .configure(Forest.FAST_DATA_DIR, "/tmp")
                 .configure(Forest.HOST, node1.getHostName())
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
-                .configure(Forest.FAILOVER_ENABLED, true)
-        );
+                .configure(Forest.FAILOVER_ENABLED, true);
+        Forest primaryForest = forests.createForestWithSpec(primaryForestSpec);
 
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
         forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
 
-        try {
-            Thread.sleep(60000);
-        } catch (InterruptedException e) {
-        }
+        sleep(60);
 
         //now we are going to convert our primary to replica
-        forests.enableForest(primaryForest.getName(), false);
+            forests.enableForest(primaryForest.getName(), false);
+
+       // sleep(30);
+
         forests.deleteForestConfiguration(primaryForest.getName());
+
+        //primaryForest = forests.createForestWithSpec(primaryForestSpec);
+        //sleep(30);
+        //
+        //
+        //forests.attachReplicaForest(replicaForest.getName(), primaryForest.getName());
+        //sleep(30);
+        //
+        //
+        //forests.enableForest(replicaForest.getName(), false);
+        //sleep(30);
+        //
+        //sforests.enableForest(replicaForest.getName(), true);
+
         //forests.enableForest(primaryForest.getName(),true);
+    }
+
+    private void sleep(long seconds) {
+        try {
+            Thread.sleep(seconds*1000);
+        } catch (InterruptedException e) {
+        }
     }
 
     /**
