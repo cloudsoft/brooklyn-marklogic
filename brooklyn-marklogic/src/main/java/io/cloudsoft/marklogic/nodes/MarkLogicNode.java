@@ -101,9 +101,13 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<String> AVAILABILITY_ZONE = new BasicConfigKey<String>(
             String.class, "marklogic.node.availabilityZone", "Availability zone to use (appended to the region name - e.g. could be \"c\")", "c");
 
-    @SetFromFlag("isStorageEbs")
-    ConfigKey<Boolean> IS_STORAGE_EBS = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.node.isStorageEbs", "Whether the storage should use EBS Volumes", true);
+    @SetFromFlag("isForestsEbs")
+    ConfigKey<Boolean> IS_FORESTS_EBS = new BasicConfigKey<Boolean>(
+            Boolean.class, "marklogic.node.isForestsEbs", "Whether the forests should use EBS Volumes", true);
+
+    @SetFromFlag("isVarOptEbs")
+    ConfigKey<Boolean> IS_VAR_OPT_EBS = new BasicConfigKey<Boolean>(
+            Boolean.class, "marklogic.node.isVaroptEbs", "Whether the /var/opt should use an EBS Volume", true);
 
     @SetFromFlag("isBackupEbs")
     ConfigKey<Boolean> IS_BACKUP_EBS = new BasicConfigKey<Boolean>(
@@ -120,10 +124,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     @SetFromFlag("autoScaleGroup")
     BasicAttributeSensorAndConfigKey<String> MARKLOGIC_AUTO_SCALE_GROUP = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.autoScaleGroup", "<description goes here>", null);
-
-    @SetFromFlag("numMountPoints")
-    ConfigKey<Integer> NUM_MOUNT_POINTS = new BasicConfigKey<Integer>(
-            Integer.class, "marklogic.node.volumes.numMountPoints", "Number of regular EBS Volumes", 2);
 
     @SetFromFlag("varOptVolume")
     BasicAttributeSensorAndConfigKey<String> VAR_OPT_VOLUME = new BasicAttributeSensorAndConfigKey<String>(
