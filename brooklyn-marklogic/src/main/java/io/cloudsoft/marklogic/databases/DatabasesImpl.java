@@ -57,7 +57,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                                 for (String databaseName : databaseNames) {
                                     synchronized (mutex) {
                                         if (!databaseExists(databaseName)) {
-                                            LOG.info("Sucking in database {}", databaseName);
+                                            LOG.info("Discovered in database {}", databaseName);
                                             addChild(BasicEntitySpec.newInstance(Database.class)
                                                     .displayName(databaseName)
                                                     .configure(Database.NAME, databaseName)

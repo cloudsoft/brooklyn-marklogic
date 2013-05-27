@@ -76,7 +76,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                             for (String forestName : forests) {
                                 synchronized (mutex) {
                                     if (!forestExists(forestName)) {
-                                        LOG.info("Sucking in forest {}", forestName);
+                                        LOG.info("Discovered forest {}", forestName);
 
                                         addChild(BasicEntitySpec.newInstance(Forest.class)
                                                 .displayName(forestName)
