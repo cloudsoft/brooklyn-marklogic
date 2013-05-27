@@ -1,5 +1,5 @@
 echo ==============================================================================
-echo         Enabling forest forest ${forestName} ${enabled?string}
+echo         Enabling forest ${forestName} ${enabled?string}
 echo ==============================================================================
 
 FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest-get-id.xqy?forest=${forestName}")
@@ -23,5 +23,5 @@ curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/toggle
 </#if>
 
 echo ==============================================================================
-echo         Finished enabling forest forest ${forestName} ${enabled?string}
+echo         Finished enabling forest ${forestName} ${enabled?string}
 echo ==============================================================================
