@@ -127,9 +127,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
-        LOG.info("Attach forest {} to database {}", forestName, databaseName);
+        LOG.info("Attaching forest {} to database {}", forestName, databaseName);
 
         MarkLogicNode node = getAnyNode();
         node.attachForestToDatabase(forestName, databaseName);
+
+        LOG.info("Finished attach forest {} to database {}", forestName, databaseName);
     }
 }
