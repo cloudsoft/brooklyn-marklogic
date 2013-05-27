@@ -14,6 +14,12 @@ public interface Database extends Entity {
             String.class, "marklogic.database.name",
             "The name of the database", null);
 
+    @SetFromFlag("journaling")
+    ConfigKey<String> JOURNALING = new BasicConfigKey<String>(
+            String.class, "marklogic.database.journaling",
+            "Specifies how robust transaction journaling should be (strict, fast, off)", "fast");
+
     String getName();
 
+    String getJournaling();
 }

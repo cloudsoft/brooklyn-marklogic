@@ -17,4 +17,9 @@ public class DatabaseImpl extends AbstractEntity implements Database {
     public String getDisplayName() {
         return getName();
     }
+
+    @Override
+    public String getJournaling() {
+        return getConfig(JOURNALING);
+    }
 }

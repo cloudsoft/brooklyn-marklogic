@@ -74,7 +74,10 @@ public class MarkLogicTestApplication extends AbstractApplication {
         MarkLogicNode node1 = group.getAnyStartedMember();
         MarkLogicNode node2 = group.getAnyOtherStartedMember(node1.getHostName());
 
-        Database database = databases.createDatabase("database-peter");
+        Database database = databases.createDatabaseWithSpec(spec(Database.class)
+                .configure(Database.NAME, "database-peter")
+                .configure(Database.JOURNALING,"strict")
+        );
 
         Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.NAME, "peter-forest-replica")
@@ -103,12 +106,16 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         sleep(60);
 
+        databases.attachForestToDatabase(replicaForest.getName(), database.getName());
+
+
+
         //now we are going to convert our primary to replica
-            forests.enableForest(primaryForest.getName(), false);
+        //    forests.enableForest(primaryForest.getName(), false);
 
        // sleep(30);
 
-        forests.deleteForestConfiguration(primaryForest.getName());
+        //forests.deleteForestConfiguration(primaryForest.getName());
 
         //primaryForest = forests.createForestWithSpec(primaryForestSpec);
         //sleep(30);
