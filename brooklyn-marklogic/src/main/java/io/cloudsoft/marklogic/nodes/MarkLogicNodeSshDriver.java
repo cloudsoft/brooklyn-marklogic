@@ -259,7 +259,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.info("Successfully launched MarkLogic  host {}", getHostname());
+        LOG.info("Successfully launched MarkLogic host {}", getHostname());
     }
 
     @Override

@@ -43,7 +43,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
          );
         databases = markLogicCluster.getDatabases();
@@ -73,24 +73,23 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         MarkLogicNode node1 = group.getAnyStartedMember();
         MarkLogicNode node2 = group.getAnyOtherStartedMember(node1.getHostName());
-        //MarkLogicNode node3 = group.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
-
+        MarkLogicNode node3 = group.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
 
         Database database = databases.createDatabaseWithSpec(spec(Database.class)
                 .configure(Database.NAME, "database-peter")
                 .configure(Database.JOURNALING,"strict")
         );
 
-        //Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-        //        .configure(Forest.NAME, "peter-forest-replica")
-        //        .configure(Forest.DATA_DIR,"/tmp")
-        //        .configure(Forest.LARGE_DATA_DIR,"/tmp")
-        //        .configure(Forest.FAST_DATA_DIR,"/tmp")
-        //        .configure(Forest.HOST, node2.getHostName())
-        //        .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-        //        .configure(Forest.REBALANCER_ENABLED, true)
-        //        .configure(Forest.FAILOVER_ENABLED, true)
-        //);
+        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.NAME, "peter-forest-replica")
+                .configure(Forest.DATA_DIR,"/tmp")
+                .configure(Forest.LARGE_DATA_DIR,"/tmp")
+                .configure(Forest.FAST_DATA_DIR,"/tmp")
+                .configure(Forest.HOST, node2.getHostName())
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true)
+        );
 
         final BasicEntitySpec<Forest,?> primaryForestSpec = spec(Forest.class)
                 .configure(Forest.NAME, "peter-forest")
@@ -103,21 +102,33 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(Forest.FAILOVER_ENABLED, true);
         Forest primaryForest = forests.createForestWithSpec(primaryForestSpec);
 
+        sleep(60);
+
+        forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
+
+        sleep(60);
+
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 
         sleep(60);
 
-      //  forests.enableForest(primaryForest.getName(), false);
-
-      //  sleep(60);
-
-        forests.setForestHost(primaryForest.getName(), node2.getHostName());
-
-        //forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
+        forests.enableForest(primaryForest.getName(), false);
 
         sleep(60);
 
-      //  forests.enableForest(primaryForest.getName(), true);
+        forests.setForestHost(primaryForest.getName(), node3.getHostName());
+
+        sleep(60);
+
+        forests.enableForest(primaryForest.getName(), true);
+
+        sleep(60);
+
+        forests.enableForest(replicaForest.getName(), false);
+        forests.enableForest(replicaForest.getName(), true);
+
+
+        //  forests.enableForest(primaryForest.getName(), true);
 
 
         //databases.attachForestToDatabase(replicaForest.getName(), database.getName());
