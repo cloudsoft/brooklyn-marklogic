@@ -319,4 +319,9 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     public void deleteForestConfiguration(String forestName) {
         getDriver().deleteForestConfiguration(forestName);
     }
+
+    @Override
+    public void setForestHost(String forestName, String hostname) {
+        getDriver().setForestHost(forestName, hostname);
+    }
 }

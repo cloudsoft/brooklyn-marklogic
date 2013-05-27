@@ -185,4 +185,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info("Finished deleting forest {} configuration", forestName);
     }
+
+    @Override
+    public void setForestHost(String forestName, String hostname) {
+        LOG.info("Setting Forest {} host {}", forestName, hostname);
+
+        MarkLogicNode node = getGroup().getAnyStartedMember();
+        node.setForestHost(forestName, hostname);
+
+        LOG.info("Finished setting Forest {} host {}", forestName, hostname);
+    }
 }

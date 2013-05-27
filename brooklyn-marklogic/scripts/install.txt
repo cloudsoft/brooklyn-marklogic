@@ -97,6 +97,7 @@ sudo -E -n -S -- cp get_db_id.xqy \
                     detach_replica.xqy \
                     forest-get-id.xqy \
                     forest-list.xqy \
+                    forest_set_host.xqy \
                     forest-detailed-status.xqy \
                     group-get-id.xqy \
                     host-get-id.xqy \

@@ -1,0 +1,11 @@
+echo ==============================================================================
+echo              SETTING forest ${forestName} HOST ${hostName}
+echo ==============================================================================
+
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest_set_host.xqy"  \
+       --data forest=${forestName} \
+       --data host=${hostName}
+
+echo ==============================================================================
+echo                 FINISHED SET forest ${forestName} HOST ${hostName}
+echo ==============================================================================

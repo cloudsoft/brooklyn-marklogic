@@ -42,12 +42,10 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public void init() {
-
         Runnable task = new Runnable() {
             @Override
             public void run() {
                 try {
-
                     MarkLogicGroup cluster = getGroup();
                     for (Entity member : cluster.getMembers()) {
                         if (member instanceof MarkLogicNode) {
@@ -57,7 +55,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                                 for (String databaseName : databaseNames) {
                                     synchronized (mutex) {
                                         if (!databaseExists(databaseName)) {
-                                            LOG.info("Discovered in database {}", databaseName);
+                                            LOG.info("Discovered database {}", databaseName);
                                             addChild(BasicEntitySpec.newInstance(Database.class)
                                                     .displayName(databaseName)
                                                     .configure(Database.NAME, databaseName)
@@ -69,7 +67,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                         }
                     }
                 } catch (Exception e) {
-                    LOG.error("Failed to sync databases",e);
+                    LOG.error("Failed to discover databases",e);
                 }
             }
         };
@@ -123,7 +121,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         }
         MarkLogicNode node = getAnyNode();
         node.createDatabase(database);
-        LOG.info("Successfully created database: " + database);
+        LOG.info("Successfully created database: " + database.getName());
         return database;
     }
 

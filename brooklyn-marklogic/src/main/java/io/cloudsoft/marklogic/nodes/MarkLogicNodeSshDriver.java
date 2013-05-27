@@ -525,6 +525,27 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
+    public void setForestHost(String forestName, String hostName) {
+        LOG.debug("Setting forest {} host {}", forestName, hostName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName, "hostName",hostName);
+        File scriptFile = new File(getScriptDirectory(), "forest_set_host.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript("setForestHost")
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
+
+        LOG.debug("Finished setting forest {} host {}", forestName, hostName);
+    }
+
+
+    @Override
     public Set<String> scanAppServices() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }

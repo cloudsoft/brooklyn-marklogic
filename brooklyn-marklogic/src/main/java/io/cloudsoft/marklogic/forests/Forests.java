@@ -49,4 +49,6 @@ public interface Forests extends Entity {
     @Description("Deletes the configuration of a forest")
     void deleteForestConfiguration(
             @NamedParameter("forestName") @Description("The name of the forest to delete") String forestName);
+
+    void setForestHost(String forestName, String hostname);
 }

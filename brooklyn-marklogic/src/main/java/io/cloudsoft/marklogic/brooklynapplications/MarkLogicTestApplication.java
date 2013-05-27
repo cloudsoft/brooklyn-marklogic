@@ -73,22 +73,24 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         MarkLogicNode node1 = group.getAnyStartedMember();
         MarkLogicNode node2 = group.getAnyOtherStartedMember(node1.getHostName());
+        //MarkLogicNode node3 = group.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
+
 
         Database database = databases.createDatabaseWithSpec(spec(Database.class)
                 .configure(Database.NAME, "database-peter")
                 .configure(Database.JOURNALING,"strict")
         );
 
-        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-                .configure(Forest.NAME, "peter-forest-replica")
-                .configure(Forest.DATA_DIR,"/tmp")
-                .configure(Forest.LARGE_DATA_DIR,"/tmp")
-                .configure(Forest.FAST_DATA_DIR,"/tmp")
-                .configure(Forest.HOST, node2.getHostName())
-                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-                .configure(Forest.REBALANCER_ENABLED, true)
-                .configure(Forest.FAILOVER_ENABLED, true)
-        );
+        //Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+        //        .configure(Forest.NAME, "peter-forest-replica")
+        //        .configure(Forest.DATA_DIR,"/tmp")
+        //        .configure(Forest.LARGE_DATA_DIR,"/tmp")
+        //        .configure(Forest.FAST_DATA_DIR,"/tmp")
+        //        .configure(Forest.HOST, node2.getHostName())
+        //        .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+        //        .configure(Forest.REBALANCER_ENABLED, true)
+        //        .configure(Forest.FAILOVER_ENABLED, true)
+        //);
 
         final BasicEntitySpec<Forest,?> primaryForestSpec = spec(Forest.class)
                 .configure(Forest.NAME, "peter-forest")
@@ -102,11 +104,23 @@ public class MarkLogicTestApplication extends AbstractApplication {
         Forest primaryForest = forests.createForestWithSpec(primaryForestSpec);
 
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-        forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
 
         sleep(60);
 
-        databases.attachForestToDatabase(replicaForest.getName(), database.getName());
+      //  forests.enableForest(primaryForest.getName(), false);
+
+      //  sleep(60);
+
+        forests.setForestHost(primaryForest.getName(), node2.getHostName());
+
+        //forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
+
+        sleep(60);
+
+      //  forests.enableForest(primaryForest.getName(), true);
+
+
+        //databases.attachForestToDatabase(replicaForest.getName(), database.getName());
 
 
 
