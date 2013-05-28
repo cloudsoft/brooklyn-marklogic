@@ -1,10 +1,11 @@
 package io.cloudsoft.marklogic.forests;
 
-import brooklyn.entity.basic.AbstractEntity;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import brooklyn.entity.basic.AbstractEntity;
 
 public class ForestImpl extends AbstractEntity implements Forest {
 
@@ -41,5 +42,13 @@ public class ForestImpl extends AbstractEntity implements Forest {
 
     public boolean isFailoverEnabled() {
         return getConfig(FAILOVER_ENABLED);
+    }
+    
+    public void setDataDirVolumeId(String volumeId) {
+        setAttribute(DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
+    }
+
+    public void setFastDirVolumeId(String volumeId) {
+        setAttribute(FAST_DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
     }
 }
