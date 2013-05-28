@@ -36,6 +36,9 @@ import com.google.common.collect.Lists;
  */
 public class MarkLogicTestApplication extends AbstractApplication {
 
+    // For naming databases/forests, so can tell in cloud provider's console who ran it
+    private final String user = System.getProperty("user.name");
+    
     private MarkLogicGroup dgroup;
     private Databases databases;
     private Forests forests;
@@ -81,14 +84,14 @@ public class MarkLogicTestApplication extends AbstractApplication {
         MarkLogicNode node3 = dgroup.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
 
         Database database = databases.createDatabaseWithSpec(spec(Database.class)
-                .configure(Database.NAME, "database-peter")
+                .configure(Database.NAME, "database-"+user)
                 .configure(Database.JOURNALING,"strict")
         );
 
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())
-                .configure(Forest.NAME, "peter-forest")
+                .configure(Forest.NAME, user+"-forest")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/"+primaryForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/"+primaryForestId)
                 .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/"+primaryForestId)
@@ -100,7 +103,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
         String replicaForestId = Identifiers.makeRandomId(8);
         Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node2.getHostName())
-                .configure(Forest.NAME, "peter-forest-replica")
+                .configure(Forest.NAME, user+"-forest-replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/"+replicaForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
                 .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
