@@ -201,4 +201,6 @@ public interface MarkLogicNode extends SoftwareProcess {
     void deleteForestConfiguration(String forestName);
 
     void setForestHost(String forestName, String hostname);
+
+    String getForestStatus(String forestName);
 }

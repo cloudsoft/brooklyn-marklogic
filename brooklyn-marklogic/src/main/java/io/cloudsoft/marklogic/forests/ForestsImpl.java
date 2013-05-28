@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
 import static java.lang.String.format;
 
 public class ForestsImpl extends AbstractEntity implements Forests {
@@ -80,6 +81,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
                                         addChild(BasicEntitySpec.newInstance(Forest.class)
                                                 .displayName(forestName)
+                                                .configure(Forest.GROUP,getGroup())
                                                 .configure(Forest.NAME, forestName)
                                         );
                                     }
@@ -103,12 +105,13 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         MarkLogicNode node = getNode(hostName);
 
+        forestSpec = wrapSpec(forestSpec).configure(Forest.GROUP, getGroup());
+
         Forest forest;
         synchronized (mutex) {
-            //todo: needs to be enabled again
-            //if (forestExists(forestName)) {
-            //    throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
-            //}
+            if (forestExists(forestName)) {
+                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
+            }
 
             forest = addChild(forestSpec);
         }

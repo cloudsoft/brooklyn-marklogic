@@ -3,10 +3,13 @@ package io.cloudsoft.marklogic.forests;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import com.google.common.collect.ImmutableList;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import java.util.Collection;
 
@@ -21,7 +24,7 @@ public interface Forest extends Entity {
     @SetFromFlag("host")
     ConfigKey<String> HOST = new BasicConfigKey<String>(
             String.class, "marklogic.forest.host",
-            "Specifies the host on which the forest resides. This is not the dnsname/ip, but an internal nummeric id.", null);
+            "Specifies the host on which the forest resides.", null);
 
     @SetFromFlag("data_dir")
     ConfigKey<String> DATA_DIR = new BasicConfigKey<String>(
@@ -55,6 +58,12 @@ public interface Forest extends Entity {
             Boolean.class, "marklogic.forest.failover-enabled",
             "Enable assignment to a failover host if the primary host is down.", false);
 
+    @SetFromFlag("cluster")
+   BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
+            MarkLogicGroup.class, "marklogic.forests.group", "The group");
+
+    AttributeSensor<String> STATUS = new BasicAttributeSensor<String>(String.class, "forest.status", "The status of the forest");
+
     String getName();
 
     String getHost();
@@ -71,6 +80,5 @@ public interface Forest extends Entity {
 
     boolean isFailoverEnabled();
 
-    //todo: failoverhosts
-    //todo: forest replicas
+    String getStatus();
 }

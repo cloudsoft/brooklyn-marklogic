@@ -1,0 +1,2 @@
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/forest-detailed-status.xqy'
+echo

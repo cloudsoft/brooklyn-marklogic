@@ -611,4 +611,31 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
         return forests;
     }
+
+    @Override
+    public String getForestStatus(String forestName) {
+        LOG.debug("Getting status for forest {}",forestName);
+
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forestName);
+        File scriptFile = new File(getScriptDirectory(), "get_forest_status.txt");
+        String script = processTemplate(scriptFile, extraSubstitutions);
+
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+        //todo:
+        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
+        if (exitStatus != 0) {
+            LOG.error("Failed to get status for forest");
+            return null;
+        }
+        String s = new String(stdout.toByteArray());
+
+         String[] split = s.split("\n\n");
+        return split[0];
+    }
 }
