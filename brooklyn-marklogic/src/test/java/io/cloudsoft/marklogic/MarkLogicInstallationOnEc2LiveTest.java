@@ -1,15 +1,9 @@
 package io.cloudsoft.marklogic;
 
-import brooklyn.config.BrooklynProperties;
-import brooklyn.entity.basic.ApplicationBuilder;
-import brooklyn.entity.basic.Entities;
-import brooklyn.location.Location;
-import brooklyn.management.ManagementContext;
-import brooklyn.management.internal.LocalManagementContext;
-import brooklyn.test.entity.TestApplication;
-import brooklyn.util.MutableMap;
-import com.google.common.collect.ImmutableMap;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -17,7 +11,16 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.Map;
+import brooklyn.config.BrooklynProperties;
+import brooklyn.entity.basic.ApplicationBuilder;
+import brooklyn.entity.basic.Entities;
+import brooklyn.location.Location;
+import brooklyn.management.ManagementContext;
+import brooklyn.management.internal.LocalManagementContext;
+import brooklyn.test.entity.TestApplication;
+import brooklyn.util.collections.MutableMap;
+
+import com.google.common.collect.ImmutableMap;
 
 @Test(groups = {"Live"})
 public class MarkLogicInstallationOnEc2LiveTest {
@@ -63,7 +66,7 @@ public class MarkLogicInstallationOnEc2LiveTest {
 
         // Also removes scriptHeader (e.g. if doing `. ~/.bashrc` and `. ~/.profile`, then that can cause "stdin: is not a tty")
         brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
-        ctx = new LocalManagementContext((Map) brooklynProperties);
+        ctx = new LocalManagementContext(brooklynProperties);
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
     }
 
