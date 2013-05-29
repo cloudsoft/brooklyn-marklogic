@@ -42,6 +42,8 @@ import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
+import brooklyn.location.volumes.EbsVolumeManager;
+import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.MutableMap;
 import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
@@ -91,9 +93,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     
     public final static AtomicInteger counter = new AtomicInteger(2);
     private final int nodeId;
-    
+
     // Use device suffixes h through p; reuse where possible
     private final List<Character> freeDeviceNameSuffixes = Lists.newLinkedList();
+
     {
         for (char c = 'h'; c < 'p'; c++) {
             freeDeviceNameSuffixes.add(c);
@@ -103,6 +106,21 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public MarkLogicNodeSshDriver(MarkLogicNodeImpl entity, SshMachineLocation machine) {
         super(entity, machine);
         this.nodeId = counter.getAndIncrement();
+    }
+
+    private VolumeManager newVolumeManager() {
+        if (getMachine() instanceof JcloudsSshMachineLocation) {
+            JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
+            
+            if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
+                return new EbsVolumeManager();
+            } else {
+                throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
+            }
+        } else {
+            throw new IllegalStateException("Cannot handle volumes in non-jclouds machine location: "+getMachine());
+        }
     }
 
     @Override
@@ -791,11 +809,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String volumeDeviceName = "/dev/sd" + deviceSuffix;
         String osDeviceName = "/dev/xvd" + deviceSuffix;
         String filesystemType = "ext3";
-        String availabilityZone = jcloudsMachine.getNode().getLocation().getId();
         Map<String,String> tags = ImmutableMap.of("Name", "marklogic-"+getClusterName()+(tagNameSuffix!=null ? "-"+tagNameSuffix : ""));
         
         if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
-            return EbsVolumeCustomizer.createAttachAndMountNewVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, availabilityZone, volumeSize, tags);
+            return newVolumeManager().createAttachAndMountVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, volumeSize, tags);
         } else {
             throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
         }
@@ -811,7 +828,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String filesystemType = "ext3";
         
         if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
-            EbsVolumeCustomizer.attachAndMountVolume(jcloudsMachine, volumeId, volumeDeviceName, osDeviceName, mountPoint, filesystemType);
+            newVolumeManager().attachAndMountVolume(jcloudsMachine, volumeId, volumeDeviceName, osDeviceName, mountPoint, filesystemType);
         } else {
             throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
         }
