@@ -6,6 +6,7 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
+import brooklyn.event.basic.AttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
@@ -39,7 +40,7 @@ public interface Forest extends Entity, Startable {
             String.class, "marklogic.forest.large-data-dir",
             "Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory.", null);
 
-    @SetFromFlag("large_dataDir")
+    @SetFromFlag("fast_dataDir")
     ConfigKey<String> FAST_DATA_DIR = new BasicConfigKey<String>(
             String.class, "marklogic.forest.fast-data-dir",
             "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.", null);
@@ -64,6 +65,17 @@ public interface Forest extends Entity, Startable {
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
     AttributeSensor<String> STATUS = new BasicAttributeSensor<String>(String.class, "forest.status", "The status of the forest");
+    @SetFromFlag("data_dir_volumeId")
+    BasicAttributeSensorAndConfigKey<String> DATA_DIR_VOLUME_ID = new BasicAttributeSensorAndConfigKey<String>(
+            String.class, "marklogic.forest.data-dir.volumeId",
+                    "Specifies a volume id in which the forest's regular data is located. If null, indicates that no volume " +
+                    "has been created yet for this forest. If DATA_DIR is null then the volumeId should also be null", null);
+
+    @SetFromFlag("fast_dataDir_volumeId")
+    BasicAttributeSensorAndConfigKey<String> FAST_DATA_DIR_VOLUME_ID = new BasicAttributeSensorAndConfigKey<String>(
+            String.class, "marklogic.forest.fast-data-dir.volumeId",
+                    "Specifies a volume id in which the forest's fast data is located. If null, indicates that no volume " +
+                    "has been created yet. If FAST_DATA_DIR is null then the volumeId should also be null", null);
 
     String getName();
 
@@ -84,4 +96,8 @@ public interface Forest extends Entity, Startable {
     String getStatus();
 
     void awaitStatus(String expectedState);
+
+    void setDataDirVolumeId(String volumeId);
+
+    void setFastDirVolumeId(String volumeId);
 }

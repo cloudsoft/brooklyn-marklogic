@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 public class ForestImpl extends AbstractEntity implements Forest {
@@ -84,9 +85,9 @@ public class ForestImpl extends AbstractEntity implements Forest {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
-       }
+        }
 
-        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s",getName(),expectedState,getStatus()));
+        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s", getName(), expectedState, getStatus()));
     }
 
     public void connectSensors() {
@@ -107,8 +108,8 @@ public class ForestImpl extends AbstractEntity implements Forest {
                                 }
                                 int beginIndex = status.indexOf("<state>") + "<state>".length();
                                 int endIndex = status.indexOf("</state>");
-                                if(beginIndex==-1 || endIndex==-1){
-                                    LOG.error("bad status information:"+status);
+                                if (beginIndex == -1 || endIndex == -1) {
+                                    LOG.error("bad status information:" + status);
                                     return null;
                                 }
 
@@ -134,5 +135,13 @@ public class ForestImpl extends AbstractEntity implements Forest {
             statusFeed.stop();
             statusFeed = null;
         }
+    }
+
+    public void setDataDirVolumeId(String volumeId) {
+        setAttribute(DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
+    }
+
+    public void setFastDirVolumeId(String volumeId) {
+        setAttribute(FAST_DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
     }
 }
