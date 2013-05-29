@@ -1,4 +1,4 @@
-package io.cloudsoft.marklogic.nodes;
+package brooklyn.location.volumes;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.TemplateBuilder;
