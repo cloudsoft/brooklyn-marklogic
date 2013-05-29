@@ -1,2 +1,2 @@
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/forest-detailed-status.xqy'
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/forest-detailed-status.xqy?forest=${forestName}'
 echo

@@ -616,7 +616,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public String getForestStatus(String forestName) {
         LOG.debug("Getting status for forest {}",forestName);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forest", forestName);
+        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName);
         File scriptFile = new File(getScriptDirectory(), "get_forest_status.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 

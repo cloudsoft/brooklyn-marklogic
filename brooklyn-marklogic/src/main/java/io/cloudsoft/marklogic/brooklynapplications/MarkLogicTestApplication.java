@@ -102,30 +102,35 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(Forest.FAILOVER_ENABLED, true);
         Forest primaryForest = forests.createForestWithSpec(primaryForestSpec);
 
-        sleep(60);
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("open");
 
         forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
 
-        sleep(60);
-
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 
-        sleep(60);
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
 
         forests.enableForest(primaryForest.getName(), false);
 
-        sleep(60);
+        primaryForest.awaitStatus("unmounted");
+        replicaForest.awaitStatus("open");
 
         forests.setForestHost(primaryForest.getName(), node3.getHostName());
 
-        sleep(60);
-
         forests.enableForest(primaryForest.getName(), true);
 
-        sleep(60);
+        primaryForest.awaitStatus("sync replicating");
+        replicaForest.awaitStatus("open");
+
+
 
         forests.enableForest(replicaForest.getName(), false);
         forests.enableForest(replicaForest.getName(), true);
+
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
 
 
         //  forests.enableForest(primaryForest.getName(), true);
@@ -156,6 +161,9 @@ public class MarkLogicTestApplication extends AbstractApplication {
         //sforests.enableForest(replicaForest.getName(), true);
 
         //forests.enableForest(primaryForest.getName(),true);
+
+        LOG.info("Done");
+
     }
 
     private void sleep(long seconds) {

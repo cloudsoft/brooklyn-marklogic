@@ -2,13 +2,20 @@ package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractEntity;
+import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.trait.Startable;
+import brooklyn.location.Location;
+import brooklyn.management.Task;
+import com.google.common.collect.ImmutableMap;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -43,7 +50,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     private boolean forestExists(String forestName) {
-        return getForest(forestName)!=null;
+        return getForest(forestName) != null;
     }
 
     private Forest getForest(String forestName) {
@@ -66,29 +73,31 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                MarkLogicGroup cluster = getGroup();
-                Collection<Entity> markLogicNodes = cluster.getMembers();
-                if (markLogicNodes.isEmpty()) return;
-                for (Entity member : markLogicNodes) {
-                    if (member instanceof MarkLogicNode) {
-                        MarkLogicNode node = (MarkLogicNode) member;
-                        if (node.isUp()) {
-                            Set<String> forests = node.scanForests();
-                            for (String forestName : forests) {
-                                synchronized (mutex) {
-                                    if (!forestExists(forestName)) {
-                                        LOG.info("Discovered forest {}", forestName);
+                try {
+                    MarkLogicNode node = getGroup().getAnyStartedMember();
+                    if (node == null) {
+                        LOG.debug("Can't discover forests, no nodes in cluster");
+                        return;
+                    }
 
-                                        addChild(BasicEntitySpec.newInstance(Forest.class)
-                                                .displayName(forestName)
-                                                .configure(Forest.GROUP,getGroup())
-                                                .configure(Forest.NAME, forestName)
-                                        );
-                                    }
-                                }
+                    Set<String> forests = node.scanForests();
+                    for (String forestName : forests) {
+                        synchronized (mutex) {
+                            if (!forestExists(forestName)) {
+                                LOG.info("Discovered forest {}", forestName);
+
+                                BasicEntitySpec<Forest, ?> spec = BasicEntitySpec.newInstance(Forest.class)
+                                        .displayName(forestName)
+                                        .configure(Forest.GROUP, getGroup())
+                                        .configure(Forest.NAME, forestName);
+
+                                Forest forest = addChild(spec);
+                                forest.start(new LinkedList<Location>());
                             }
                         }
                     }
+                } catch (Exception e) {
+                    LOG.error("Failed to discover forests", e);
                 }
             }
         };
@@ -105,7 +114,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         MarkLogicNode node = getNode(hostName);
 
-        forestSpec = wrapSpec(forestSpec).configure(Forest.GROUP, getGroup());
+        forestSpec = wrapSpec(forestSpec).configure(Forest.GROUP, getGroup())
+                .displayName(forestName);
 
         Forest forest;
         synchronized (mutex) {
@@ -117,6 +127,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         }
 
         node.createForest(forest);
+        forest.start(new LinkedList<Location>());
 
         LOG.info("Finished creating forest {} on host {}", forestName, hostName);
 
@@ -135,7 +146,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             boolean failoverEnabled) {
 
         BasicEntitySpec<Forest, ?> forestSpec = BasicEntitySpec.newInstance(Forest.class)
-                .displayName(forestName)
                 .configure(Forest.NAME, forestName)
                 .configure(Forest.HOST, hostname)
                 .configure(Forest.DATA_DIR, dataDir)
@@ -159,26 +169,26 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void enableForest(String forestName, boolean enabled) {
-        LOG.info("Enabling forest {} {}", forestName,enabled);
+        LOG.info("Enabling forest {} {}", forestName, enabled);
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
         node.enableForest(forestName, enabled);
 
-        LOG.info("Finished enabling forest {} {}", forestName,enabled);
+        LOG.info("Finished enabling forest {} {}", forestName, enabled);
     }
 
     @Override
     public void deleteForestConfiguration(String forestName) {
         LOG.info("Delete forest {} configuration", forestName);
 
-        synchronized (mutex){
+        synchronized (mutex) {
             Forest forest = getForest(forestName);
-            if(forest!=null){
+            if (forest != null) {
                 forest.clearParent();
 
                 LOG.info("Forest {} still found after delete:", forestExists(forestName));
 
-            }else{
+            } else {
                 LOG.info("Forest {} not found in Brooklyn", forestName);
             }
         }
@@ -197,5 +207,54 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         node.setForestHost(forestName, hostname);
 
         LOG.info("Finished setting Forest {} host {}", forestName, hostname);
+    }
+
+    @Override
+    public void restart() {
+        final List<? extends Entity> startableChildren = getStartableChildren();
+        if (startableChildren.isEmpty())
+            return;
+
+
+        Entities.invokeEffectorList(
+                this,
+                startableChildren,
+                Startable.RESTART).getUnchecked();
+    }
+
+    protected List<? extends Entity> getStartableChildren() {
+        LinkedList result = new LinkedList();
+        for (Entity entity : getChildren()) {
+            if (entity instanceof Startable) {
+                result.add(entity);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void start(Collection<? extends Location> locations) {
+        final List<? extends Entity> startableChildren = getStartableChildren();
+        if (startableChildren.isEmpty())
+            return;
+
+        final Task<List<Void>> task = Entities.invokeEffectorList(
+                this,
+                startableChildren,
+                Startable.START,
+                ImmutableMap.of("locations", locations));
+        task.getUnchecked();
+    }
+
+    @Override
+    public void stop() {
+        final List<? extends Entity> startableChildren = getStartableChildren();
+        if (startableChildren.isEmpty())
+            return;
+
+        Entities.invokeEffectorList(
+                this,
+                startableChildren,
+                Startable.STOP).getUnchecked();
     }
 }

@@ -46,28 +46,26 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             @Override
             public void run() {
                 try {
-                    MarkLogicGroup cluster = getGroup();
-                    for (Entity member : cluster.getMembers()) {
-                        if (member instanceof MarkLogicNode) {
-                            MarkLogicNode node = (MarkLogicNode) member;
-                            if (node.isUp()) {
-                                Set<String> databaseNames = node.scanDatabases();
-                                for (String databaseName : databaseNames) {
-                                    synchronized (mutex) {
-                                        if (!databaseExists(databaseName)) {
-                                            LOG.info("Discovered database {}", databaseName);
-                                            addChild(BasicEntitySpec.newInstance(Database.class)
-                                                    .displayName(databaseName)
-                                                    .configure(Database.NAME, databaseName)
-                                            );
-                                        }
-                                    }
-                                }
+                    MarkLogicNode node = getGroup().getAnyStartedMember();
+                    if (node == null) {
+                        LOG.debug("Can't discover forests, no nodes in cluster");
+                        return;
+                    }
+
+                    Set<String> databaseNames = node.scanDatabases();
+                    for (String databaseName : databaseNames) {
+                        synchronized (mutex) {
+                            if (!databaseExists(databaseName)) {
+                                LOG.info("Discovered database {}", databaseName);
+                                addChild(BasicEntitySpec.newInstance(Database.class)
+                                        .displayName(databaseName)
+                                        .configure(Database.NAME, databaseName)
+                                );
                             }
                         }
                     }
                 } catch (Exception e) {
-                    LOG.error("Failed to discover databases",e);
+                    LOG.error("Failed to discover databases", e);
                 }
             }
         };

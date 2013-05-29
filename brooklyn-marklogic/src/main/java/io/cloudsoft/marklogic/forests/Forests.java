@@ -6,12 +6,13 @@ import brooklyn.entity.basic.MethodEffector;
 import brooklyn.entity.basic.NamedParameter;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.entity.trait.Startable;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 @ImplementedBy(ForestsImpl.class)
-public interface Forests extends Entity {
+public interface Forests extends Entity,Startable {
 
     @SetFromFlag("cluster")
     public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(

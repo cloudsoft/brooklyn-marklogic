@@ -1,21 +1,25 @@
 package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.basic.AbstractEntity;
-import brooklyn.event.feed.http.HttpFeed;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
+import brooklyn.location.Location;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Collection;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 public class ForestImpl extends AbstractEntity implements Forest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ForestImpl.class);
 
-    private HttpFeed httpFeed;
+    private FunctionFeed statusFeed;
 
     @Override
     public String getName() {
@@ -62,58 +66,73 @@ public class ForestImpl extends AbstractEntity implements Forest {
         return getAttribute(STATUS);
     }
 
-    @Override
-    public void init() {
-        super.init();
-        connectSensors();
-    }
-
     public MarkLogicNode getAnyUpNode() {
         final MarkLogicGroup group = getConfig(GROUP);
-        if(group == null)throw new NullPointerException("Group was not configured");
+        if (group == null) throw new NullPointerException("Group was not configured");
         return group.getAnyStartedMember();
     }
 
-    private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    @Override
+    public void awaitStatus(String expectedState) {
+        for (int k = 0; k < 120; k++) {
+            String status = getStatus();
+            if (expectedState.equals(status)) {
+                return;
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+       }
+
+        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s",getName(),expectedState,getStatus()));
+    }
 
     public void connectSensors() {
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MarkLogicNode node = getAnyUpNode();
-                    if (node == null) {
-                        LOG.info("No node found to check forest: " + getName());
-                        return;
-                    }
-                    String status = node.getForestStatus(getName());
-                    LOG.info(status);
-                } catch (Exception e) {
-                    LOG.info("failed to check status", e);
-                }
-            }
-        };
+        statusFeed = FunctionFeed.builder()
+                .entity(this)
+                .poll(new FunctionPollConfig<Object, String>(STATUS)
+                        .period(5, TimeUnit.SECONDS)
+                        .callable(new Callable<String>() {
+                            public String call() throws Exception {
+                                MarkLogicNode node = getAnyUpNode();
+                                if (node == null) {
+                                    LOG.info("No node found to check forest: " + getName());
+                                    return null;
+                                }
+                                String status = node.getForestStatus(getName());
+                                if (status == null) {
+                                    return null;
+                                }
+                                int beginIndex = status.indexOf("<state>") + "<state>".length();
+                                int endIndex = status.indexOf("</state>");
+                                if(beginIndex==-1 || endIndex==-1){
+                                    LOG.error("bad status information:"+status);
+                                    return null;
+                                }
 
-        scheduler.scheduleAtFixedRate(task, 0, 10, TimeUnit.SECONDS);
+                                return status.substring(beginIndex, endIndex);
+                            }
+                        })
+                )
+                .build();
+    }
 
+    @Override
+    public void restart() {
+    }
 
-        // "up" is defined as returning a valid HTTP response from nginx (including a 404 etc)
-        //HttpFeed httpFeed = HttpFeed.builder()
-        //       .entity(this)
-        //       .period(getConfig(HTTP_POLL_PERIOD))
-        //       .baseUri(accessibleRootUrl)
-        //       .baseUriVars(ImmutableMap.of("include-runtime", "true"))
-        //       .poll(new HttpPollConfig<Boolean>(SERVICE_UP)
-        //               .onSuccess(new Function<HttpPollValue, Boolean>() {
-        //                   @Override
-        //                   public Boolean apply(HttpPollValue input) {
-        ///                       // Accept any nginx response (don't assert specific version), so that sub-classing
-        //                       // for a custom nginx build is not strict about custom version numbers in headers
-        //                       List<String> actual = input.getHeaderLists().get("Server");
-        //                       return actual != null && actual.size() == 1 && actual.get(0).startsWith("nginx");
-        //                    }
-        //                })
-        //                .onError(Functions.constant(false)))
-        //        .build();
+    @Override
+    public void start(Collection<? extends Location> locations) {
+        connectSensors();
+    }
+
+    @Override
+    public void stop() {
+        if (statusFeed != null) {
+            statusFeed.stop();
+            statusFeed = null;
+        }
     }
 }

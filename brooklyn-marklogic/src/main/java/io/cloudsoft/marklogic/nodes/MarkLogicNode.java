@@ -203,4 +203,8 @@ public interface MarkLogicNode extends SoftwareProcess {
     void setForestHost(String forestName, String hostname);
 
     String getForestStatus(String forestName);
+
+    String getUser();
+
+    String getPassword();
 }

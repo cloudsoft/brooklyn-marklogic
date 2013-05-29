@@ -3,6 +3,7 @@ package io.cloudsoft.marklogic.forests;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
+import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
@@ -14,7 +15,7 @@ import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import java.util.Collection;
 
 @ImplementedBy(ForestImpl.class)
-public interface Forest extends Entity {
+public interface Forest extends Entity, Startable {
 
     @SetFromFlag("name")
     ConfigKey<String> NAME = new BasicConfigKey<String>(
@@ -81,4 +82,6 @@ public interface Forest extends Entity {
     boolean isFailoverEnabled();
 
     String getStatus();
+
+    void awaitStatus(String expectedState);
 }
