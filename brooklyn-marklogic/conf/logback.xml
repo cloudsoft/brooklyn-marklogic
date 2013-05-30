@@ -4,7 +4,7 @@
         <file>brooklyn-marklogic.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%d %-5level %logger{30} [%thread{15}]: %msg%n</pattern>
+            <pattern>%-5level %logger{30} %msg%n</pattern>
         </encoder>
     </appender>
 
