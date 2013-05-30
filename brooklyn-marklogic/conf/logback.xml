@@ -14,5 +14,10 @@
     <include resource="brooklyn/logback-debug.xml"/>
 
     <logger name="io.cloudsoft" level="DEBUG"/>
-
+    <logger name="brooklyn.rest.util.WebResourceUtils" level="ERROR"/>
+    <logger name="brooklyn.management.internal.EffectorUtils" level="ERROR"/>
+    <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/>
+    <logger name="net.schmizz.sshj.DefaultConfig" level="ERROR"/>
+    <logger name="io.cloudsoft.marklogic.forests.ForestsImpl" level="INFO"/>
+    <logger name="io.cloudsoft.marklogic.databases.DatabasesImpl" level="INFO"/>
 </configuration>

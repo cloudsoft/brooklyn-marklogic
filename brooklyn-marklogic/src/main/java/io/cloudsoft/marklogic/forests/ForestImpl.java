@@ -63,6 +63,11 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
+    public Long getForestId(){
+        return getAttribute(FOREST_ID);
+    }
+
+    @Override
     public String getStatus() {
         return getAttribute(STATUS);
     }

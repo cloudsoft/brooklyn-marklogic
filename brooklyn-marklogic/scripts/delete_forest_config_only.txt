@@ -2,7 +2,7 @@ echo ===========================================================================
 echo         Delete configuration for forest ${forestName}
 echo ==============================================================================
 
-FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest-get-id.xqy?forest=${forestName}")
+FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest_get_id.xqy?forest=${forestName}")
 echo FOREST_ID $FOREST_ID
 
 curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/drop-forest-go.xqy" \

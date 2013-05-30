@@ -1,2 +1,2 @@
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/database-list.xqy'
+curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/database_list.xqy'
 echo

@@ -6,11 +6,11 @@ HOST_NAME=${hostName}
 GROUP_NAME=${groupName}
 
 #first we need to figure out the host id.
-HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host-get-id.xqy?host=${hostName}")
+HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${hostName}")
 echo HOST_ID = $HOST_ID
 
 #second we need to figure out the group id
-GROUP_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/group-get-id.xqy?group=${groupName}")
+GROUP_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/group_get_id.xqy?group=${groupName}")
 echo GROUP_ID = $GROUP_ID
 
 #do the actual request.

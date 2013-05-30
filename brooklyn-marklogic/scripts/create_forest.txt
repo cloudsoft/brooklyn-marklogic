@@ -1,13 +1,11 @@
-<#--
-contains the template for create a marklogic forest. The forrest entity can be accessed using the ${forest} variable.
-the marklogic node the forest is going to be installed on, can be accessed using ${entity}.
--->
+echo ==============================================================================
+echo                 CREATING FOREST ${forest.name}
+echo ==============================================================================
 
-HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host-get-id.xqy?host=${driver.hostname}")
+HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
 echo found HOST_ID: $HOST_ID
 
 echo Creating MarkLogic forrest
-# not all forest fields are currently being passed; currently only the mandatory ones.
 curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
    -d forest-0-forest-name=${forest.name} \
    -d forest-0-host=$HOST_ID \
@@ -19,4 +17,6 @@ curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-fo
    -d forest-0-large-data-directory=${forest.largeDataDir!""} \
    -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
-echo Finished creating MarkLogic forrest
+echo ==============================================================================
+echo                 FINISHED CREATING FOREST ${forest.name}
+echo ==============================================================================

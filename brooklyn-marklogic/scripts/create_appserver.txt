@@ -2,7 +2,7 @@ echo ===========================================================================
 echo            Creating MarkLogic AppServer ${appServer}
 echo ==============================================================================
 
-DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database-get-id.xqy?database=${database}")
+DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=${database}")
 echo DATABASE_ID = $DATABASE_ID
 
 echo Creating MarkLogic AppServer ${appServer}

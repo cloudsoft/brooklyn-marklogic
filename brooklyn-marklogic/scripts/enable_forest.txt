@@ -2,7 +2,7 @@ echo ===========================================================================
 echo         Enabling forest ${forestName} ${enabled?string}
 echo ==============================================================================
 
-FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest-get-id.xqy?forest=${forestName}")
+FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest_get_id.xqy?forest=${forestName}")
 echo FOREST_ID $FOREST_ID
 
 <#if enabled>

@@ -42,7 +42,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
     private MarkLogicGroup dgroup;
     private Databases databases;
     private Forests forests;
-    MarkLogicCluster markLogicCluster;
+    private MarkLogicCluster markLogicCluster;
 
     @Override
     public void init() {
@@ -133,54 +133,13 @@ public class MarkLogicTestApplication extends AbstractApplication {
         primaryForest.awaitStatus("sync replicating");
         replicaForest.awaitStatus("open");
 
-
-
         forests.enableForest(replicaForest.getName(), false);
         forests.enableForest(replicaForest.getName(), true);
 
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-
-        //  forests.enableForest(primaryForest.getName(), true);
-
-
-        //databases.attachForestToDatabase(replicaForest.getName(), database.getName());
-
-
-
-        //now we are going to convert our primary to replica
-        //    forests.enableForest(primaryForest.getName(), false);
-
-       // sleep(30);
-
-        //forests.deleteForestConfiguration(primaryForest.getName());
-
-        //primaryForest = forests.createForestWithSpec(primaryForestSpec);
-        //sleep(30);
-        //
-        //
-        //forests.attachReplicaForest(replicaForest.getName(), primaryForest.getName());
-        //sleep(30);
-        //
-        //
-        //forests.enableForest(replicaForest.getName(), false);
-        //sleep(30);
-        //
-        //sforests.enableForest(replicaForest.getName(), true);
-
-        //forests.enableForest(primaryForest.getName(),true);
-
         LOG.info("Done");
-
-    }
-
-    private void sleep(long seconds) {
-        try {
-            Thread.sleep(seconds*1000);
-        } catch (InterruptedException e) {
-            throw Exceptions.propagate(e);
-        }
     }
 
     /**

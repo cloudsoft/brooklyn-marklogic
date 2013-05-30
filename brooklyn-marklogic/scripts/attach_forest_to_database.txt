@@ -2,7 +2,7 @@ echo ===========================================================================
 echo              ATTACHING FOREST ${forestName} to DATABASE ${databaseName}
 echo ==============================================================================
 
-curl --digest -u  ${driver.user}:${driver.password} "localhost:8001/attach_forest.xqy" \
+curl --digest -u  ${driver.user}:${driver.password} "localhost:8001/brooklyn_attach_forest.xqy" \
     -d database=${databaseName} \
     -d forest=${forestName}
 

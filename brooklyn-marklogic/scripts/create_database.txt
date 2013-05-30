@@ -4,13 +4,13 @@ echo ===========================================================================
 
 DATABASE_NAME=${database.name}
 
-DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate-id.xqy)
+DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate_id.xqy)
 echo found DATABASE_ID: $DATABASE_ID
 
-SECURITY_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database-get-id.xqy?database=Security")
+SECURITY_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Security")
 echo SECURITY_DATABASE_ID = $SECURITY_DATABASE_ID
 
-SCHEMA_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database-get-id.xqy?database=Schemas")
+SCHEMA_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Schemas")
 echo SCHEMA_DATABASE_ID = $SCHEMA_DATABASE_ID
 
 curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-database-go.xqy" \
