@@ -5,6 +5,18 @@ echo ===========================================================================
 HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
 echo found HOST_ID: $HOST_ID
 
+<#if forest.dataDir??>
+sudo chown -R daemon ${forest.dataDir!""}
+</#if>
+
+<#if forest.largeDataDir??>
+sudo chown -R daemon ${forest.largeDataDir!""}
+</#if>
+
+<#if forest.fastDataDir??>
+sudo chown -R daemon ${forest.fastDataDir!""}
+</#if>
+
 echo Creating MarkLogic forrest
 curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
    -d forest-0-forest-name=${forest.name} \
