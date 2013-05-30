@@ -1,5 +1,11 @@
 package io.cloudsoft.marklogic.nodes;
 
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
+import io.cloudsoft.marklogic.forests.Forest;
+
+import java.util.Set;
+
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.ImplementedBy;
@@ -9,13 +15,8 @@ import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import brooklyn.util.flags.SetFromFlag;
-import com.google.common.collect.ImmutableList;
-import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
-import io.cloudsoft.marklogic.databases.Database;
-import io.cloudsoft.marklogic.forests.Forest;
 
-import java.util.Collection;
-import java.util.Set;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A node in a MarkLogic cluster.
@@ -133,24 +134,12 @@ public interface MarkLogicNode extends SoftwareProcess {
     BasicAttributeSensorAndConfigKey<String> BACKUP_VOLUME = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.volumes.backup", "EBS Volume ID for the backup volume (or null if does not already exist)", null);
 
-   @SetFromFlag("regularVolumes")
-    BasicAttributeSensorAndConfigKey<Collection<String>> REGULAR_VOLUMES = new BasicAttributeSensorAndConfigKey(
-     		Collection.class, "marklogic.node.volumes.regulars", "EBS Volume IDs for the regular volumes (or empty if does not already exist)", ImmutableList.<String>of());
-
-    @SetFromFlag("fastdirVolumes")
-    BasicAttributeSensorAndConfigKey<Collection<String>> FASTDIR_VOLUMES = new BasicAttributeSensorAndConfigKey(
-      		Collection.class, "marklogic.node.volumes.fastdirs", "EBS Volume IDs for the fastdir volumes (or empty if does not already exist)", ImmutableList.<String>of());
-
-    @SetFromFlag("replicaVolumes")
-    BasicAttributeSensorAndConfigKey<Collection<String>> REPLICA_VOLUMES = new BasicAttributeSensorAndConfigKey(
-     		Collection.class, "marklogic.node.volumes.replicas", "EBS Volume IDs for the replica volumes (or empty if does not already exist)", ImmutableList.<String>of());
-
-    // FIXME Should be 100GB, but set to 5GB for now, for cheaper testing!
+    // FIXME Should be 100GB, but set to 10GB for now, for cheaper testing!
     @SetFromFlag("volumeSize")
     ConfigKey<Integer> VOLUME_SIZE = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.node.volumes.size", "The size of each EBS Volume for /var/opt, regular, fastdir and replica (if being created from scratch)", 10);
 
-    // FIXME Should be 200GB, but set to 5GB for now, for cheaper testing!
+    // FIXME Should be 200GB, but set to 10GB for now, for cheaper testing!
     @SetFromFlag("backupVolumeSize")
     ConfigKey<Integer> BACKUP_VOLUME_SIZE = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.node.volumes.backupSize", "The size of backup EBS Volume (if being created from scratch)",10);
