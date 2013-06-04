@@ -318,4 +318,36 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         node.mount(forest);
         LOG.info("Finished mounting Forest {}", forestName);
     }
+
+    @Override
+    public void moveForest(String primaryForestName, String hostName, String replicaForestName) {
+        Forest primaryForest = getForest(primaryForestName);
+        if(primaryForest == null){
+            throw new IllegalArgumentException("Can't move unknown forest: "+primaryForest) ;
+        }
+
+        Forest replicaForest = getForest(replicaForestName);
+        if(replicaForest == null){
+            throw new IllegalArgumentException("Can't move unknown forest: "+primaryForest) ;
+        }
+
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
+
+        enableForest(primaryForest.getName(), false);
+        primaryForest.awaitStatus("unmounted");
+        replicaForest.awaitStatus("open");
+
+        unmountForest(primaryForest.getName());
+        setForestHost(primaryForest.getName(),hostName);
+        mountForest(primaryForest.getName());
+        enableForest(primaryForest.getName(), true);
+        primaryForest.awaitStatus("sync replicating");
+        replicaForest.awaitStatus("open");
+
+        enableForest(replicaForest.getName(), false);
+        enableForest(replicaForest.getName(), true);
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
+    }
 }

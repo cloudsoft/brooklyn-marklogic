@@ -56,4 +56,15 @@ public interface Forests extends Entity,Startable {
     void unmountForest(String forestName);
 
     void mountForest(String forestName);
+
+
+    MethodEffector<Void> MOVE_FOREST =
+            new MethodEffector<Void>(Forests.class, "moveForest");
+
+    //todo: for the time being we need to know the replica forest since it isn't stored yet in Brooklyn
+    @Description("Moves a forest from one host to another")
+    void moveForest(
+            @NamedParameter("forest") @Description("The name of the forest") String primaryForest,
+            @NamedParameter("host") @Description("The new hostname") String hostName,
+            @NamedParameter("replicaForest") @Description("The name of the forest") String replicaForest);
 }

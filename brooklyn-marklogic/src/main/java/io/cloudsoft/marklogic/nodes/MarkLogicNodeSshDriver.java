@@ -80,7 +80,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     private final List<Character> freeDeviceNameSuffixes = Lists.newLinkedList();
 
     {
-        for (char c = 'h'; c < 'p'; c++) {
+        for (char c = 'h'; c < 'z'; c++) {
             freeDeviceNameSuffixes.add(c);
         }
     }

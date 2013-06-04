@@ -229,6 +229,32 @@ public class ForestLiveTest {
     }
 
     @Test
+    public void testMoveForestWithReplica2() throws Exception {
+        LOG.info("-----------------testMoveForestWithReplica2-----------------");
+
+        Database database = createDatabase();
+
+        Forest primaryForest = createForest(node1);
+        primaryForest.awaitStatus("open");
+
+        Forest replicaForest = createForest(node2);
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("open");
+
+        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
+
+        forests.moveForest(primaryForest.getName(), node3.getHostName(), replicaForest.getName());
+
+        assertEquals("open", primaryForest.getStatus());
+        assertEquals("sync replicating", replicaForest.getName());
+        assertEquals(node3.getHostName(), primaryForest.getHostname());
+    }
+
+    @Test
     public void testMoveWithoutReplica() throws Exception {
         LOG.info("-----------------testMoveWithoutReplica-----------------");
 
