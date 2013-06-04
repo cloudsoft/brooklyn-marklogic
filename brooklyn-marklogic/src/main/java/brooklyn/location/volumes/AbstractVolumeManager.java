@@ -46,7 +46,7 @@ public abstract class AbstractVolumeManager implements VolumeManager {
 
     @Override
     public void createFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String filesystemType) {
-        LOG.info("Creating filesystem: machine={}; osDeviceName={}; filesystemType={}", new Object[]{machine, osDeviceName, filesystemType});
+        LOG.debug("Creating filesystem: machine={}; osDeviceName={}; filesystemType={}", new Object[]{machine, osDeviceName, filesystemType});
 
         // NOTE: also adds an entry to fstab so the mount remains available after a reboot.
         Map<String, ?> flags = MutableMap.of("allocatePTY", true);
@@ -69,7 +69,7 @@ public abstract class AbstractVolumeManager implements VolumeManager {
 
     @Override
     public void mountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName, String mountPoint, String filesystemType) {
-        LOG.info("Mounting filesystem: machine={}; osDeviceName={}; mountPoint={}; filesystemType={}", new Object[]{machine, osDeviceName, mountPoint, filesystemType});
+        LOG.debug("Mounting filesystem: machine={}; osDeviceName={}; mountPoint={}; filesystemType={}", new Object[]{machine, osDeviceName, mountPoint, filesystemType});
 
         // NOTE: also adds an entry to fstab so the mount remains available after a reboot.
         Map<String, ?> flags = MutableMap.of("allocatePTY", true);
@@ -92,7 +92,7 @@ public abstract class AbstractVolumeManager implements VolumeManager {
 
     @Override
     public void unmountFilesystem(JcloudsSshMachineLocation machine, String osDeviceName) {
-        LOG.info("Unmounting filesystem: machine={}; osDeviceName={}", new Object[]{machine, osDeviceName});
+        LOG.debug("Unmounting filesystem: machine={}; osDeviceName={}", new Object[]{machine, osDeviceName});
         String osDeviceNameEscaped = osDeviceName.replaceAll("/", "\\\\/");
 
         // NOTE: also strips out entry from fstab
@@ -100,13 +100,7 @@ public abstract class AbstractVolumeManager implements VolumeManager {
         machine.execCommands(flags, "Unmounting EBS volume", ImmutableList.of(
                 dontRequireTtyForSudo(),
                 "echo unmounting " + osDeviceName,
-                "echo ---------",
-                "cat /etc/fstab",
-                "echo ---------",
                 sudo("sed -i.bk '/" + osDeviceNameEscaped + "/d' /etc/fstab"),
-                "echo ---------",
-                "cat /etc/fstab",
-                "echo ---------",
                 sudo("umount " + osDeviceName),
                 "echo unmounted " + osDeviceName
         ));

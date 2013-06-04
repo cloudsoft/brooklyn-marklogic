@@ -20,7 +20,7 @@ public interface Forest extends Entity, Startable {
             "The name of the forest", null);
 
       @SetFromFlag("host")
-    ConfigKey<String> HOST = new BasicConfigKey<String>(
+      ConfigKey<String> HOST = new BasicConfigKey<String>(
             String.class, "marklogic.forest.host",
             "Specifies the host on which the forest resides.", null);
 
@@ -82,7 +82,7 @@ public interface Forest extends Entity, Startable {
 
     String getName();
 
-    String getHost();
+    String getHostname();
 
     String getDataDir();
 
@@ -100,4 +100,5 @@ public interface Forest extends Entity, Startable {
 
     void awaitStatus(String expectedState);
 
+    <T> T setConfig(ConfigKey<T> key, T val);
 }

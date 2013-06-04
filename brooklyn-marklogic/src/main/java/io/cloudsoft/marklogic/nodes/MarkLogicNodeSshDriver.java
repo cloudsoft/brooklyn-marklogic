@@ -455,14 +455,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                     //   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
 
                     VolumeInfo volumeInfo = createAttachAndMountVolume(dataDirMountPoint, volumeSize, "forest-datadir-" + forest.getName() + "-" + getNodeId());
-                    LOG.info("data dir:"+volumeInfo);
                     forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, volumeInfo);
                 }
 
                 if (isFastdirEbs && fastdirMountPoint != null && !fastdirMountPoint.equals(dataDirMountPoint)) {
                     VolumeInfo volumeInfo = createAttachAndMountVolume(fastdirMountPoint, volumeSize, "forest-fastdir-" + forest.getName() + "-" + getNodeId());
                     forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, volumeInfo);
-                    LOG.info("fast data dir:" + volumeInfo);
                 }
 
             } else {

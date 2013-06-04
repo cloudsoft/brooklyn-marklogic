@@ -169,12 +169,20 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void enableForest(String forestName, boolean enabled) {
-        LOG.info("Enabling forest {} {}", forestName, enabled);
+        if (enabled) {
+            LOG.info("Enabling forest {}", forestName);
+        } else {
+            LOG.info("Disabling forest {}", forestName);
+        }
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
         node.enableForest(forestName, enabled);
 
-        LOG.info("Finished enabling forest {} {}", forestName, enabled);
+        if (enabled) {
+            LOG.info("Finished enabling forest {}", forestName);
+        } else {
+            LOG.info("Finished disabling forest {}", forestName);
+        }
     }
 
     @Override
@@ -200,13 +208,28 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public void setForestHost(String forestName, String hostname) {
-        LOG.info("Setting Forest {} host {}", forestName, hostname);
+    public void setForestHost(String forestName, String newHostName) {
+        LOG.info("Setting Forest {} host {}", forestName, newHostName);
 
-        MarkLogicNode node = getGroup().getAnyStartedMember();
-        node.setForestHost(forestName, hostname);
+        Forest forest = getForest(forestName);
+        if (forest == null) {
+            throw new IllegalArgumentException(format("Can't change the host of forest, forest %s is not found", forestName));
+        }
 
-        LOG.info("Finished setting Forest {} host {}", forestName, hostname);
+        MarkLogicNode node = getNode(newHostName);
+        if (node == null) {
+            throw new IllegalArgumentException(format("Can't change the host of forest, host %s is not found", newHostName));
+        }
+
+        if (forest.getHostname().equals(newHostName)) {
+            LOG.info("Finished setting Forest {}, no host change.", forestName, newHostName);
+            return;
+        }
+
+        forest.setConfig(Forest.HOST, newHostName);
+        node.setForestHost(forestName, newHostName);
+
+        LOG.info("Finished setting Forest {} host {}", forestName, newHostName);
     }
 
     @Override
@@ -264,13 +287,13 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
 
         Forest forest = getForest(forestName);
-        if(forest == null){
-            throw new IllegalArgumentException(format("Can't unmount unknown forest %s",forestName));
+        if (forest == null) {
+            throw new IllegalArgumentException(format("Can't unmount unknown forest %s", forestName));
         }
 
-        MarkLogicNode node = getNode(forest.getHost());
-        if(node == null){
-            throw new IllegalArgumentException(format("Can't unmount forest %s, its host %s is not found",forest.getName(),forest.getHost()));
+        MarkLogicNode node = getNode(forest.getHostname());
+        if (node == null) {
+            throw new IllegalArgumentException(format("Can't unmount forest %s, its host %s is not found", forest.getName(), forest.getHostname()));
         }
 
         node.unmount(forest);
@@ -283,13 +306,13 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
 
         Forest forest = getForest(forestName);
-        if(forest == null){
-            throw new IllegalArgumentException(format("Can't mount unknown forest %s",forestName));
+        if (forest == null) {
+            throw new IllegalArgumentException(format("Can't mount unknown forest %s", forestName));
         }
 
-        MarkLogicNode node = getNode(forest.getHost());
-        if(node == null){
-            throw new IllegalArgumentException(format("Can't mount forest %s, its host %s is not found",forest.getName(),forest.getHost()));
+        MarkLogicNode node = getNode(forest.getHostname());
+        if (node == null) {
+            throw new IllegalArgumentException(format("Can't mount forest %s, its host %s is not found", forest.getName(), forest.getHostname()));
         }
 
         node.mount(forest);

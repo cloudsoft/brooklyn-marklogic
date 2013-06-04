@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.forests;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.feed.function.FunctionFeed;
@@ -34,7 +35,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
-    public String getHost() {
+    public String getHostname() {
         return getConfig(HOST);
     }
 
@@ -80,8 +81,15 @@ public class ForestImpl extends AbstractEntity implements Forest {
 
     public MarkLogicNode getAnyUpNode() {
         final MarkLogicGroup group = getConfig(GROUP);
-        if (group == null) throw new NullPointerException("Group was not configured");
+        if (group == null) {
+            throw new NullPointerException("Group was not configured");
+        }
         return group.getAnyStartedMember();
+    }
+
+    @Override
+    public <T> T setConfig(ConfigKey<T> key, T val) {
+        return super.setConfig(key, val);
     }
 
     @Override
