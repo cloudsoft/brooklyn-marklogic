@@ -145,6 +145,16 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
+    public void unmount(Forest forest) {
+        getDriver().unmountForest(forest);
+    }
+
+    @Override
+    public void mount(Forest forest) {
+        getDriver().mountForest(forest);
+    }
+
+    @Override
     public void createGroup(String groupName) {
         getDriver().createGroup(groupName);
     }

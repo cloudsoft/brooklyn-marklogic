@@ -257,4 +257,42 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                 startableChildren,
                 Startable.STOP).getUnchecked();
     }
+
+    @Override
+    public void unmountForest(String forestName) {
+        LOG.info("Unmounting Forest {}", forestName);
+
+
+        Forest forest = getForest(forestName);
+        if(forest == null){
+            throw new IllegalArgumentException(format("Can't unmount unknown forest %s",forestName));
+        }
+
+        MarkLogicNode node = getNode(forest.getHost());
+        if(node == null){
+            throw new IllegalArgumentException(format("Can't unmount forest %s, its host %s is not found",forest.getName(),forest.getHost()));
+        }
+
+        node.unmount(forest);
+        LOG.info("Finished unmounting Forest {}", forestName);
+    }
+
+    @Override
+    public void mountForest(String forestName) {
+        LOG.info("Mounting Forest {}", forestName);
+
+
+        Forest forest = getForest(forestName);
+        if(forest == null){
+            throw new IllegalArgumentException(format("Can't mount unknown forest %s",forestName));
+        }
+
+        MarkLogicNode node = getNode(forest.getHost());
+        if(node == null){
+            throw new IllegalArgumentException(format("Can't mount forest %s, its host %s is not found",forest.getName(),forest.getHost()));
+        }
+
+        node.mount(forest);
+        LOG.info("Finished mounting Forest {}", forestName);
+    }
 }

@@ -196,4 +196,8 @@ public interface MarkLogicNode extends SoftwareProcess {
     String getUser();
 
     String getPassword();
+
+    void unmount(Forest forest);
+
+    void mount(Forest forest);
 }

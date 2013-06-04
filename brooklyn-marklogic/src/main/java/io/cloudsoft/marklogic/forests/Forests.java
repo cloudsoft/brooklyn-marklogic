@@ -52,4 +52,8 @@ public interface Forests extends Entity,Startable {
             @NamedParameter("forestName") @Description("The name of the forest to delete") String forestName);
 
     void setForestHost(String forestName, String hostname);
+
+    void unmountForest(String forestName);
+
+    void mountForest(String forestName);
 }

@@ -1,6 +1,14 @@
 package io.cloudsoft.marklogic.brooklynapplications;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
+import brooklyn.entity.Entity;
+import brooklyn.entity.basic.AbstractApplication;
+import brooklyn.entity.basic.Entities;
+import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.launcher.BrooklynLauncher;
+import brooklyn.location.Location;
+import brooklyn.util.CommandLineUtil;
+import brooklyn.util.text.Identifiers;
+import com.google.common.collect.Lists;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -13,17 +21,7 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import java.util.Collection;
 import java.util.List;
 
-import brooklyn.entity.Entity;
-import brooklyn.entity.basic.AbstractApplication;
-import brooklyn.entity.basic.Entities;
-import brooklyn.entity.proxying.EntitySpecs;
-import brooklyn.launcher.BrooklynLauncher;
-import brooklyn.location.Location;
-import brooklyn.util.CommandLineUtil;
-import brooklyn.util.exceptions.Exceptions;
-import brooklyn.util.text.Identifiers;
-
-import com.google.common.collect.Lists;
+import static brooklyn.entity.proxying.EntitySpecs.spec;
 
 /**
  * App to create a MarkLogic cluster (in a single availability zone).
@@ -38,7 +36,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
     // For naming databases/forests, so can tell in cloud provider's console who ran it
     private final String user = System.getProperty("user.name");
-    
+
     private MarkLogicGroup dgroup;
     private Databases databases;
     private Forests forests;
@@ -53,7 +51,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)
-         );
+        );
         databases = markLogicCluster.getDatabases();
         forests = markLogicCluster.getForests();
         dgroup = markLogicCluster.getDNodeGroup();
@@ -79,65 +77,81 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 dgroup.getAnyStartedMember().getHostName() +
                 ":8002/dashboard'");
 
+        try{
+
         MarkLogicNode node1 = dgroup.getAnyStartedMember();
-        //MarkLogicNode node2 = dgroup.getAnyOtherStartedMember(node1.getHostName());
-       // MarkLogicNode node3 = dgroup.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
+        //     MarkLogicNode node2 = dgroup.getAnyOtherStartedMember(node1.getHostName());
+        //    MarkLogicNode node3 = dgroup.getAnyOtherStartedMember(node1.getHostName(),node2.getHostName());
 
         Database database = databases.createDatabaseWithSpec(spec(Database.class)
-                .configure(Database.NAME, "database-"+user)
-                .configure(Database.JOURNALING,"strict")
+                .configure(Database.NAME, "database-" + user)
+                .configure(Database.JOURNALING, "strict")
         );
 
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())
-                .configure(Forest.NAME, user+"-forest")
-                .configure(Forest.DATA_DIR, "/var/opt/mldata/"+primaryForestId)
-                .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/"+primaryForestId)
-                .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/"+primaryForestId)
-        //        .configure(Forest.DATA_DIR, "/tmp")
-        //        .configure(Forest.LARGE_DATA_DIR, "/tmp")
-         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
+                .configure(Forest.NAME, user + "-forest")
+                .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+//                .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+//                .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                        //        .configure(Forest.DATA_DIR, "/tmp")
+                        //        .configure(Forest.LARGE_DATA_DIR, "/tmp")
+                        //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
 
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
                 .configure(Forest.FAILOVER_ENABLED, true)
         );
 
-        String replicaForestId = Identifiers.makeRandomId(8);
-      //  Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-     //           .configure(Forest.HOST, node2.getHostName())
-     //           .configure(Forest.NAME, user+"-forest-replica")
-     //           .configure(Forest.DATA_DIR, "/var/opt/mldata/"+replicaForestId)
-     //           .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
-      //          .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
-         //       .configure(Forest.DATA_DIR, "/tmp/")
-         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
-         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
+//        String replicaForestId = Identifiers.makeRandomId(8);
+//        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+//                .configure(Forest.HOST, node2.getHostName())
+//                .configure(Forest.NAME, user+"-forest-replica")
+//                .configure(Forest.DATA_DIR, "/var/opt/mldata/"+replicaForestId)
+//                .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
+//                .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/"+replicaForestId)
+//         //       .configure(Forest.DATA_DIR, "/tmp/")
+//         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
+//         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
+//
+//                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+//                .configure(Forest.REBALANCER_ENABLED, true)
+//                .configure(Forest.FAILOVER_ENABLED, true));
 
-      //          .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-      //          .configure(Forest.REBALANCER_ENABLED, true)
-      //          .configure(Forest.FAILOVER_ENABLED, true));
+        primaryForest.awaitStatus("open");
 
-     //   primaryForest.awaitStatus("open");
-     //   replicaForest.awaitStatus("open");
+        LOG.info("Forest.DATA_DIR_VOLUME_INFO: "+primaryForest.getAttribute(Forest.DATA_DIR_VOLUME_INFO));
+        LOG.info("Forest.FAST_DATA_DIR_VOLUME_INFO: "+primaryForest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO));
 
-     //   forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
+//        replicaForest.awaitStatus("open");
+
+//        forests.attachReplicaForest(primaryForest.getName(),replicaForest.getName());
 
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 
-    //    primaryForest.awaitStatus("open");
-     //   replicaForest.awaitStatus("sync replicating");
+        primaryForest.awaitStatus("open");
+        //       replicaForest.awaitStatus("sync replicating");
 
-     //   forests.enableForest(primaryForest.getName(), false);
+        forests.enableForest(primaryForest.getName(), false);
 
-//        primaryForest.awaitStatus("unmounted");
+        primaryForest.awaitStatus("unmounted");
 //        replicaForest.awaitStatus("open");
-//
-//        forests.setForestHost(primaryForest.getName(), node3.getHostName());
-//
-//        forests.enableForest(primaryForest.getName(), true);
-//
+
+
+        forests.unmountForest(primaryForest.getName());
+
+        forests.mountForest(primaryForest.getName());
+
+        forests.enableForest(primaryForest.getName(), true);
+
+        primaryForest.awaitStatus("open");
+
+
+        //forests.setForestHost(primaryForest.getName(), node3.getHostName());
+
+        //forests.enableForest(primaryForest.getName(), true);
+
 //        primaryForest.awaitStatus("sync replicating");
 //        replicaForest.awaitStatus("open");
 //
@@ -146,8 +160,12 @@ public class MarkLogicTestApplication extends AbstractApplication {
 //
 //        primaryForest.awaitStatus("open");
 //        replicaForest.awaitStatus("sync replicating");
-
+//
         LOG.info("Done");
+
+        }catch(Exception e){
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     /**

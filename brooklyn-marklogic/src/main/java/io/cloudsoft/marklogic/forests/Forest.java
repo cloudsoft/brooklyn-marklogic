@@ -65,16 +65,18 @@ public interface Forest extends Entity, Startable {
     AttributeSensor<Long> FOREST_ID = new BasicAttributeSensor<Long>(Long.class, "forest.id", "The id of the forest");
 
     @SetFromFlag("data_dir_volumeId")
-    BasicAttributeSensorAndConfigKey<String> DATA_DIR_VOLUME_ID = new BasicAttributeSensorAndConfigKey<String>(
-            String.class, "marklogic.forest.data-dir.volumeId",
+    BasicAttributeSensorAndConfigKey<VolumeInfo> DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
+            VolumeInfo.class, "marklogic.forest.data-dir.volumeId",
             "Specifies a volume id in which the forest's regular data is located. If null, indicates that no volume " +
                     "has been created yet for this forest. If DATA_DIR is null then the volumeId should also be null", null);
 
     @SetFromFlag("fast_dataDir_volumeId")
-    BasicAttributeSensorAndConfigKey<String> FAST_DATA_DIR_VOLUME_ID = new BasicAttributeSensorAndConfigKey<String>(
-            String.class, "marklogic.forest.fast-data-dir.volumeId",
+    BasicAttributeSensorAndConfigKey<VolumeInfo> FAST_DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
+            VolumeInfo.class, "marklogic.forest.fast-data-dir.volumeId",
             "Specifies a volume id in which the forest's fast data is located. If null, indicates that no volume " +
                     "has been created yet. If FAST_DATA_DIR is null then the volumeId should also be null", null);
+
+    <T> T setAttribute(AttributeSensor<T> attribute, T value);
 
     Long getForestId();
 
@@ -98,7 +100,4 @@ public interface Forest extends Entity, Startable {
 
     void awaitStatus(String expectedState);
 
-    void setDataDirVolumeId(String volumeId);
-
-    void setFastDirVolumeId(String volumeId);
 }

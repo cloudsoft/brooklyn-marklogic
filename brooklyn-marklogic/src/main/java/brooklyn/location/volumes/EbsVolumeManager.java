@@ -55,6 +55,8 @@ public class EbsVolumeManager extends AbstractVolumeManager {
         ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
         Attachment attachment = ebsClient.attachVolumeInRegion(region, volumeId, machine.getNode().getProviderId(), ec2DeviceName);
         // TODO return attachment.getId();
+
+        LOG.info("Finished attaching volume: machine={}; volume={}; ec2DeviceName={}, attachment {}", new Object[] {machine, volumeId, ec2DeviceName,attachment});
     }
 
     @Override

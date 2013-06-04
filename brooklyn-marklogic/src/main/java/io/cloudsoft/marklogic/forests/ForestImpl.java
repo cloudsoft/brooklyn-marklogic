@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.basic.AbstractEntity;
+import brooklyn.event.AttributeSensor;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
 import brooklyn.location.Location;
@@ -21,6 +22,11 @@ public class ForestImpl extends AbstractEntity implements Forest {
     private static final Logger LOG = LoggerFactory.getLogger(ForestImpl.class);
 
     private FunctionFeed statusFeed;
+
+    @Override
+    public <T> T setAttribute(AttributeSensor<T> attribute, T value) {
+        return super.setAttribute(attribute,value);
+    }
 
     @Override
     public String getName() {
@@ -140,13 +146,5 @@ public class ForestImpl extends AbstractEntity implements Forest {
             statusFeed.stop();
             statusFeed = null;
         }
-    }
-
-    public void setDataDirVolumeId(String volumeId) {
-        setAttribute(DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
-    }
-
-    public void setFastDirVolumeId(String volumeId) {
-        setAttribute(FAST_DATA_DIR_VOLUME_ID, checkNotNull(volumeId, "volumeId"));
     }
 }

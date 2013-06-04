@@ -1,43 +1,5 @@
 package io.cloudsoft.marklogic.nodes;
 
-import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
-import static brooklyn.util.ssh.CommonCommands.sudo;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import freemarker.cache.StringTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
-import io.cloudsoft.marklogic.databases.Database;
-import io.cloudsoft.marklogic.forests.Forest;
-
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
@@ -47,10 +9,30 @@ import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.MutableMap;
 import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
+import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.VolumeInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.CommonCommands.sudo;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicNodeDriver {
 
@@ -86,11 +68,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
      * Takeover node?  Fix host, become master if I am master
      */
 
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeSshDriver.class);
 
     private static boolean loggedDefaultingMarklogicHome = false;
-    
+
     public final static AtomicInteger counter = new AtomicInteger(2);
     private final int nodeId;
 
@@ -102,7 +84,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             freeDeviceNameSuffixes.add(c);
         }
     }
-    
+
     public MarkLogicNodeSshDriver(MarkLogicNodeImpl entity, SshMachineLocation machine) {
         super(entity, machine);
         this.nodeId = counter.getAndIncrement();
@@ -112,14 +94,14 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
-            
+
             if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
                 return new EbsVolumeManager();
             } else {
-                throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
+                throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
             }
         } else {
-            throw new IllegalStateException("Cannot handle volumes in non-jclouds machine location: "+getMachine());
+            throw new IllegalStateException("Cannot handle volumes in non-jclouds machine location: " + getMachine());
         }
     }
 
@@ -127,7 +109,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public MarkLogicNodeImpl getEntity() {
         return (MarkLogicNodeImpl) super.getEntity();
     }
-    
+
     public String getDownloadFilename() {
         // TODO To support other platforms, need to customize this based on OS
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
@@ -208,7 +190,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     @Override
     public void install() {
         LOG.info("Setting up volumes of MarkLogic host {}", getHostname());
-        
+
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
@@ -222,16 +204,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
                 if (isVarOptEbs) {
                     if (Strings.isBlank(varOptVolumeId)) {
-                        String newVolumeId = createAttachAndMountVolume("/var/opt", volumeSize, getNodeName()+"-varopt");
+                        String newVolumeId = createAttachAndMountVolume("/var/opt", volumeSize, getNodeName() + "-varopt").getVolumeId();
                         entity.setAttribute(MarkLogicNode.VAR_OPT_VOLUME, newVolumeId);
                     } else {
                         attachAndMountVolume(varOptVolumeId, "/var/opt");
                     }
                 }
-                
+
                 if (isBackupEbs) {
                     if (Strings.isBlank(backupVolumeId)) {
-                        String newVolumeId = createAttachAndMountVolume("/var/opt/backup", backupVolumeSize, getNodeName()+"-backup");
+                        String newVolumeId = createAttachAndMountVolume("/var/opt/backup", backupVolumeSize, getNodeName() + "-backup").getVolumeId();
                         entity.setAttribute(MarkLogicNode.BACKUP_VOLUME, newVolumeId);
                     } else {
                         attachAndMountVolume(backupVolumeId, "/var/opt/backup");
@@ -241,7 +223,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
             }
         }
-        
+
         LOG.info("Starting installation of MarkLogic host {}", getHostname());
 
         uninstall();
@@ -342,7 +324,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
         getLocation().copyTo(file, targetDirectory);
     }
-
 
     @Override
     public void customize() {
@@ -463,30 +444,32 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
             Integer volumeSize = entity.getConfig(MarkLogicNode.VOLUME_SIZE);
             Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
-            String regularMountPoint = forest.getFastDataDir();
-            String fastdirMountPoint = forest.getDataDir();
+            String dataDirMountPoint = forest.getDataDir();
+            String fastdirMountPoint = forest.getFastDataDir();
 
             if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
-                if (isForestsEbs && regularMountPoint != null) {
+                if (isForestsEbs && dataDirMountPoint != null) {
                     // TODO In startup_script, mount points are:
                     //   /var/opt/mldata/$sdb_bucket_name-$node_name-fastdir-$vol_count
                     //   /var/opt/mldata/$sdb_bucket_name-$node_name-replica-$vol_count
                     //   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
-                    
-                    String regularVolumeId = createAttachAndMountVolume(regularMountPoint, volumeSize, "forest-datadir-"+forest.getName()+"-"+getNodeId());
-                    forest.setDataDirVolumeId(regularVolumeId);
+
+                    VolumeInfo volumeInfo = createAttachAndMountVolume(dataDirMountPoint, volumeSize, "forest-datadir-" + forest.getName() + "-" + getNodeId());
+                    LOG.info("data dir:"+volumeInfo);
+                    forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, volumeInfo);
                 }
-                
-                if (isFastdirEbs && fastdirMountPoint != null && !fastdirMountPoint.equals(regularMountPoint)) {
-                    String fastdirVolumeId = createAttachAndMountVolume(fastdirMountPoint, volumeSize, "forest-fastdir-"+forest.getName()+"-"+getNodeId());
-                    forest.setFastDirVolumeId(fastdirVolumeId);
+
+                if (isFastdirEbs && fastdirMountPoint != null && !fastdirMountPoint.equals(dataDirMountPoint)) {
+                    VolumeInfo volumeInfo = createAttachAndMountVolume(fastdirMountPoint, volumeSize, "forest-fastdir-" + forest.getName() + "-" + getNodeId());
+                    forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, volumeInfo);
+                    LOG.info("fast data dir:" + volumeInfo);
                 }
-                
+
             } else {
                 LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
             }
         }
-        
+
         Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest);
         File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
@@ -502,6 +485,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
         LOG.debug("Finished creating forest {}", forest.getName());
     }
+
 
     @Override
     public void createDatabaseWithForest(String name) {
@@ -648,7 +632,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void enableForest(String forestName, boolean enabled) {
-
         LOG.debug("Enabling forest {} {}", forestName, enabled);
 
         Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "enabled", enabled);
@@ -691,7 +674,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public void setForestHost(String forestName, String hostName) {
         LOG.debug("Setting forest {} host {}", forestName, hostName);
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "hostName",hostName);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName);
         File scriptFile = new File(getScriptDirectory(), "forest_set_host.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -776,7 +759,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public String getForestStatus(String forestName) {
-        LOG.debug("Getting status for forest {}",forestName);
+        LOG.debug("Getting status for forest {}", forestName);
 
         Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName);
         File scriptFile = new File(getScriptDirectory(), "get_forest_status.txt");
@@ -797,40 +780,127 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
         String s = new String(stdout.toByteArray());
 
-         String[] split = s.split("\n\n");
+        String[] split = s.split("\n\n");
         return split[0];
     }
 
-    private String createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
+
+    private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
         JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
-        
+
         char deviceSuffix = claimDeviceSuffix();
         String volumeDeviceName = "/dev/sd" + deviceSuffix;
         String osDeviceName = "/dev/xvd" + deviceSuffix;
         String filesystemType = "ext3";
-        Map<String,String> tags = ImmutableMap.of("Name", "marklogic-"+getClusterName()+(tagNameSuffix!=null ? "-"+tagNameSuffix : ""));
-        
+        Map<String, String> tags = ImmutableMap.of("Name", "marklogic-" + getClusterName() + (tagNameSuffix != null ? "-" + tagNameSuffix : ""));
+
         if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
-            return newVolumeManager().createAttachAndMountVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, volumeSize, tags);
+            String volumeId = newVolumeManager().createAttachAndMountVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, volumeSize, tags);
+            return new VolumeInfo(volumeDeviceName, volumeId,osDeviceName);
         } else {
-            throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
+            throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
         }
     }
-    
+
+    @Override
+    public void mountForest(Forest forest) {
+        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+            JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
+
+            if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
+
+                final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
+                if (forest.getDataDir() != null) {
+                    char deviceSuffix = claimDeviceSuffix();
+                    String volumeDeviceName = "/dev/sd" + deviceSuffix;
+                    String osDeviceName = "/dev/xvd" + deviceSuffix;
+                    String filesystemType = "ext3";
+
+                    VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
+                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                    forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
+
+                    ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
+
+                }
+
+                if (forest.getFastDataDir() != null) {
+                    VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
+
+                    if (volumeInfo != null) {
+                        char deviceSuffix = claimDeviceSuffix();
+                        String volumeDeviceName = "/dev/sd" + deviceSuffix;
+                        String osDeviceName = "/dev/xvd" + deviceSuffix;
+                        String filesystemType = "ext3";
+
+                        VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                        forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
+                        ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
+                    }
+                }
+
+                //if(forest.getLargeDataDir()!=null){
+                //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+                //}
+            } else {
+                LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            }
+        } else {
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+        }
+    }
+
+    @Override
+    public void unmountForest(Forest forest) {
+        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+            JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
+
+            if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
+
+                final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
+
+                if (forest.getDataDir() != null) {
+                    VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
+                    ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                    ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                }
+
+                if (forest.getFastDataDir() != null) {
+                    VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
+
+                    if (volumeInfo != null) {
+                        ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                        ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                    }
+                }
+
+                //if(forest.getLargeDataDir()!=null){
+                //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+                //}
+            } else {
+                LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            }
+        } else {
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+        }
+    }
+
     private void attachAndMountVolume(String volumeId, String mountPoint) {
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
         JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
-        
+
         char deviceSuffix = claimDeviceSuffix();
         String volumeDeviceName = "/dev/sd" + deviceSuffix;
         String osDeviceName = "/dev/xvd" + deviceSuffix;
         String filesystemType = "ext3";
-        
+
         if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
             newVolumeManager().attachAndMountVolume(jcloudsMachine, volumeId, volumeDeviceName, osDeviceName, mountPoint, filesystemType);
         } else {
-            throw new IllegalStateException("Cannot handle volumes in location "+jcloudsLocation);
+            throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
         }
     }
 
@@ -838,13 +908,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         Character suffix;
         synchronized (freeDeviceNameSuffixes) {
             if (freeDeviceNameSuffixes.isEmpty()) {
-                throw new IllegalStateException("No device-name suffixes available; all in use for "+getEntity());
+                throw new IllegalStateException("No device-name suffixes available; all in use for " + getEntity());
             }
             suffix = freeDeviceNameSuffixes.remove(0);
         }
         return Character.toLowerCase(suffix);
     }
-    
+
     private void releaseDeviceSuffix(Character suffix) {
         checkNotNull(suffix, "device-suffix must not be null for entity %s", suffix, getEntity());
         synchronized (freeDeviceNameSuffixes) {

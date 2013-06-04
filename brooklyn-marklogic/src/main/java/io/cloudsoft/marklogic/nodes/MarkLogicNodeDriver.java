@@ -37,4 +37,8 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
     void deleteForestConfiguration(String forestName);
 
     void setForestHost(String forestName, String hostName);
+
+    void unmountForest(Forest forest);
+
+    void mountForest(Forest forest);
 }
