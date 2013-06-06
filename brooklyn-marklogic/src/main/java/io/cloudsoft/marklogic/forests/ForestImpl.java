@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 public class ForestImpl extends AbstractEntity implements Forest {
@@ -26,12 +25,17 @@ public class ForestImpl extends AbstractEntity implements Forest {
 
     @Override
     public <T> T setAttribute(AttributeSensor<T> attribute, T value) {
-        return super.setAttribute(attribute,value);
+        return super.setAttribute(attribute, value);
     }
 
     @Override
     public String getName() {
         return getConfig(NAME);
+    }
+
+    @Override
+    public String getMaster() {
+        return getConfig(MASTER);
     }
 
     @Override
@@ -70,7 +74,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
-    public Long getForestId(){
+    public Long getForestId() {
         return getAttribute(FOREST_ID);
     }
 

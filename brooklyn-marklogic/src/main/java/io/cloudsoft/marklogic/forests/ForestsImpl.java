@@ -34,7 +34,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         return getConfig(GROUP);
     }
 
-    private MarkLogicNode getNode(String hostname) {
+    private MarkLogicNode getNodeOrFail(String hostname) {
         MarkLogicGroup cluster = getGroup();
 
         for (Entity member : cluster.getMembers()) {
@@ -64,6 +64,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         }
 
         return null;
+    }
+
+    private Forest getForestOrFail(String forestName) {
+        Forest forest = getForest(forestName);
+        if (forest == null) {
+            throw new IllegalArgumentException("Failed to find forest: " + forestName);
+        }
+        return forest;
     }
 
     @Override
@@ -111,8 +119,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info("Creating forest {} on host {}", forestName, hostName);
 
-
-        MarkLogicNode node = getNode(hostName);
+        MarkLogicNode node = getNodeOrFail(hostName);
 
         forestSpec = wrapSpec(forestSpec).configure(Forest.GROUP, getGroup())
                 .displayName(forestName);
@@ -162,10 +169,15 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         LOG.info("Attaching replica-forest {} to primary-forest {}", replicaForestName, primaryForestName);
 
         MarkLogicNode node = getGroup().getAnyStartedMember();
+        Forest primaryForest = getForestOrFail(primaryForestName);
+        Forest replicaForest = getForestOrFail(replicaForestName);
+
         node.attachReplicaForest(primaryForestName, replicaForestName);
+        replicaForest.setConfig(Forest.MASTER, primaryForestName);
 
         LOG.info("Finished attaching replica-forest {} to primary-forest {}", replicaForestName, primaryForestName);
     }
+
 
     @Override
     public void enableForest(String forestName, boolean enabled) {
@@ -211,15 +223,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     public void setForestHost(String forestName, String newHostName) {
         LOG.info("Setting Forest {} host {}", forestName, newHostName);
 
-        Forest forest = getForest(forestName);
-        if (forest == null) {
-            throw new IllegalArgumentException(format("Can't change the host of forest, forest %s is not found", forestName));
-        }
-
-        MarkLogicNode node = getNode(newHostName);
-        if (node == null) {
-            throw new IllegalArgumentException(format("Can't change the host of forest, host %s is not found", newHostName));
-        }
+        Forest forest = getForestOrFail(forestName);
+        MarkLogicNode node = getNodeOrFail(newHostName);
 
         if (forest.getHostname().equals(newHostName)) {
             LOG.info("Finished setting Forest {}, no host change.", forestName, newHostName);
@@ -238,7 +243,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         if (startableChildren.isEmpty())
             return;
 
-
         Entities.invokeEffectorList(
                 this,
                 startableChildren,
@@ -246,7 +250,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     protected List<? extends Entity> getStartableChildren() {
-        LinkedList result = new LinkedList();
+        List<Entity> result = new LinkedList<Entity>();
         for (Entity entity : getChildren()) {
             if (entity instanceof Startable) {
                 result.add(entity);
@@ -285,17 +289,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     public void unmountForest(String forestName) {
         LOG.info("Unmounting Forest {}", forestName);
 
-
-        Forest forest = getForest(forestName);
-        if (forest == null) {
-            throw new IllegalArgumentException(format("Can't unmount unknown forest %s", forestName));
-        }
-
-        MarkLogicNode node = getNode(forest.getHostname());
-        if (node == null) {
-            throw new IllegalArgumentException(format("Can't unmount forest %s, its host %s is not found", forest.getName(), forest.getHostname()));
-        }
-
+        Forest forest = getForestOrFail(forestName);
+        MarkLogicNode node = getNodeOrFail(forest.getHostname());
         node.unmount(forest);
         LOG.info("Finished unmounting Forest {}", forestName);
     }
@@ -304,50 +299,64 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     public void mountForest(String forestName) {
         LOG.info("Mounting Forest {}", forestName);
 
-
-        Forest forest = getForest(forestName);
-        if (forest == null) {
-            throw new IllegalArgumentException(format("Can't mount unknown forest %s", forestName));
-        }
-
-        MarkLogicNode node = getNode(forest.getHostname());
-        if (node == null) {
-            throw new IllegalArgumentException(format("Can't mount forest %s, its host %s is not found", forest.getName(), forest.getHostname()));
-        }
+        Forest forest = getForestOrFail(forestName);
+        MarkLogicNode node = getNodeOrFail(forest.getHostname());
 
         node.mount(forest);
         LOG.info("Finished mounting Forest {}", forestName);
     }
 
+    private List<Forest> getReplicasForMaster(String forestName) {
+        List<Forest> result = new LinkedList<Forest>();
+        for (Entity member : getChildren()) {
+            if (member instanceof Forest) {
+                Forest forest = (Forest) member;
+                if (forestName.equals(forest.getMaster())) {
+                    result.add(forest);
+                }
+
+            }
+        }
+
+        return result;
+    }
+
     @Override
-    public void moveForest(String primaryForestName, String hostName, String replicaForestName) {
-        Forest primaryForest = getForest(primaryForestName);
-        if(primaryForest == null){
-            throw new IllegalArgumentException("Can't move unknown forest: "+primaryForest) ;
+    public void moveForest(String primaryForestName, String hostName) {
+        Forest primaryForest = getForestOrFail(primaryForestName);
+        List<Forest> replicaForests = getReplicasForMaster(primaryForestName);
+
+        if (replicaForests.size() == 0) {
+            enableForest(primaryForest.getName(), false);
+            primaryForest.awaitStatus("unmounted");
+            unmountForest(primaryForest.getName());
+            setForestHost(primaryForest.getName(), hostName);
+            mountForest(primaryForest.getName());
+            enableForest(primaryForest.getName(), true);
+            primaryForest.awaitStatus("open");
+        } else if (replicaForests.size() == 1) {
+            Forest replicaForest = replicaForests.get(0);
+
+            primaryForest.awaitStatus("open");
+            replicaForest.awaitStatus("sync replicating");
+
+            enableForest(primaryForest.getName(), false);
+            primaryForest.awaitStatus("unmounted");
+            replicaForest.awaitStatus("open");
+
+            unmountForest(primaryForest.getName());
+            setForestHost(primaryForest.getName(), hostName);
+            mountForest(primaryForest.getName());
+            enableForest(primaryForest.getName(), true);
+            primaryForest.awaitStatus("sync replicating");
+            replicaForest.awaitStatus("open");
+
+            enableForest(replicaForest.getName(), false);
+            enableForest(replicaForest.getName(), true);
+            primaryForest.awaitStatus("open");
+            replicaForest.awaitStatus("sync replicating");
+        } else {
+            throw new RuntimeException();//todo:
         }
-
-        Forest replicaForest = getForest(replicaForestName);
-        if(replicaForest == null){
-            throw new IllegalArgumentException("Can't move unknown forest: "+primaryForest) ;
-        }
-
-        primaryForest.awaitStatus("open");
-        replicaForest.awaitStatus("sync replicating");
-
-        enableForest(primaryForest.getName(), false);
-        primaryForest.awaitStatus("unmounted");
-        replicaForest.awaitStatus("open");
-
-        unmountForest(primaryForest.getName());
-        setForestHost(primaryForest.getName(),hostName);
-        mountForest(primaryForest.getName());
-        enableForest(primaryForest.getName(), true);
-        primaryForest.awaitStatus("sync replicating");
-        replicaForest.awaitStatus("open");
-
-        enableForest(replicaForest.getName(), false);
-        enableForest(replicaForest.getName(), true);
-        primaryForest.awaitStatus("open");
-        replicaForest.awaitStatus("sync replicating");
     }
 }

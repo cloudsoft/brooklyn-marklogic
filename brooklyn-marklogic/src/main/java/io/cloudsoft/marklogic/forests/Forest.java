@@ -19,8 +19,13 @@ public interface Forest extends Entity, Startable {
             String.class, "marklogic.forest.name",
             "The name of the forest", null);
 
-      @SetFromFlag("host")
-      ConfigKey<String> HOST = new BasicConfigKey<String>(
+    @SetFromFlag("master")
+    ConfigKey<String> MASTER = new BasicConfigKey<String>(
+            String.class, "marklogic.forest.master",
+            "The name of the master forest (null if there is no master)", null);
+
+    @SetFromFlag("host")
+    ConfigKey<String> HOST = new BasicConfigKey<String>(
             String.class, "marklogic.forest.host",
             "Specifies the host on which the forest resides.", null);
 
@@ -83,6 +88,8 @@ public interface Forest extends Entity, Startable {
     String getName();
 
     String getHostname();
+
+    String getMaster();
 
     String getDataDir();
 
