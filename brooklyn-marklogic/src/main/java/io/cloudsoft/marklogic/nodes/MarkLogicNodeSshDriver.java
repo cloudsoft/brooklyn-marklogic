@@ -78,10 +78,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     private final int nodeId;
 
     // Use device suffixes h through p; reuse where possible
+    // Could perhaps use f-z, but Amazon received reports that some kernels might have restrictions:
+    //     http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-attaching-volume.html
     private final List<Character> freeDeviceNameSuffixes = Lists.newLinkedList();
 
     {
-        for (char c = 'h'; c < 'z'; c++) {
+        for (char c = 'h'; c < 'p'; c++) {
             freeDeviceNameSuffixes.add(c);
         }
     }
