@@ -5,8 +5,9 @@ import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 import brooklyn.location.volumes.EbsVolumeManager;
+import brooklyn.location.volumes.RackspaceVolumeManager;
 import brooklyn.location.volumes.VolumeManager;
-import brooklyn.util.MutableMap;
+import brooklyn.util.collections.MutableMap;
 import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -77,10 +78,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     private final int nodeId;
 
     // Use device suffixes h through p; reuse where possible
+    // Could perhaps use f-z, but Amazon received reports that some kernels might have restrictions:
+    //     http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-attaching-volume.html
     private final List<Character> freeDeviceNameSuffixes = Lists.newLinkedList();
 
     {
-        for (char c = 'h'; c < 'z'; c++) {
+        for (char c = 'h'; c < 'p'; c++) {
             freeDeviceNameSuffixes.add(c);
         }
     }
@@ -95,8 +98,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
 
-            if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
+            String provider = jcloudsLocation.getProvider();
+
+            if ("aws-ec2".equals(provider)) {
                 return new EbsVolumeManager();
+            } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")){
+                return new RackspaceVolumeManager();
             } else {
                 throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
             }
