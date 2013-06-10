@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic;
 
 import brooklyn.config.BrooklynProperties;
+import brooklyn.entity.Entity;
 import brooklyn.entity.basic.ApplicationBuilder;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.trait.Startable;
@@ -97,7 +98,27 @@ public class ForestLiveTest {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        if (app != null) Entities.destroyAll(app);
+        LOG.info("------------------------------------------------------------------");
+        LOG.info("afterClass");
+        LOG.info("------------------------------------------------------------------");
+
+        if (app != null) {
+            for (Entity entity : forests.getChildren()) {
+                if (entity instanceof Forest) {
+                    Forest forest = (Forest) entity;
+                    if (forest.getDataDir() != null) {
+                        forests.enableForest(forest.getName(),false);
+                        forests.unmountForest(forest.getName());
+                    }
+                }
+            }
+            //LOG.info("------------------------------------------------------------------");
+            //LOG.info("start inspection");
+            //LOG.info("------------------------------------------------------------------");
+
+            //Thread.sleep(1000000);
+            Entities.destroyAll(app);
+        }
     }
 
     private Forest createForest(MarkLogicNode node) {

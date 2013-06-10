@@ -101,6 +101,8 @@ public abstract class AbstractVolumeManager implements VolumeManager {
                 dontRequireTtyForSudo(),
                 "echo unmounting " + osDeviceName,
                 sudo("sed -i.bk '/" + osDeviceNameEscaped + "/d' /etc/fstab"),
+                "echo cat /etc/fstab",
+                "ls /dev",
                 sudo("umount " + osDeviceName),
                 "echo unmounted " + osDeviceName
         ));

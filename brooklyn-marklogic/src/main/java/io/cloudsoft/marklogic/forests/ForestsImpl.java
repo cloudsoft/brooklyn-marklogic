@@ -287,10 +287,11 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void unmountForest(String forestName) {
-        LOG.info("Unmounting Forest {}", forestName);
 
         Forest forest = getForestOrFail(forestName);
         MarkLogicNode node = getNodeOrFail(forest.getHostname());
+        LOG.info("Unmounting Forest {} on node {}", forestName,node.getHostName());
+
         node.unmount(forest);
         LOG.info("Finished unmounting Forest {}", forestName);
     }
