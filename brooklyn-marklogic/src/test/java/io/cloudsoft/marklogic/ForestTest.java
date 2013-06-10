@@ -1,5 +1,21 @@
 package io.cloudsoft.marklogic;
 
+import static brooklyn.entity.proxying.EntitySpecs.spec;
+import static java.lang.String.format;
+import io.cloudsoft.marklogic.forests.Forests;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import brooklyn.config.BrooklynProperties;
 import brooklyn.entity.basic.ApplicationBuilder;
 import brooklyn.entity.basic.Entities;
@@ -11,23 +27,9 @@ import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
 import brooklyn.test.entity.TestApplication;
 import brooklyn.util.MutableMap;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.cloudsoft.marklogic.forests.Forests;
-import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.util.List;
-import java.util.Map;
-
-import static brooklyn.entity.proxying.EntitySpecs.spec;
-import static java.lang.String.format;
 
 @Test(groups = {"Live"})
 public class ForestTest {
@@ -67,7 +69,7 @@ public class ForestTest {
         Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
         String locationSpec = format("%s:%s", "ec2", regionName);
 
-        ctx = new LocalManagementContext((Map) brooklynProperties);
+        ctx = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
         group = app.createAndManageChild(spec(MarkLogicGroup.class));
