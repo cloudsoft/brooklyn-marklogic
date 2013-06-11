@@ -328,14 +328,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
 
-    private void uploadFiles(File file, String targetDirectory) {
-        getLocation().exec(Arrays.asList("mkdir -p " + targetDirectory), MutableMap.of());
-        getLocation().copyTo(file, targetDirectory);
-    }
-
-    @Override
+      @Override
     public void customize() {
-        final MarkLogicCluster cluster = ((MarkLogicNode) getEntity()).getCluster();
+        final MarkLogicCluster cluster = getEntity().getCluster();
         boolean isInitialHost = cluster == null || cluster.claimToBecomeInitialHost();
         getEntity().setConfig(MarkLogicNode.IS_INITIAL_HOST, isInitialHost);
 
