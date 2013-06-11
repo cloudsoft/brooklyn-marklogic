@@ -23,14 +23,14 @@ import java.util.Map;
 public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicGroup {
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicGroupImpl.class);
-    //private MemberFailureDetectionPolicy policy;
+    private MemberFailureDetectionPolicy policy;
 
     @Override
     public void init() {
         super.init();
 
-    //    policy = new MemberFailureDetectionPolicy();
-    //    addPolicy(policy);
+        policy = new MemberFailureDetectionPolicy();
+        addPolicy(policy);
     }
 
     public boolean isUp() {

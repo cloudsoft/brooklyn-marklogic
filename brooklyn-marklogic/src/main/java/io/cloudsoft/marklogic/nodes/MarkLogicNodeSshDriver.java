@@ -34,6 +34,7 @@ import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver implements MarkLogicNodeDriver {
 
@@ -102,7 +103,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
             if ("aws-ec2".equals(provider)) {
                 return new EbsVolumeManager();
-            } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")){
+            } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")) {
                 return new RackspaceVolumeManager();
             } else {
                 throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
@@ -385,15 +386,19 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void postLaunch() {
-        entity.setAttribute(MarkLogicNode.URL, String.format("http://%s:%s", getHostname(), 8001));
+        entity.setAttribute(MarkLogicNode.URL, format("http://%s:%s", getHostname(), 8001));
     }
 
     public boolean isRunning() {
-        int exitStatus = newScript(LAUNCHING)
-                .failOnNonZeroResultCode()
-                .body.append(sudo("/etc/init.d/MarkLogic status | grep running"))
-                .execute();
-        return exitStatus == 0;
+        try {
+            int exitStatus = newScript(CHECK_RUNNING)
+                    .body.append(sudo("/etc/init.d/MarkLogic status | grep running"))
+                    .execute();
+            return exitStatus == 0;
+        } catch (Exception e) {
+            LOG.error(format("Failed to determine if %s running", getLocation().getAddress()), e);
+            return false;
+        }
     }
 
     @Override
@@ -802,7 +807,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
         if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
             String volumeId = newVolumeManager().createAttachAndMountVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, volumeSize, tags);
-            return new VolumeInfo(volumeDeviceName, volumeId,osDeviceName);
+            return new VolumeInfo(volumeDeviceName, volumeId, osDeviceName);
         } else {
             throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
         }
@@ -824,7 +829,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                     String filesystemType = "ext3";
 
                     VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                     forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
 
                     ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
@@ -840,7 +845,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                         String osDeviceName = "/dev/xvd" + deviceSuffix;
                         String filesystemType = "ext3";
 
-                        VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                        VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                         forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
                         ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
                     }
