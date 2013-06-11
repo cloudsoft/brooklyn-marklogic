@@ -1,9 +1,8 @@
 package io.cloudsoft.marklogic.forests;
 
 import brooklyn.entity.Entity;
-import brooklyn.entity.basic.Description;
-import brooklyn.entity.basic.MethodEffector;
-import brooklyn.entity.basic.NamedParameter;
+import brooklyn.entity.annotation.Effector;
+import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
@@ -12,44 +11,36 @@ import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 @ImplementedBy(ForestsImpl.class)
-public interface Forests extends Entity,Startable {
+public interface Forests extends Entity, Startable {
 
     @SetFromFlag("cluster")
     public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
 
-    MethodEffector<Void> CREATE_FOREST =
-            new MethodEffector<Void>(Forests.class, "createForest");
-
     Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
 
-    @Description("Creates a new forest")
+    @Effector(description = "Creates a new forest")
     Forest createForest(
-            @NamedParameter("name") @Description("The name of the forest") String name,
-            @NamedParameter("hostname") @Description("The name of the forest") String hostname,
-            @NamedParameter("dataDir") @Description("Specifies a public directory in which the forest is located.") String dataDir,
-            @NamedParameter("large-data-dir") @Description("Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
-            @NamedParameter("fast-data-dir") @Description("Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
-            @NamedParameter("updates_allowed") @Description("Specifies which operations are allowed on this forest. Options are: all, delete-only, read-only, flash-backup.") String updatesAllowed,
-            @NamedParameter("rebalancer_enabled") @Description("Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
-            @NamedParameter("failover_enabled") @Description("Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
+            @EffectorParam(name = "name", description = "The name of the forest") String name,
+            @EffectorParam(name = "hostname", description = "The name of the forest") String hostname,
+            @EffectorParam(name = "dataDir", description = "Specifies a public directory in which the forest is located.") String dataDir,
+            @EffectorParam(name = "large-data-dir", description = "Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
+            @EffectorParam(name = "fast-data-dir", description = "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
+            @EffectorParam(name = "updates_allowed", description = "Specifies which operations are allowed on this forest. Options are: all, delete-only, read-only, flash-backup.") String updatesAllowed,
+            @EffectorParam(name = "rebalancer_enabled", description = "Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
+            @EffectorParam(name = "failover_enabled", description = "Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
-    MethodEffector<Void> ENABLE_FOREST =
-            new MethodEffector<Void>(Forests.class, "enableForest");
+    @Effector(description = "Enables a forest")
+    void enableForest(
+            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,
+            @EffectorParam(name = "enabled", description = "If the forest should be enabled") boolean enabled);
 
-    @Description("Enables a forest")
-    void enableForest(@NamedParameter("forestName") @Description("The name of the forest") String forestName,
-                      @NamedParameter("enabled") @Description("If the forest should be enabled") boolean enabled);
-
-    MethodEffector<Void> DELETE_FOREST_CONFIGURATION =
-            new MethodEffector<Void>(Forests.class, "deleteForestConfiguration");
-
-    @Description("Deletes the configuration of a forest")
+    @Effector(description = "Deletes the configuration of a forest")
     void deleteForestConfiguration(
-            @NamedParameter("forestName") @Description("The name of the forest to delete") String forestName);
+            @EffectorParam(name = "forestName", description = "The name of the forest to delete") String forestName);
 
     void setForestHost(String forestName, String hostname);
 
@@ -57,12 +48,8 @@ public interface Forests extends Entity,Startable {
 
     void mountForest(String forestName);
 
-
-    MethodEffector<Void> MOVE_FOREST =
-            new MethodEffector<Void>(Forests.class, "moveForest");
-
-    @Description("Moves a forest from one host to another")
+    @Effector(description = "Moves a forest from one host to another")
     void moveForest(
-            @NamedParameter("forest") @Description("The name of the forest") String primaryForest,
-            @NamedParameter("host") @Description("The new hostname") String hostName);
+            @EffectorParam(name = "forest", description = "The name of the forest") String primaryForest,
+            @EffectorParam(name = "host", description = "The new hostname") String hostName);
 }
