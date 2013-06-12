@@ -2,16 +2,11 @@ echo ===========================================================================
 echo            Creating MarkLogic AppServer ${appServer}
 echo ==============================================================================
 
-DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=${database}")
-echo DATABASE_ID = $DATABASE_ID
-
-echo Creating MarkLogic AppServer ${appServer}
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8000/infostudio/endpoints/rests.xqy" \
-     -H "Accept: application/json, text/javascript, */*; q=0.01" \
-     -H "Referer: http://localhost:8000/infostudio/database.xqy?dbid=$DATABASE_ID" \
-     -H "Origin: http://localhost:8000" \
-     -H "Content-Type: application/x-www-form-urlencoded"
-     --data "restname=${appServer}&dbid=$DATABASE_ID&port=${port}&groupname=${groupName}"
+curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/create_rest_appserver.xqy" \
+   -d database=${database} \
+   -d port=${port} \
+   -d group=${groupName} \
+   -d name=${appServer}
 
 echo ==============================================================================
 echo         Finished Creating MarkLogic AppServer ${appServer}

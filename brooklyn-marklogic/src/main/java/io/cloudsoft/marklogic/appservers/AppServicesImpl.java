@@ -24,7 +24,7 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
     }
 
     @Override
-    public void createRestAppServer(String name, String database, String groupName, String port) {
+    public RestAppServer createRestAppServer(String name, String database, String groupName, String port) {
         LOG.info("Creating REST appServer: " + name);
         MarkLogicNode node = getMarkLogicNode();
 
@@ -39,6 +39,8 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
         //todo: should be moved to the appServer
 
         LOG.info("Successfully created REST appServer: " + name);
+
+        return appServer;
     }
 
     private MarkLogicNode getMarkLogicNode() {

@@ -16,7 +16,7 @@ public interface AppServices extends AbstractGroup {
             MarkLogicGroup.class, "marklogic.appservices.cluster", "The cluster");
 
     @Effector(description = "Creates a new Rest AppServer")
-    void createRestAppServer(
+    RestAppServer createRestAppServer(
             @EffectorParam(name = "name", description = "The name of the appServer") String name,
             @EffectorParam(name = "database", description = "The name of the database") String database,
             @EffectorParam(name = "group", description = "The name of the group this appServer belongs to") String group,

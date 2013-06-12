@@ -82,7 +82,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         printInfo();
 
-        Database db = markLogicCluster.getDatabases().createDatabase("peter");
+        Database db = markLogicCluster.getDatabases().createDatabase(databaseName);
         String targetHost = markLogicCluster.getDNodeGroup().getAnyStartedMember().getHostName();
         Forest forest = markLogicCluster.getForests().createForest("demoForest", targetHost, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
 

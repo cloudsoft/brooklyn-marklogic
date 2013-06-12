@@ -29,8 +29,8 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
     public void init() {
         super.init();
 
-        policy = new MemberFailureDetectionPolicy();
-        addPolicy(policy);
+        //policy = new MemberFailureDetectionPolicy();
+        //addPolicy(policy);
     }
 
     public boolean isUp() {

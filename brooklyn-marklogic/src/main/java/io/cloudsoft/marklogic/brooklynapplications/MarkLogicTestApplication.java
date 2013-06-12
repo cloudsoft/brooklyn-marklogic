@@ -46,8 +46,8 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)
@@ -76,6 +76,23 @@ public class MarkLogicTestApplication extends AbstractApplication {
         LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
                 dgroup.getAnyStartedMember().getHostName() +
                 ":8002/dashboard'");
+
+        Database db = markLogicCluster.getDatabases().createDatabase("peter");
+        //String targetHost = markLogicCluster.getDNodeGroup().getAnyStartedMember().getHostName();
+        //Forest forest = markLogicCluster.getForests().createForest("demoForest", targetHost, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
+
+
+        //Forest forest = markLogicCluster.getForests().createForestWithSpec(...);
+        //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
+        //db.assign(forest);
+
+        //markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
+        //MarkLogicNode node = (MarkLogicNode) markLogicCluster.getDNodeGroup().getMembers().iterator().next();
+
+        //markLogicCluster.getForests().createForestWithSpec("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
+
+        markLogicCluster.getAppservices().createRestAppServer("peter-app", db.getName(), "Default", "" + 8011);
+
 
 //        try {
 //            MarkLogicNode node1 = dgroup.getAnyStartedMember();
