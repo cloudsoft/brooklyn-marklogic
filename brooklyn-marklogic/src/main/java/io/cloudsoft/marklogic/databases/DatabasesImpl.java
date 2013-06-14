@@ -46,7 +46,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             @Override
             public void run() {
                 try {
-                    MarkLogicNode node = getGroup().getAnyStartedMember();
+                    MarkLogicNode node = getGroup().getAnyUpMember();
                     if (node == null) {
                         LOG.debug("Can't discover forests, no nodes in cluster");
                         return;
@@ -65,7 +65,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                         }
                     }
                 } catch (Exception e) {
-                    LOG.error("Failed to discover databases", e);
+                //    LOG.error("Failed to discover databases", e);
                 }
             }
         };

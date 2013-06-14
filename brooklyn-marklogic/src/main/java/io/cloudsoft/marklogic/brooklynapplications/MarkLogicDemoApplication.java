@@ -4,7 +4,6 @@ import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.AbstractController;
-import brooklyn.entity.proxy.LoadBalancer;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
@@ -83,7 +82,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         printInfo();
 
         Database db = markLogicCluster.getDatabases().createDatabase(databaseName);
-        String targetHost = markLogicCluster.getDNodeGroup().getAnyStartedMember().getHostName();
+        String targetHost = markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName();
         Forest forest = markLogicCluster.getForests().createForest("demoForest", targetHost, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
 
 
@@ -102,7 +101,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     }
 
     private void printInfo() {
-        MarkLogicNode node = markLogicCluster.getENodeGroup().getAnyStartedMember();
+        MarkLogicNode node = markLogicCluster.getENodeGroup().getAnyUpMember();
         String hostName = node.getHostName();
 
         LOG.info("MarkLogic Nginx http://" + markLogicCluster.getLoadBalancer().getAttribute(Attributes.HOSTNAME));

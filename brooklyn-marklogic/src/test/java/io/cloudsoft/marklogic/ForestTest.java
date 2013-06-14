@@ -91,7 +91,7 @@ public class ForestTest {
         LOG.info("App started");
 
         String forestName = "peter" + System.currentTimeMillis();
-        MarkLogicNode node = group.getAnyStartedMember();
+        MarkLogicNode node = group.getAnyUpMember();
         forests.createForest(forestName, node.getHostName(), null, null, null, "all", true, false);
 
 

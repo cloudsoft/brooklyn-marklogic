@@ -19,6 +19,12 @@ public interface Forest extends Entity, Startable {
             String.class, "marklogic.forest.name",
             "The name of the forest", null);
 
+    //todo: needed for the time being since we don't suck in all state from marklogic.
+    @SetFromFlag("createdByBrooklyn")
+    ConfigKey<Boolean> CREATED_BY_BROOKLYN = new BasicConfigKey<Boolean>(
+            Boolean.class, "marklogic.forest.createdByBrooklyn",
+            "If the forest is created by brooklyn", false);
+
     @SetFromFlag("master")
     ConfigKey<String> MASTER = new BasicConfigKey<String>(
             String.class, "marklogic.forest.master",
@@ -105,7 +111,9 @@ public interface Forest extends Entity, Startable {
 
     String getStatus();
 
-    void awaitStatus(String expectedState);
+    void awaitStatus(String... expectedState);
 
     <T> T setConfig(ConfigKey<T> key, T val);
+
+    boolean createdByBrooklyn();
 }

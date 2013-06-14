@@ -5,8 +5,7 @@ import brooklyn.entity.group.DynamicClusterImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.DependentConfiguration;
-import brooklyn.policy.ha.MemberFailureDetectionPolicy;
-import brooklyn.util.MutableMap;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
 import org.slf4j.Logger;
@@ -23,15 +22,6 @@ import java.util.Map;
 public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicGroup {
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicGroupImpl.class);
-    private MemberFailureDetectionPolicy policy;
-
-    @Override
-    public void init() {
-        super.init();
-
-        //policy = new MemberFailureDetectionPolicy();
-        //addPolicy(policy);
-    }
 
     public boolean isUp() {
         return getAttribute(SERVICE_UP);
@@ -50,7 +40,7 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
     }
 
     @Override
-    public MarkLogicNode getAnyStartedMember() {
+    public MarkLogicNode getAnyUpMember() {
         for (Entity member : getMembers()) {
             if (member instanceof MarkLogicNode) {
                 MarkLogicNode node = (MarkLogicNode) member;
@@ -63,9 +53,8 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
         return null;
     }
 
-
     @Override
-    public MarkLogicNode getAnyOtherStartedMember(String... hostNames) {
+    public MarkLogicNode getAnyOtherUpMember(String... hostNames) {
         for (Entity member : getMembers()) {
             if (member instanceof MarkLogicNode) {
                 MarkLogicNode node = (MarkLogicNode) member;
@@ -76,7 +65,6 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
                             excluded = true;
                             break;
                         }
-
                     }
 
                     if (!excluded) {
@@ -87,6 +75,11 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
         }
 
         return null;
+    }
+
+    @Override
+    public MarkLogicCluster getCluster() {
+        return getConfig(CLUSTER);
     }
 
     @Override

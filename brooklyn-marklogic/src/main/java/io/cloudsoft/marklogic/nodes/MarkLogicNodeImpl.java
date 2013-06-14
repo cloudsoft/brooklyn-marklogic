@@ -1,6 +1,11 @@
 package io.cloudsoft.marklogic.nodes;
 
 import static java.lang.String.format;
+
+import brooklyn.entity.Entity;
+import brooklyn.entity.basic.DynamicGroup;
+import brooklyn.event.SensorEvent;
+import brooklyn.event.SensorEventListener;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -51,6 +56,41 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         if (configuredVersion != null && !configuredVersion.isEmpty()) {
             setConfig(SoftwareProcess.SUGGESTED_VERSION, configuredVersion);
         }
+
+        subscribe(this, MarkLogicNode.SERVICE_UP, new SensorEventListener<Boolean>() {
+            Boolean previous;
+
+            @Override public void onEvent(SensorEvent<Boolean> event) {
+                Boolean newValue = event.getValue();
+                if(previous == null){
+                    if(newValue!=null){
+                        onServiceUp(newValue);
+                    }
+                }else{
+                    if(!previous.equals(newValue)){
+                        onServiceUp(newValue);
+                    }
+                }
+                previous = newValue;
+
+            }
+        });
+
+    }
+
+    private void onServiceUp(boolean up){
+        if(up){
+            LOG.info("MarkLogicNode: "+getHostName()+" is up");
+        } else{
+            LOG.info("MarkLogicNode: "+getHostName()+" is not up");
+        }
+        getCluster().getForests().rebalance();
+    }
+
+    @Override
+    public void stop() {
+       // getCluster().getForests().moveAllForestFromNode(this);
+        super.stop();
     }
 
     public Class getDriverInterface() {
@@ -76,6 +116,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                         }))
                 .build();
     }
+
 
     @Override
     protected void disconnectSensors() {

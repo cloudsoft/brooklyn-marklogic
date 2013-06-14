@@ -94,10 +94,10 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     public MarkLogicNode getAnyNodeOrWait() {
         for (; ; ) {
 
-            MarkLogicNode node = dNodeGroup.getAnyStartedMember();
+            MarkLogicNode node = dNodeGroup.getAnyUpMember();
             if (node != null) return node;
 
-            node = eNodeGroup.getAnyStartedMember();
+            node = eNodeGroup.getAnyUpMember();
             if (node != null) return node;
 
             try {

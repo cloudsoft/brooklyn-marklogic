@@ -9,6 +9,10 @@ import brooklyn.entity.trait.Startable;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.nodes.MarkLogicNodeImpl;
+
+import java.util.List;
 
 @ImplementedBy(ForestsImpl.class)
 public interface Forests extends Entity, Startable {
@@ -52,4 +56,10 @@ public interface Forests extends Entity, Startable {
     void moveForest(
             @EffectorParam(name = "forest", description = "The name of the forest") String primaryForest,
             @EffectorParam(name = "host", description = "The new hostname") String hostName);
+
+    List<Forest> asList();
+
+    void rebalance();
+
+    void moveAllForestFromNode(MarkLogicNode markLogicNode);
 }

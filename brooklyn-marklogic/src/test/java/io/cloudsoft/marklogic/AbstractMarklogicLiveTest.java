@@ -57,6 +57,7 @@ public abstract class AbstractMarklogicLiveTest {
     public static MarkLogicGroup dgroup;
     public static MarkLogicNode dNode1;
     public static MarkLogicNode dNode2;
+    public static MarkLogicNode dNode3;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -75,14 +76,19 @@ public abstract class AbstractMarklogicLiveTest {
 
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
         markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)
         );
 
-        Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/ami-3275ee5b", "loginUser", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
+        //general purpose centos image
+        String ami = "ami-3275ee5b";
+        //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
+        //String ami = "ami-3d324454";
+
+        Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/"+ami, "loginUser", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
         jcloudsLocation = ctx.getLocationRegistry().resolve(PROVIDER + ":" + REGION_NAME, jcloudsFlags);
 
         app.start(Arrays.asList(jcloudsLocation));
@@ -93,26 +99,27 @@ public abstract class AbstractMarklogicLiveTest {
         forests = markLogicCluster.getForests();
         dgroup = markLogicCluster.getDNodeGroup();
         egroup = markLogicCluster.getENodeGroup();
-        dNode1 = dgroup.getAnyStartedMember();
-        dNode2 = dgroup.getAnyOtherStartedMember(dNode1.getHostName());
+        dNode1 = dgroup.getAnyUpMember();
+        dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
+        dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(),dNode2.getHostName());
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-        LOG.info("------------------------------------------------------------------");
-        LOG.info("afterClass");
-        LOG.info("------------------------------------------------------------------");
+        //LOG.info("------------------------------------------------------------------");
+        //LOG.info("afterClass");
+        //LOG.info("------------------------------------------------------------------");
 
         if (app != null) {
-            for (Entity entity : forests.getChildren()) {
-                if (entity instanceof Forest) {
-                    Forest forest = (Forest) entity;
-                    if (forest.getDataDir() != null) {
-                        forests.enableForest(forest.getName(), false);
-                        forests.unmountForest(forest.getName());
-                    }
-                }
-            }
+            //for (Entity entity : forests.getChildren()) {
+            //    if (entity instanceof Forest) {
+            //        Forest forest = (Forest) entity;
+            //        if (forest.getDataDir() != null) {
+            //            forests.enableForest(forest.getName(), false);
+            //            forests.unmountForest(forest.getName());
+            //        }
+            //    }
+            //}
             Entities.destroyAll(app);
         }
     }

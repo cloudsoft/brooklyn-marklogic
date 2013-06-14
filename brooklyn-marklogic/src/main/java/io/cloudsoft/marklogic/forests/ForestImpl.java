@@ -11,6 +11,7 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -88,7 +89,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
         if (group == null) {
             throw new NullPointerException("Group was not configured");
         }
-        return group.getAnyStartedMember();
+        return group.getAnyUpMember();
     }
 
     @Override
@@ -97,11 +98,18 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
-    public void awaitStatus(String expectedState) {
+    public boolean createdByBrooklyn() {
+        return getConfig(CREATED_BY_BROOKLYN);
+    }
+
+    @Override
+    public void awaitStatus(String... expectedStates) {
         for (int k = 0; k < 120; k++) {
             String status = getStatus();
-            if (expectedState.equals(status)) {
-                return;
+            for(String expected: expectedStates){
+                if(expected.equals(status)){
+                    return;
+                }
             }
 
             try {
@@ -110,7 +118,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
             }
         }
 
-        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s", getName(), expectedState, getStatus()));
+        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s", getName(), Arrays.asList(expectedStates), getStatus()));
     }
 
     public void connectSensors() {
@@ -132,7 +140,8 @@ public class ForestImpl extends AbstractEntity implements Forest {
                                 int beginIndex = status.indexOf("<state>") + "<state>".length();
                                 int endIndex = status.indexOf("</state>");
                                 if (beginIndex == -1 || endIndex == -1) {
-                                    LOG.error("bad status information:" + status);
+                                    LOG.error("Could not determine the status of forest:"+getName());
+                                    LOG.debug(status);
                                     return null;
                                 }
 
