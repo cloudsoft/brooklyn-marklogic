@@ -9,6 +9,8 @@ import brooklyn.location.Location;
 import brooklyn.management.Task;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -136,17 +138,19 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     private MarkLogicNode getNodeOrFail(String hostname) {
         MarkLogicGroup cluster = getGroup();
-
-        for (Entity member : cluster.getMembers()) {
+        Set<String> availableHostnames = Sets.newLinkedHashSet();
+        
+        for (Entity member : cluster.getChildren()) {
             if (member instanceof MarkLogicNode) {
                 MarkLogicNode node = (MarkLogicNode) member;
                 if (hostname.equals(node.getHostName())) {
                     return node;
                 }
+                availableHostnames.add(node.getHostName());
             }
         }
 
-        throw new IllegalStateException(format("Can't create a forest, no node with hostname '%s' found", hostname));
+        throw new IllegalStateException(format("Can't create a forest, no node with hostname '%s' found - available were %s", hostname, availableHostnames));
     }
 
     private boolean forestExists(String forestName) {
