@@ -6,6 +6,9 @@ import static org.testng.Assert.assertNotNull;
 import java.util.Map;
 
 import org.jclouds.ec2.domain.Volume;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableMap;
 
 import brooklyn.location.NoMachinesAvailableException;
 import brooklyn.location.jclouds.JcloudsLocation;
@@ -14,12 +17,20 @@ import brooklyn.util.collections.MutableMap;
 
 public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
 
+    // Note we're using the region-name with an explicit availability zone, as is done in the demo-app so
+    // that new VMs will be able to see the existing volumes within that availability zone.
+    
     public static final String PROVIDER = "aws-ec2";
-    public static final String REGION_NAME = "us-east-1";
-    public static final String AVAILABILITY_ZONE_NAME = REGION_NAME + "c";
+    public static final String REGION_NAME = "us-east-1c";
+    public static final String AVAILABILITY_ZONE_NAME = REGION_NAME;
     public static final String LOCATION_SPEC = PROVIDER + (REGION_NAME == null ? "" : ":" + REGION_NAME);
     public static final String TINY_HARDWARE_ID = "t1.micro";
     public static final String SMALL_HARDWARE_ID = "m1.small";
+    
+    @Test(groups="Live")
+    public void testCreateVolume() throws Exception {
+        super.testCreateVolume();
+    }
     
     @Override
     protected String getProvider() {
