@@ -29,8 +29,10 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     private final Object mutex = new Object();
 
     @Override
-    public void moveAllForestFromNode(MarkLogicNode node) {
-        LOG.info("MoveAllForestsFromNode:" + node.getHostName());
+    public void moveAllForestFromNode(String hostName) {
+        LOG.info("MoveAllForestsFromNode:" + hostName);
+
+        MarkLogicNode node = getNodeOrFail(hostName);
 
         final List<Forest> forests = getBrooklynCreatedForestsOnHosts(node.getHostName());
         if (forests.isEmpty()) {
@@ -75,7 +77,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         if (filteredUpNodes.isEmpty()) return null;
 
-        //and now we select the node with the lowest number of forests/
+        //and now we select the node with the lowest number of forests
         MarkLogicNode bestNode = null;
         int lowestForestCount = Integer.MAX_VALUE;
         for (MarkLogicNode upNode : filteredUpNodes) {
@@ -96,6 +98,10 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     @Override
     public void rebalance() {
         LOG.info("Rebalance");
+
+       // for(Forest forest: asList()){
+       //     if(forest.)
+       // }
     }
 
     @Override

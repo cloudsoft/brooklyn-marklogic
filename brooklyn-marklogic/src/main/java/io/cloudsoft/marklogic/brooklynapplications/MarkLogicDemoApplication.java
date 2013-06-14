@@ -13,10 +13,14 @@ import brooklyn.entity.webapp.WebAppServiceConstants;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import brooklyn.policy.autoscaling.AutoScalerPolicy;
+import brooklyn.util.text.Identifiers;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
+import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.forests.UpdatesAllowed;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 import java.util.Collection;
@@ -26,6 +30,7 @@ import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
+    private final String user = System.getProperty("user.name");
 
     private String appServiceName = "DemoService";
     private int appServicePort = 8011;
@@ -39,7 +44,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                 .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
                         .displayName("LoadBalancer")
@@ -71,6 +76,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .sizeRange(1, 5)
                 .metricRange(10, 100)
                 .build());
+
+
     }
 
     @Override
@@ -81,19 +88,48 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         printInfo();
 
-        Database db = markLogicCluster.getDatabases().createDatabase(databaseName);
-        String targetHost = markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName();
-        Forest forest = markLogicCluster.getForests().createForest("demoForest", targetHost, null, null, null, UpdatesAllowed.ALL.toString(), true, false);
+        MarkLogicGroup dgroup = markLogicCluster.getDNodeGroup();
+        Databases databases = markLogicCluster.getDatabases();
+        MarkLogicNode node1 = dgroup.getAnyUpMember();
+        MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
+        Forests forests = markLogicCluster.getForests();
 
+        Database database = databases.createDatabaseWithSpec(spec(Database.class)
+                .configure(Database.NAME, "database-" + user)
+                .configure(Database.JOURNALING, "strict")
+        );
 
-        //Forest forest = markLogicCluster.getForests().createForestWithSpec(...);
-        //Database db = markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-        //db.assign(forest);
+        String primaryForestId = Identifiers.makeRandomId(8);
+        Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.HOST, node1.getHostName())
+                .configure(Forest.NAME, user + "-forest" + primaryForestId)
+                .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true)
+        );
 
-        //markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-        //MarkLogicNode node = (MarkLogicNode) markLogicCluster.getDNodeGroup().getMembers().iterator().next();
+        String replicaForestId = Identifiers.makeRandomId(8);
+        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+                .configure(Forest.HOST, node2.getHostName())
+                .configure(Forest.NAME, user + "-forest-replica"+replicaForestId)
+                .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+                .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.FAILOVER_ENABLED, true));
 
-        //markLogicCluster.getForests().createForestWithSpec("demoForest", node.getHostName(), null, null, null, UpdatesAllowed.ALL.toString(), "true", "false");
+        primaryForest.awaitStatus("open");
+
+        replicaForest.awaitStatus("open");
+
+        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
 
         markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
 

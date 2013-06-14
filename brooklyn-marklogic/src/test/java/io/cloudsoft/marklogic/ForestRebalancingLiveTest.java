@@ -21,7 +21,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicLiveTest {
         databases.attachForestToDatabase(forest.getName(), database.getName());
         forest.awaitStatus("open");
 
-        forests.moveAllForestFromNode(dNode1);
+        forests.moveAllForestFromNode(dNode1.getHostName());
 
         String hostName = forest.getHostname();
         assertTrue(hostName.equals(dNode2.getHostName())||hostName.equals(dNode3.getHostName()));
@@ -50,7 +50,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicLiveTest {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveAllForestFromNode(dNode1);
+        forests.moveAllForestFromNode(dNode1.getHostName());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals(dNode3.getHostName(), primaryForest.getHostname());
@@ -81,7 +81,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicLiveTest {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveAllForestFromNode(dNode2);
+        forests.moveAllForestFromNode(dNode2.getHostName());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals(dNode1.getHostName(), primaryForest.getHostname());

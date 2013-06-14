@@ -116,35 +116,35 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
           //  node1.stop();
 
+
+            String replicaForestId = Identifiers.makeRandomId(8);
+            Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+                    .configure(Forest.HOST, node2.getHostName())
+                    .configure(Forest.NAME, user + "-forest-replica")
+                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+//                    .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+//         //       .configure(Forest.DATA_DIR, "/tmp/")
+//         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
+//         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
 //
-//            String replicaForestId = Identifiers.makeRandomId(8);
-//            Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-//                    .configure(Forest.HOST, node2.getHostName())
-//                    .configure(Forest.NAME, user + "-forest-replica")
-//                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-//                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-////                    .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-////         //       .configure(Forest.DATA_DIR, "/tmp/")
-////         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
-////         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
-////
-//                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-//                    .configure(Forest.REBALANCER_ENABLED, true)
-//                    .configure(Forest.FAILOVER_ENABLED, true));
-//
-//            primaryForest.awaitStatus("open");
-//
-//             replicaForest.awaitStatus("open");
-//
-//            forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-//
-//            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-//
-//            primaryForest.awaitStatus("open");
-//            replicaForest.awaitStatus("sync replicating");
-//
+                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                    .configure(Forest.REBALANCER_ENABLED, true)
+                    .configure(Forest.FAILOVER_ENABLED, true));
+
+            primaryForest.awaitStatus("open");
+
+             replicaForest.awaitStatus("open");
+
+            forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+
+            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+
+            primaryForest.awaitStatus("open");
+            replicaForest.awaitStatus("sync replicating");
+
 //            forests.enableForest(primaryForest.getName(), false);
-//
+///
 //            primaryForest.awaitStatus("unmounted");
 //            replicaForest.awaitStatus("open");
 //

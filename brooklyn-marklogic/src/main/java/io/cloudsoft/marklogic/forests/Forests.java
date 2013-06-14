@@ -21,7 +21,6 @@ public interface Forests extends Entity, Startable {
     public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
-
     Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
 
     @Effector(description = "Creates a new forest")
@@ -54,12 +53,14 @@ public interface Forests extends Entity, Startable {
 
     @Effector(description = "Moves a forest from one host to another")
     void moveForest(
-            @EffectorParam(name = "forest", description = "The name of the forest") String primaryForest,
+            @EffectorParam(name = "forest", description = "The name of the forest") String forestName,
             @EffectorParam(name = "host", description = "The new hostname") String hostName);
 
     List<Forest> asList();
 
     void rebalance();
 
-    void moveAllForestFromNode(MarkLogicNode markLogicNode);
+    @Effector(description = "Move all forests from this node (this is useful for removing a node within the cluster)")
+    void moveAllForestFromNode(
+            @EffectorParam(name = "hostName", description = "The name of the host node which should loose all its forests.") String hostName);
 }
