@@ -32,31 +32,30 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     public void moveAllForestFromNode(String hostName) {
         LOG.info("MoveAllForestsFromNode:" + hostName);
 
-        MarkLogicNode node = getNodeOrFail(hostName);
 
-        final List<Forest> forests = getBrooklynCreatedForestsOnHosts(node.getHostName());
+        final List<Forest> forests = getBrooklynCreatedForestsOnHosts(hostName);
         if (forests.isEmpty()) {
-            LOG.info("There are no forests on host: " + node.getHostName());
+            LOG.info("There are no forests on host: " + hostName);
             return;
         }
 
-        LOG.info(format("Moving %s forests from host %s", forests.size(), node.getHostName()));
+        LOG.info(format("Moving %s forests from host %s", forests.size(), hostName));
         for (Forest forest : forests) {
 
 
-            MarkLogicNode targetNode = findTargetNode(node, forest);
+            MarkLogicNode targetNode = findTargetNode(hostName, forest);
 
             if (targetNode == null) {
-                throw new IllegalStateException("Can't move forest: " + forest.getName() + " from node: " + node.getHostName() + ", there are no candidate nodes available");
+                throw new IllegalStateException("Can't move forest: " + forest.getName() + " from node: " + hostName + ", there are no candidate nodes available");
             }
 
             moveForest(forest.getName(), targetNode.getHostName());
         }
     }
 
-    private MarkLogicNode findTargetNode(MarkLogicNode node, Forest forest) {
+    private MarkLogicNode findTargetNode(String host, Forest forest) {
         Set<String> nonDesiredHostNames = new HashSet<String>();
-        nonDesiredHostNames.add(node.getHostName());
+        nonDesiredHostNames.add(host);
 
         if (forest.getMaster() != null) {
             Forest master = getForest(forest.getMaster());
