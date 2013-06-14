@@ -41,7 +41,7 @@ public class RackspaceVolumeManager extends AbstractVolumeManager {
         
         String zone = getZone(location.getProvider());
         if (availabilityZone != null && !availabilityZone.equals(zone)) {
-            throw new IllegalArgumentException("Availability zone "+availabilityZone+" does not match "+zone+", expected for "+location.getProvider());
+            LOG.warn("Availability zone "+availabilityZone+" does not match "+zone+", expected for "+location.getProvider());
         }
         
         CinderApi cinderApi = getCinderApi(location);
