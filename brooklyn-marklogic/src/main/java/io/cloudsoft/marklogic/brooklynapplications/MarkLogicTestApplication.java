@@ -167,7 +167,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 //
             LOG.info("Done");
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("Error starting MarkLogic app", e);
         }
     }
 
