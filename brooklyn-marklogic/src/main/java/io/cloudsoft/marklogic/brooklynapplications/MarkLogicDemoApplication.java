@@ -32,7 +32,7 @@ import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 public class MarkLogicDemoApplication extends AbstractApplication {
     private final String user = System.getProperty("user.name");
 
-     private int appServicePort = 8011;
+    private int appServicePort = 8011;
     private String password = "hap00p";
     private String username = "admin";
     private ControlledDynamicWebAppCluster web;
@@ -42,7 +42,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 2)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                 .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
                         .displayName("LoadBalancer")
@@ -74,8 +74,6 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .sizeRange(1, 5)
                 .metricRange(10, 100)
                 .build());
-
-
     }
 
     @Override
@@ -97,10 +95,20 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Database.JOURNALING, "strict")
         );
 
+        createReplicatedForrest(databases, node1, node2, forests, database, "forest1");
+        createReplicatedForrest(databases, node2, node1, forests, database, "forest2");
+
+        String appServiceName = "DemoService";
+        markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", "" + appServicePort);
+
+        LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
+    }
+
+    private void createReplicatedForrest(Databases databases, MarkLogicNode node1, MarkLogicNode node2, Forests forests, Database database, String forestBaseName) {
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())
-                .configure(Forest.NAME, user + "-forest" + primaryForestId)
+                .configure(Forest.NAME, forestBaseName + "-primary")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
@@ -111,7 +119,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         String replicaForestId = Identifiers.makeRandomId(8);
         Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node2.getHostName())
-                .configure(Forest.NAME, user + "-forest-replica"+replicaForestId)
+                .configure(Forest.NAME, forestBaseName + "-replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
@@ -119,20 +127,13 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Forest.FAILOVER_ENABLED, true));
 
         primaryForest.awaitStatus("open");
-
         replicaForest.awaitStatus("open");
 
         forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
-
-        String appServiceName = "DemoService";
-        markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", "" + appServicePort);
-
-        LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }
 
     private void printInfo() {
