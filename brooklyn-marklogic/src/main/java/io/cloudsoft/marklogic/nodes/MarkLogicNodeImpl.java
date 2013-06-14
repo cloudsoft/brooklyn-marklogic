@@ -1,29 +1,33 @@
 package io.cloudsoft.marklogic.nodes;
 
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
-import brooklyn.entity.basic.SoftwareProcessImpl;
-import brooklyn.event.SensorEvent;
-import brooklyn.event.SensorEventListener;
-import brooklyn.event.feed.function.FunctionFeed;
-import brooklyn.event.feed.function.FunctionPollConfig;
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import static java.lang.String.format;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.SoftwareProcessImpl;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.SensorEvent;
+import brooklyn.event.SensorEventListener;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -34,6 +38,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     private FunctionFeed serviceUp;
 
+    private final Object attributeSetMutex = new Object();
+    
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
@@ -59,17 +65,10 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             @Override
             public void onEvent(SensorEvent<Boolean> event) {
                 Boolean newValue = event.getValue();
-                if (previous == null) {
-                    if (newValue != null) {
-                        onServiceUp(newValue);
-                    }
-                } else {
-                    if (!previous.equals(newValue)) {
-                        onServiceUp(newValue);
-                    }
+                if (newValue != null && !newValue.equals(previous)) {
+                    onServiceUp(newValue);
                 }
                 previous = newValue;
-
             }
         });
     }
@@ -171,6 +170,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void createForest(Forest forest) {
         getDriver().createForest(forest);
+        addToAttributeSet(FOREST_NAMES, forest.getName());
     }
 
     @Override
@@ -197,11 +197,13 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void unmount(Forest forest) {
         getDriver().unmountForest(forest);
+        removeFromAttributeSet(FOREST_NAMES, forest.getName());
     }
 
     @Override
     public void mount(Forest forest) {
         getDriver().mountForest(forest);
+        addToAttributeSet(FOREST_NAMES, forest.getName());
     }
 
     @Override
@@ -247,6 +249,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void deleteForestConfiguration(String forestName) {
         getDriver().deleteForestConfiguration(forestName);
+        removeFromAttributeSet(FOREST_NAMES, forestName);
     }
 
     @Override
@@ -267,5 +270,25 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public String getUser() {
         return getConfig(USER);
+    }
+    
+    private <T> void addToAttributeSet(AttributeSensor<Set<T>> attribute, T newval) {
+        Set<T> newvals = Sets.newLinkedHashSet();
+        newvals.add(newval);
+        synchronized (attributeSetMutex) {
+            Set<T> existing = getAttribute(attribute);
+            if (existing != null) newvals.addAll(existing);
+            setAttribute(attribute, newvals);
+        }
+    }
+    
+    private <T> void removeFromAttributeSet(AttributeSensor<Set<T>> attribute, T oldval) {
+        Set<T> newvals = Sets.newLinkedHashSet();
+        synchronized (attributeSetMutex) {
+            Set<T> existing = getAttribute(attribute);
+            if (existing != null) newvals.addAll(existing);
+            newvals.remove(oldval);
+            setAttribute(attribute, newvals);
+        }
     }
 }

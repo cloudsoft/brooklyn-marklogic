@@ -7,6 +7,8 @@ import io.cloudsoft.marklogic.forests.Forest;
 import java.util.Set;
 
 import brooklyn.config.ConfigKey;
+import brooklyn.entity.annotation.Effector;
+import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.AttributeSensor;
@@ -153,13 +155,17 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<Integer> FOREIGN_BIND_PORT = new BasicConfigKey<Integer>(
             Integer.class, "marklogic.foreignBindPort", "The distributed protocol server socket bind internet port number.", 7998);
 
+    AttributeSensor<Set<String>> FOREST_NAMES = new BasicAttributeSensor(
+            Set.class, "marklogic.node.forests", "Names of forests at this node");
+
     //TODO: This should not be here, it is a temporary hack to let the nginx loadbalancer read out the port.
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
     void createDatabaseWithForest(String name);
 
-    void createForest(Forest forest);
+    @Effector
+    void createForest(@EffectorParam(name="forest") Forest forest);
 
     String getHostName();
 
@@ -197,7 +203,9 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getPassword();
 
-    void unmount(Forest forest);
+    @Effector
+    void unmount(@EffectorParam(name="forest") Forest forest);
 
-    void mount(Forest forest);
+    @Effector
+    void mount(@EffectorParam(name="forest") Forest forest);
 }
