@@ -1,33 +1,29 @@
 package io.cloudsoft.marklogic.nodes;
 
-import static java.lang.String.format;
-
-import brooklyn.entity.Entity;
-import brooklyn.entity.basic.DynamicGroup;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.event.SensorEvent;
 import brooklyn.event.SensorEventListener;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.Forests;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
-import brooklyn.entity.basic.SoftwareProcessImpl;
-import brooklyn.event.feed.function.FunctionFeed;
-import brooklyn.event.feed.function.FunctionPollConfig;
-
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import static java.lang.String.format;
 
 public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicNode {
 
@@ -60,14 +56,15 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         subscribe(this, MarkLogicNode.SERVICE_UP, new SensorEventListener<Boolean>() {
             Boolean previous;
 
-            @Override public void onEvent(SensorEvent<Boolean> event) {
+            @Override
+            public void onEvent(SensorEvent<Boolean> event) {
                 Boolean newValue = event.getValue();
-                if(previous == null){
-                    if(newValue!=null){
+                if (previous == null) {
+                    if (newValue != null) {
                         onServiceUp(newValue);
                     }
-                }else{
-                    if(!previous.equals(newValue)){
+                } else {
+                    if (!previous.equals(newValue)) {
                         onServiceUp(newValue);
                     }
                 }
@@ -75,21 +72,30 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
             }
         });
-
     }
 
-    private void onServiceUp(boolean up){
-        if(up){
-            LOG.info("MarkLogicNode: "+getHostName()+" is up");
-        } else{
-            LOG.info("MarkLogicNode: "+getHostName()+" is not up");
+    private void onServiceUp(boolean up) {
+        if (up) {
+            LOG.info("MarkLogicNode: " + getHostName() + " is up");
+            Forests forests = getCluster().getForests();
+            Forest targetForest = null;
+            for (Forest forest : forests.asList()) {
+                if (forest.createdByBrooklyn() && forest.getMaster() == null) {
+                    targetForest = forest;
+                    break;
+                }
+            }
+
+            if (targetForest != null)
+                forests.moveForest(targetForest.getName(), getHostName());
+        } else {
+            LOG.info("MarkLogicNode: " + getHostName() + " is not up");
         }
-        getCluster().getForests().rebalance();
     }
 
     @Override
     public void stop() {
-       // getCluster().getForests().moveAllForestFromNode(this);
+        // getCluster().getForests().moveAllForestFromNode(this);
         super.stop();
     }
 
@@ -227,11 +233,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     @Override
     public void attachReplicaForest(String primaryForestName, String replicaForestName) {
-        getDriver().attachReplicaForest(primaryForestName,replicaForestName);
+        getDriver().attachReplicaForest(primaryForestName, replicaForestName);
     }
 
     @Override
-       public void enableForest(String forestName, boolean enabled) {
+    public void enableForest(String forestName, boolean enabled) {
         getDriver().enableForest(forestName, enabled);
     }
 
@@ -257,6 +263,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     @Override
     public String getUser() {
-       return getConfig(USER);
+        return getConfig(USER);
     }
 }

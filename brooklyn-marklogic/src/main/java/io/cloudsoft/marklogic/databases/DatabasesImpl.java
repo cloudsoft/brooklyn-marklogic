@@ -69,7 +69,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                 }
             }
         };
-        scheduler.scheduleAtFixedRate(task, 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 30, TimeUnit.SECONDS);
     }
 
     @Override

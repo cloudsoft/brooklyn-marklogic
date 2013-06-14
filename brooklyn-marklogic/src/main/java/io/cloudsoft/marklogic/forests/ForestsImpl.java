@@ -192,7 +192,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
                                 BasicEntitySpec<Forest, ?> spec = BasicEntitySpec.newInstance(Forest.class)
                                         .displayName(forestName)
-                                        .configure(Forest.CREATED_BY_BROOKLYN, true)
+                                        .configure(Forest.CREATED_BY_BROOKLYN, false)
                                         .configure(Forest.GROUP, getGroup())
                                         .configure(Forest.NAME, forestName);
 
@@ -211,7 +211,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                 }
             }
         };
-        scheduler.scheduleAtFixedRate(task, 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 30, TimeUnit.SECONDS);
     }
 
     @Override

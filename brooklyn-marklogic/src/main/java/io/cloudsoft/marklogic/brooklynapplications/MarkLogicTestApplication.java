@@ -46,7 +46,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
     public void init() {
         markLogicCluster = addChild(spec(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
+                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
@@ -82,7 +82,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         try {
             MarkLogicNode node1 = dgroup.getAnyUpMember();
-            MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
+//            MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
 //            MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostName(), node2.getHostName());
 //
             Database database = databases.createDatabaseWithSpec(spec(Database.class)
@@ -102,46 +102,46 @@ public class MarkLogicTestApplication extends AbstractApplication {
                     .configure(Forest.FAILOVER_ENABLED, true)
             );
 
-            String forestId2= Identifiers.makeRandomId(8);
-            Forest forest2 = forests.createForestWithSpec(spec(Forest.class)
-                    .configure(Forest.HOST, node2.getHostName())
-                    .configure(Forest.NAME, user + "-forest"+forestId2)
-                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
-                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
-//                .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
-                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-                    .configure(Forest.REBALANCER_ENABLED, true)
-                    .configure(Forest.FAILOVER_ENABLED, true)
-            );
-
-          //  node1.stop();
-
-
-            String replicaForestId = Identifiers.makeRandomId(8);
-            Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
-                    .configure(Forest.HOST, node2.getHostName())
-                    .configure(Forest.NAME, user + "-forest-replica")
-                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-//                    .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-//         //       .configure(Forest.DATA_DIR, "/tmp/")
-//         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
-//         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
+//            String forestId2= Identifiers.makeRandomId(8);
+//            Forest forest2 = forests.createForestWithSpec(spec(Forest.class)
+//                    .configure(Forest.HOST, node2.getHostName())
+//                    .configure(Forest.NAME, user + "-forest"+forestId2)
+//                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+//                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+////                .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+//                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+//                    .configure(Forest.REBALANCER_ENABLED, true)
+//                    .configure(Forest.FAILOVER_ENABLED, true)
+//            );
 //
-                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
-                    .configure(Forest.REBALANCER_ENABLED, true)
-                    .configure(Forest.FAILOVER_ENABLED, true));
+//          //  node1.stop();
+//
+//
+//            String replicaForestId = Identifiers.makeRandomId(8);
+//            Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+//                    .configure(Forest.HOST, node2.getHostName())
+//                    .configure(Forest.NAME, user + "-forest-replica")
+//                    .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+//                    .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+////                    .configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
+////         //       .configure(Forest.DATA_DIR, "/tmp/")
+////         //       .configure(Forest.LARGE_DATA_DIR, "/tmp/")
+////         //       .configure(Forest.FAST_DATA_DIR, "/tmp/")
+////
+//                    .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+//                    .configure(Forest.REBALANCER_ENABLED, true)
+//                    .configure(Forest.FAILOVER_ENABLED, true));
+//
+//            primaryForest.awaitStatus("open");
 
-            primaryForest.awaitStatus("open");
+//             replicaForest.awaitStatus("open");
 
-             replicaForest.awaitStatus("open");
-
-            forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+//            forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
 
             databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 
             primaryForest.awaitStatus("open");
-            replicaForest.awaitStatus("sync replicating");
+//            replicaForest.awaitStatus("sync replicating");
 
 //            forests.enableForest(primaryForest.getName(), false);
 ///

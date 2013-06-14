@@ -32,9 +32,7 @@ import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 public class MarkLogicDemoApplication extends AbstractApplication {
     private final String user = System.getProperty("user.name");
 
-    private String appServiceName = "DemoService";
-    private int appServicePort = 8011;
-    private String databaseName = "DemoDatabase";
+     private int appServicePort = 8011;
     private String password = "hap00p";
     private String username = "admin";
     private ControlledDynamicWebAppCluster web;
@@ -131,7 +129,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
+        String appServiceName = "DemoService";
+        markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", "" + appServicePort);
 
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }
