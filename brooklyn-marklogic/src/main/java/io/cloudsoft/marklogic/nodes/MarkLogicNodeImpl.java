@@ -99,6 +99,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         getCluster().getForests().moveAllForestFromNode(getHostName());
         LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
         super.stop();
+        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
     }
 
     public Class getDriverInterface() {

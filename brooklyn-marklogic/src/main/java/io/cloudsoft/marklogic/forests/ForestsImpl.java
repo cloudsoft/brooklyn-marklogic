@@ -42,6 +42,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info(format("Moving %s forests from host %s", forests.size(), node.getHostName()));
         for (Forest forest : forests) {
+
+
             MarkLogicNode targetNode = findTargetNode(node, forest);
 
             if (targetNode == null) {
@@ -422,6 +424,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         return result;
     }
 
+    private void sleepSome(){
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
     @Override
     public void moveForest(String primaryForestName, String hostName) {
         Forest primaryForest = getForestOrFail(primaryForestName);
@@ -429,10 +439,19 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         if (replicaForests.size() == 0) {
             enableForest(primaryForest.getName(), false);
+            sleepSome();
             primaryForest.awaitStatus("unmounted");
+            sleepSome();
+
             unmountForest(primaryForest.getName());
+            sleepSome();
+
             setForestHost(primaryForest.getName(), hostName);
+            sleepSome();
+
             mountForest(primaryForest.getName());
+            sleepSome();
+
             enableForest(primaryForest.getName(), true);
             primaryForest.awaitStatus("open", "sync replicating");
         } else if (replicaForests.size() == 1) {
@@ -440,20 +459,33 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
             primaryForest.awaitStatus("open");
             replicaForest.awaitStatus("sync replicating");
+            sleepSome();
 
             enableForest(primaryForest.getName(), false);
             primaryForest.awaitStatus("unmounted");
             replicaForest.awaitStatus("open");
 
+            sleepSome();
+
             unmountForest(primaryForest.getName());
+            sleepSome();
+
             setForestHost(primaryForest.getName(), hostName);
+            sleepSome();
+
             mountForest(primaryForest.getName());
+            sleepSome();
+
             enableForest(primaryForest.getName(), true);
             primaryForest.awaitStatus("sync replicating");
             replicaForest.awaitStatus("open");
 
             enableForest(replicaForest.getName(), false);
+            sleepSome();
+
             enableForest(replicaForest.getName(), true);
+            sleepSome();
+
             primaryForest.awaitStatus("open");
             replicaForest.awaitStatus("sync replicating");
         } else {
