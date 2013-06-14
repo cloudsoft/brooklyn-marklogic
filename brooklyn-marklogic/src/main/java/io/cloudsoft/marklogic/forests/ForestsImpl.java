@@ -14,10 +14,7 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,25 +40,57 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info(format("Moving %s forests from host %s", forests.size(), node.getHostName()));
         for (Forest forest : forests) {
-            List<String> nonDesiredHostNames = new LinkedList<String>();
-            nonDesiredHostNames.add(node.getHostName());
+            MarkLogicNode targetNode = findTargetNode(node, forest);
 
-            if (forest.getMaster() != null) {
-                Forest master = getForest(forest.getMaster());
-                nonDesiredHostNames.add(master.getHostname());
-            }
-
-            for(Forest replica : getReplicasForMaster(forest.getName())){
-                nonDesiredHostNames.add(replica.getHostname());
-            }
-
-            MarkLogicNode targetNode = getGroup().getAnyOtherUpMember(nonDesiredHostNames.toArray(new String[nonDesiredHostNames.size()]));
             if (targetNode == null) {
                 throw new IllegalStateException("Can't move forest: " + forest.getName() + " from node: " + node.getHostName() + ", there are no candidate nodes available");
             }
 
             moveForest(forest.getName(), targetNode.getHostName());
         }
+    }
+
+    private MarkLogicNode findTargetNode(MarkLogicNode node, Forest forest) {
+        Set<String> nonDesiredHostNames = new HashSet<String>();
+        nonDesiredHostNames.add(node.getHostName());
+
+        if (forest.getMaster() != null) {
+            Forest master = getForest(forest.getMaster());
+            nonDesiredHostNames.add(master.getHostname());
+        }
+
+        for (Forest replica : getReplicasForMaster(forest.getName())) {
+            nonDesiredHostNames.add(replica.getHostname());
+        }
+
+        List<MarkLogicNode> upNodes = getGroup().getAllUpMembers();
+        if (upNodes.isEmpty()) return null;
+
+        List<MarkLogicNode> filteredUpNodes = new LinkedList<MarkLogicNode>();
+        for (MarkLogicNode upNode : upNodes) {
+            if (!nonDesiredHostNames.contains(upNode.getHostName())) {
+                filteredUpNodes.add(upNode);
+            }
+        }
+
+        if (filteredUpNodes.isEmpty()) return null;
+
+        //and now we select the node with the lowest number of forests/
+        MarkLogicNode bestNode = null;
+        int lowestForestCount = Integer.MAX_VALUE;
+        for (MarkLogicNode upNode : filteredUpNodes) {
+            if (lowestForestCount == Integer.MAX_VALUE) {
+                bestNode = upNode;
+                lowestForestCount = getBrooklynCreatedForestsOnHosts(upNode.getHostName()).size();
+            } else {
+                int forestCount = getBrooklynCreatedForestsOnHosts(upNode.getHostName()).size();
+                if (forestCount < lowestForestCount) {
+                    bestNode = upNode;
+                    lowestForestCount = forestCount;
+                }
+            }
+        }
+        return bestNode;
     }
 
     @Override

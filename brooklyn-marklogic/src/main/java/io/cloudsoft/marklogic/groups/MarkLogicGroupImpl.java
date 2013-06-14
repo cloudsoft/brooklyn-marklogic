@@ -11,6 +11,8 @@ import io.cloudsoft.marklogic.nodes.NodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +39,22 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
         return addChild(BasicEntitySpec.newInstance(MarkLogicNode.class)
                 .configure(MarkLogicNode.GROUP, getGroupName())
                 .configure(MarkLogicNode.CLUSTER, getConfig(MarkLogicGroup.CLUSTER)));
+    }
+
+    @Override
+    public List<MarkLogicNode> getAllUpMembers() {
+        List<MarkLogicNode> result = new LinkedList<MarkLogicNode>();
+
+        for (Entity member : getMembers()) {
+            if (member instanceof MarkLogicNode) {
+                MarkLogicNode node = (MarkLogicNode) member;
+                if (node.isUp()) {
+                    result.add(node);
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override

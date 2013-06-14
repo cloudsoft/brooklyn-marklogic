@@ -9,6 +9,8 @@ import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
 
+import java.util.List;
+
 /**
  * Creates a cluster of MarkLogic nodes
  */
@@ -40,6 +42,8 @@ public interface MarkLogicGroup extends DynamicCluster {
     boolean isUp();
 
     MarkLogicNode getAnyUpMember();
+
+    List<MarkLogicNode> getAllUpMembers();
 
     MarkLogicNode getAnyOtherUpMember(String... hostName);
 }
