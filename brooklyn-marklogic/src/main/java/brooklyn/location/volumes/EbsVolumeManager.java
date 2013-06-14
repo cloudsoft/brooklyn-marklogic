@@ -1,10 +1,10 @@
 package brooklyn.location.volumes;
 
-import brooklyn.location.jclouds.JcloudsLocation;
-import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-import brooklyn.util.internal.Repeater;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.Attachment;
@@ -15,10 +15,12 @@ import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import brooklyn.location.jclouds.JcloudsLocation;
+import brooklyn.location.jclouds.JcloudsSshMachineLocation;
+import brooklyn.util.internal.Repeater;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * For managing EBS volumes via EC2-compatible APIs.
@@ -48,7 +50,7 @@ public class EbsVolumeManager extends AbstractVolumeManager {
         LOG.debug("Attaching volume: machine={}; volume={}; ec2DeviceName={}", new Object[]{machine, volumeId, ec2DeviceName});
 
         JcloudsLocation location = machine.getParent();
-        String region = location.getRegion();
+        String region = getRegionName(location);
         EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
         ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
         Attachment attachment = ebsClient.attachVolumeInRegion(region, volumeId, machine.getNode().getProviderId(), ec2DeviceName);
@@ -62,7 +64,7 @@ public class EbsVolumeManager extends AbstractVolumeManager {
         LOG.debug("Detaching volume: machine={}; volume={}; ec2DeviceName={}", new Object[]{machine, volumeId, ec2DeviceName});
 
         final JcloudsLocation location = machine.getParent();
-        String region = location.getRegion();
+        String region = getRegionName(location);
         String instanceId = machine.getNode().getProviderId();
         EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
         ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
@@ -91,7 +93,7 @@ public class EbsVolumeManager extends AbstractVolumeManager {
     public void deleteVolume(JcloudsLocation location, String volumeId) {
         LOG.debug("Deleting volume: location={}; volume={}", new Object[]{location, volumeId});
 
-        String region = location.getRegion();
+        String region = getRegionName(location);
         EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
         ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
         ebsClient.deleteVolumeInRegion(region, volumeId);
@@ -104,10 +106,22 @@ public class EbsVolumeManager extends AbstractVolumeManager {
         if (LOG.isDebugEnabled())
             LOG.debug("Describing volume: location={}; volume={}", new Object[]{location, volumeId});
 
-        String region = location.getRegion();
+        String region = getRegionName(location);
         EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
         ElasticBlockStoreClient ebsClient = ec2Client.getElasticBlockStoreServices();
         Set<Volume> volumes = ebsClient.describeVolumesInRegion(region, volumeId);
         return Iterables.getFirst(volumes, null);
+    }
+    
+    // Naming convention is things like "us-east-1" or "us-east-1c"; strip off the availability zone suffix.
+    // This is a hack to get around that jclouds accepts regions with the suffix for creating VMs, but not for ebsClient calls.
+    private String getRegionName(JcloudsLocation location) {
+        String region = location.getRegion();
+        char lastchar = region.charAt(region.length()-1);
+        if (Character.isDigit(lastchar)) {
+            return region; // normal region name; return as-is
+        } else {
+            return region.substring(0, region.length()-1); // remove single char representing availability zone
+        }
     }
 }
