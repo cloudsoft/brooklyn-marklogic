@@ -11,27 +11,30 @@ import io.cloudsoft.marklogic.nodes.NodeType;
 
 import java.util.List;
 
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
+import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
+
 /**
  * Creates a cluster of MarkLogic nodes
  */
 @ImplementedBy(MarkLogicGroupImpl.class)
 public interface MarkLogicGroup extends DynamicCluster {
 
-    @SetFromFlag("name")
-    ConfigKey<String> GROUP_NAME = new BasicConfigKey<String>(
-            String.class, "marklogic.group.name",
-            "The name of the database", "Default");
+    ConfigKey<String> GROUP_NAME = newStringConfigKey(
+            "marklogic.group.name",
+            "The name of the database",
+            "Default");
 
-    @SetFromFlag("name")
-    ConfigKey<NodeType> NODE_TYPE = new BasicConfigKey<NodeType>(
-            NodeType.class, "marklogic.group.type",
-            "The type of nodes in this group", NodeType.E_D_NODE);
+    ConfigKey<NodeType> NODE_TYPE = newConfigKey(
+            NodeType.class,
+            "marklogic.group.type",
+            "The type of nodes in this group",
+            NodeType.E_D_NODE);
 
-
-    @SetFromFlag("cluster")
-    ConfigKey<MarkLogicCluster> CLUSTER = new BasicConfigKey<MarkLogicCluster>(
-            MarkLogicCluster.class, "marklogic.group.cluster",
-            "The cluster this group belongs to", null);
+    ConfigKey<MarkLogicCluster> CLUSTER = newConfigKey(
+            MarkLogicCluster.class,
+            "marklogic.group.cluster",
+            "The cluster this group belongs to");
 
     String getGroupName();
 

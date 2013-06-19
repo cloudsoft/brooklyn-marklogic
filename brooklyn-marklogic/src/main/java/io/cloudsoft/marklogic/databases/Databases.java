@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.databases;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.AbstractGroup;
@@ -9,12 +10,12 @@ import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
+
 @ImplementedBy(DatabasesImpl.class)
 public interface Databases extends AbstractGroup {
 
-    @SetFromFlag("cluster")
-    public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
-            MarkLogicGroup.class, "marklogic.databases.group", "The group");
+    ConfigKey<MarkLogicGroup> GROUP = newConfigKey(MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
     @Effector(description = "Creates a new database and automatically creates forests and attaches them to the database.")
     void createDatabaseWithForest(

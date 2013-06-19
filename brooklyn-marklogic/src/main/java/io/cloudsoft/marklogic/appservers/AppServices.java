@@ -1,19 +1,18 @@
 package io.cloudsoft.marklogic.appservers;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.AbstractGroup;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 
 @ImplementedBy(AppServicesImpl.class)
 public interface AppServices extends AbstractGroup {
 
-    @SetFromFlag("cluster")
-    public static final BasicConfigKey<MarkLogicGroup> CLUSTER = new BasicConfigKey<MarkLogicGroup>(
-            MarkLogicGroup.class, "marklogic.appservices.cluster", "The cluster");
+    ConfigKey<MarkLogicGroup> CLUSTER = newConfigKey(MarkLogicGroup.class, "marklogic.appservices.cluster", "The cluster");
 
     @Effector(description = "Creates a new Rest AppServer")
     RestAppServer createRestAppServer(

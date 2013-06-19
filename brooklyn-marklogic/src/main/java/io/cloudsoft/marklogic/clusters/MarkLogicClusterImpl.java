@@ -132,6 +132,11 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     @Override
     public void start(Collection<? extends Location> locations) {
+        if(locations.size()==1){
+           Location location = locations.iterator().next();
+           setDisplayName(getDisplayName()+":"+location.getName());
+        }
+
         Entities.invokeEffectorList(
                 this,
                 getStartableChildren(),

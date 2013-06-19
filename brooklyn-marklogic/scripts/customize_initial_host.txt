@@ -25,11 +25,6 @@ curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user
 sleep 2
 echo Finished setting new credentials
 
-#echo credentials-admin-go # only needed for S3
-#curl --digest -u ${driver.user}:${driver.password} \
-#   'http://localhost:8001/credentials-admin-go.xqy?/sec:credentials/sec:aws-access-key=${driver.awsAccessKey}&/sec:credentials/sec:aws-secret-key=${driver.awsSecretKey}'
-#sleep 2
-
 echo Restarting MarkLogic
 curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
 waitForMarkLogicUp

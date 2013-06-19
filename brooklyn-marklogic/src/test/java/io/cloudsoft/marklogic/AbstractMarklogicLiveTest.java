@@ -77,7 +77,7 @@ public abstract class AbstractMarklogicLiveTest {
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
         markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
                 .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
+                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)

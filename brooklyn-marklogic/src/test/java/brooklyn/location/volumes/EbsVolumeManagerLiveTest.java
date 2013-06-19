@@ -27,7 +27,7 @@ public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
     public static final String TINY_HARDWARE_ID = "t1.micro";
     public static final String SMALL_HARDWARE_ID = "m1.small";
     
-    @Test(groups="Live")
+    @Test(groups="Live", enabled = false)
     public void testCreateVolume() throws Exception {
         super.testCreateVolume();
     }
@@ -66,9 +66,9 @@ public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
 
     @Override
     protected JcloudsSshMachineLocation rebindJcloudsMachine() throws NoMachinesAvailableException {
-        Map<String, ?> machineFlags = MutableMap.of("id", "i-4e904625", 
-                "hostname", "ec2-54-224-215-144.compute-1.amazonaws.com", 
-                "user", "aled", 
+        Map<String, ?> machineFlags = MutableMap.of("id", "i-4e904625",
+                "hostname", "ec2-54-224-215-144.compute-1.amazonaws.com",
+                "user", "aled",
                 JcloudsLocation.PUBLIC_KEY_FILE.getName(), "/Users/aled/.ssh/id_rsa");
         return jcloudsLocation.rebindMachine(jcloudsLocation.getConfigBag().putAll(machineFlags));
     }

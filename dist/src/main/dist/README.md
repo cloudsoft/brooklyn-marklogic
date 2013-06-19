@@ -25,8 +25,6 @@ brooklyn.location.named.marklogic-us-east-1.user=ec2-user
 brooklyn.jclouds.aws-ec2.identity=<your amazon identity>
 brooklyn.jclouds.aws-ec2.credential=<your amazon credentials>
 brooklyn.jclouds.aws-ec2.minRam=2500
-brooklyn.marklogic.aws-access-key=<your amazon identity>
-brooklyn.marklogic.aws-secret-key=<your amazon credentials>
 
 brooklyn.markLogic.licenseKey=<your marklogic license key>
 brooklyn.markLogic.licensee=<your marklogic licensee name>

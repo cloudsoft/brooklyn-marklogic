@@ -11,81 +11,75 @@ import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
+import static brooklyn.entity.basic.ConfigKeys.*;
+
 @ImplementedBy(ForestImpl.class)
 public interface Forest extends Entity, Startable {
 
-    @SetFromFlag("name")
-    ConfigKey<String> NAME = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.name",
-            "The name of the forest", null);
+    ConfigKey<String> NAME = newStringConfigKey(
+            "marklogic.forest.name",
+            "The name of the forest");
 
     //todo: needed for the time being since we don't suck in all state from marklogic.
-    @SetFromFlag("createdByBrooklyn")
-    ConfigKey<Boolean> CREATED_BY_BROOKLYN = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.forest.createdByBrooklyn",
+    ConfigKey<Boolean> CREATED_BY_BROOKLYN = newBooleanConfigKey(
+            "marklogic.forest.createdByBrooklyn",
             "If the forest is created by brooklyn", false);
 
-    @SetFromFlag("master")
-    ConfigKey<String> MASTER = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.master",
-            "The name of the master forest (null if there is no master)", null);
+    ConfigKey<String> MASTER = newStringConfigKey(
+            "marklogic.forest.master", "" +
+            "The name of the master forest (null if there is no master)");
 
-    @SetFromFlag("host")
-    ConfigKey<String> HOST = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.host",
-            "Specifies the host on which the forest resides.", null);
+    ConfigKey<String> HOST = newStringConfigKey(
+            "marklogic.forest.host",
+            "Specifies the host on which the forest resides.");
 
-    @SetFromFlag("data_dir")
-    ConfigKey<String> DATA_DIR = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.data-dir",
+    ConfigKey<String> DATA_DIR = newStringConfigKey(
+            "marklogic.forest.data-dir",
             "Specifies a public directory in which the forest is located. If the data directory is not specified, the " +
                     "forest will be created in the default forest directory on the host machine and the specified host " +
-                    "machine cannot be changed once the forest is created.", null);
+                    "machine cannot be changed once the forest is created.");
 
-    @SetFromFlag("large_dataDir")
-    ConfigKey<String> LARGE_DATA_DIR = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.large-data-dir",
-            "Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory.", null);
+    ConfigKey<String> LARGE_DATA_DIR = newStringConfigKey(
+            "marklogic.forest.large-data-dir",
+            "Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory.");
 
-    @SetFromFlag("fast_dataDir")
-    ConfigKey<String> FAST_DATA_DIR = new BasicConfigKey<String>(
-            String.class, "marklogic.forest.fast-data-dir",
-            "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.", null);
+    ConfigKey<String> FAST_DATA_DIR = newStringConfigKey(
+            "marklogic.forest.fast-data-dir",
+            "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.");
 
-    @SetFromFlag("updates_allowed")
-    ConfigKey<UpdatesAllowed> UPDATES_ALLOWED = new BasicConfigKey<UpdatesAllowed>(
+    ConfigKey<UpdatesAllowed> UPDATES_ALLOWED = newConfigKey(
             UpdatesAllowed.class, "marklogic.forest.updates-allowed",
-            "Specifies which operations are allowed on this forest.", UpdatesAllowed.ALL);
+            "Specifies which operations are allowed on this forest.",
+            UpdatesAllowed.ALL);
 
-    @SetFromFlag("rebalancer_enable")
-    ConfigKey<Boolean> REBALANCER_ENABLED = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.forest.rebalancer-enabled",
-            "Enable automatic rebalancing after configuration changes.", true);
+    ConfigKey<Boolean> REBALANCER_ENABLED = newBooleanConfigKey(
+            "marklogic.forest.rebalancer-enabled",
+            "Enable automatic rebalancing after configuration changes.",
+            true);
 
-    @SetFromFlag("failover_enable")
-    ConfigKey<Boolean> FAILOVER_ENABLED = new BasicConfigKey<Boolean>(
-            Boolean.class, "marklogic.forest.failover-enabled",
-            "Enable assignment to a failover host if the primary host is down.", false);
+    ConfigKey<Boolean> FAILOVER_ENABLED = newBooleanConfigKey(
+            "marklogic.forest.failover-enabled",
+            "Enable assignment to a failover host if the primary host is down.",
+            false);
 
-    @SetFromFlag("cluster")
-    BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
-            MarkLogicGroup.class, "marklogic.forests.group", "The group");
+    ConfigKey<MarkLogicGroup> GROUP = newConfigKey(
+            MarkLogicGroup.class,
+            "marklogic.forests.group", "The group");
 
-    AttributeSensor<String> STATUS = new BasicAttributeSensor<String>(String.class, "forest.status", "The status of the forest");
-
-    AttributeSensor<Long> FOREST_ID = new BasicAttributeSensor<Long>(Long.class, "forest.id", "The id of the forest");
-
-    @SetFromFlag("data_dir_volumeId")
     BasicAttributeSensorAndConfigKey<VolumeInfo> DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
             VolumeInfo.class, "marklogic.forest.data-dir.volumeId",
             "Specifies a volume id in which the forest's regular data is located. If null, indicates that no volume " +
                     "has been created yet for this forest. If DATA_DIR is null then the volumeId should also be null", null);
 
-    @SetFromFlag("fast_dataDir_volumeId")
     BasicAttributeSensorAndConfigKey<VolumeInfo> FAST_DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
             VolumeInfo.class, "marklogic.forest.fast-data-dir.volumeId",
             "Specifies a volume id in which the forest's fast data is located. If null, indicates that no volume " +
                     "has been created yet. If FAST_DATA_DIR is null then the volumeId should also be null", null);
+
+    AttributeSensor<String> STATUS = new BasicAttributeSensor<String>(String.class, "forest.status", "The status of the forest");
+
+    AttributeSensor<Long> FOREST_ID = new BasicAttributeSensor<Long>(Long.class, "forest.id", "The id of the forest");
+
 
     <T> T setAttribute(AttributeSensor<T> attribute, T value);
 

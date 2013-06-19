@@ -144,11 +144,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return Integer.toString(getNodeId());
     }
 
-    public int getFcount() {
-        return entity.getConfig(MarkLogicNode.FCOUNT);
-    }
-
-    public String getWebsiteUsername() {
+     public String getWebsiteUsername() {
         return entity.getConfig(MarkLogicNode.WEBSITE_USERNAME);
     }
 
@@ -166,14 +162,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     public String getLicenseKey() {
         return entity.getConfig(MarkLogicNode.LICENSE_KEY);
-    }
-
-    public String getAwsAccessKey() {
-        return entity.getConfig(MarkLogicNode.AWS_ACCESS_KEY);
-    }
-
-    public String getAwsSecretKey() {
-        return entity.getConfig(MarkLogicNode.AWS_SECRET_KEY);
     }
 
     public String getLicensee() {

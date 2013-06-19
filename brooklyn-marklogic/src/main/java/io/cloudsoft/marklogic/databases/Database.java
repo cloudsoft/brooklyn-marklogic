@@ -6,18 +6,19 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.util.flags.SetFromFlag;
 
+import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
+
 @ImplementedBy(DatabaseImpl.class)
 public interface Database extends Entity {
 
-    @SetFromFlag("name")
-    ConfigKey<String> NAME = new BasicConfigKey<String>(
-            String.class, "marklogic.database.name",
-            "The name of the database", null);
+    ConfigKey<String> NAME = newStringConfigKey(
+            "marklogic.database.name",
+            "The name of the database");
 
-    @SetFromFlag("journaling")
-    ConfigKey<String> JOURNALING = new BasicConfigKey<String>(
-            String.class, "marklogic.database.journaling",
-            "Specifies how robust transaction journaling should be (strict, fast, off)", "fast");
+    ConfigKey<String> JOURNALING = newStringConfigKey(
+            "marklogic.database.journaling",
+            "Specifies how robust transaction journaling should be (strict, fast, off)",
+            "fast");
 
     String getName();
 

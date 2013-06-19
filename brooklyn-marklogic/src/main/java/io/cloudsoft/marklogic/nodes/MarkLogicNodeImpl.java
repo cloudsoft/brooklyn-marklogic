@@ -50,9 +50,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         setConfig(WEBSITE_PASSWORD, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-password"));
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
-        setConfig(AWS_ACCESS_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-access-key"));
-        setConfig(AWS_SECRET_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.aws-secret-key"));
-        setConfig(FCOUNT, Integer.parseInt(getManagementContext().getConfig().getFirst("brooklyn.marklogic.fcount")));
         setConfig(CLUSTER_NAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
         String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");
         if (configuredVersion != null && !configuredVersion.isEmpty()) {
@@ -92,14 +89,14 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         }
     }
 
-    @Override
-    public void stop() {
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
-        getCluster().getForests().moveAllForestFromNode(getHostName());
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
-        super.stop();
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
-    }
+   // @Override
+   // public void stop() {
+   //     LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
+   //     getCluster().getForests().moveAllForestFromNode(getHostName());
+   //     LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+   //     super.stop();
+   //     LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
+   // }
 
     public Class getDriverInterface() {
         return MarkLogicNodeDriver.class;

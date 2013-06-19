@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.forests;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
@@ -14,11 +15,12 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNodeImpl;
 
 import java.util.List;
 
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
+
 @ImplementedBy(ForestsImpl.class)
 public interface Forests extends Entity, Startable {
 
-    @SetFromFlag("cluster")
-    public static final BasicConfigKey<MarkLogicGroup> GROUP = new BasicConfigKey<MarkLogicGroup>(
+    ConfigKey<MarkLogicGroup> GROUP = newConfigKey(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
     Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
