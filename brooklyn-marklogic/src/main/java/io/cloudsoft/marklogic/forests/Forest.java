@@ -8,10 +8,13 @@ import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
+import brooklyn.event.basic.Sensors;
 import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import static brooklyn.entity.basic.ConfigKeys.*;
+import static brooklyn.event.basic.Sensors.newLongSensor;
+import static brooklyn.event.basic.Sensors.newStringSensor;
 
 @ImplementedBy(ForestImpl.class)
 public interface Forest extends Entity, Startable {
@@ -76,9 +79,13 @@ public interface Forest extends Entity, Startable {
             "Specifies a volume id in which the forest's fast data is located. If null, indicates that no volume " +
                     "has been created yet. If FAST_DATA_DIR is null then the volumeId should also be null", null);
 
-    AttributeSensor<String> STATUS = new BasicAttributeSensor<String>(String.class, "forest.status", "The status of the forest");
+    AttributeSensor<String> STATUS = newStringSensor(
+            "forest.status",
+            "The status of the forest");
 
-    AttributeSensor<Long> FOREST_ID = new BasicAttributeSensor<Long>(Long.class, "forest.id", "The id of the forest");
+    AttributeSensor<Long> FOREST_ID = newLongSensor(
+            "forest.id",
+            "The id of the forest");
 
 
     <T> T setAttribute(AttributeSensor<T> attribute, T value);

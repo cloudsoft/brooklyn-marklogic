@@ -18,6 +18,7 @@ import io.cloudsoft.marklogic.forests.Forest;
 import java.util.Set;
 
 import static brooklyn.entity.basic.ConfigKeys.*;
+import static brooklyn.event.basic.Sensors.newStringSensor;
 
 /**
  * A node in a MarkLogic cluster.
@@ -35,10 +36,6 @@ public interface MarkLogicNode extends SoftwareProcess {
             "marklogic.node-type",
             "The type of the marklogic node; d-type only has forests, e-type only has appservers, d+e-type can have both",
             NodeType.E_D_NODE);
-
-    ConfigKey<String> SUGGESTED_VERSION = newStringConfigKey(
-            SoftwareProcess.SUGGESTED_VERSION.getName(),
-            "7.0-ea1_20130315");
 
     ConfigKey<String> WEBSITE_USERNAME = newStringConfigKey(
             "marklogic.website-username",
@@ -105,9 +102,6 @@ public interface MarkLogicNode extends SoftwareProcess {
             "Whether the fastdir should use an EBS Volume",
             true);
 
-    BasicAttributeSensorAndConfigKey<String> MARKLOGIC_AUTO_SCALE_GROUP = new BasicAttributeSensorAndConfigKey<String>(
-            String.class, "marklogic.node.autoScaleGroup", "<description goes here>", null);
-
     BasicAttributeSensorAndConfigKey<String> VAR_OPT_VOLUME = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.volumes.varOpt", "EBS Volume ID for /var/opt (or null if does not already exist)", null);
 
@@ -126,8 +120,9 @@ public interface MarkLogicNode extends SoftwareProcess {
             "The size of backup EBS Volume (if being created from scratch)",
             10);
 
-    AttributeSensor<String> URL = new BasicAttributeSensor<String>(
-            String.class, "marklogic.node.url", "Base URL for MarkLogic node");
+    AttributeSensor<String> URL = newStringSensor(
+            "marklogic.node.url",
+            "Base URL for MarkLogic node");
 
     ConfigKey<Integer> BIND_PORT = newIntegerConfigKey(
             "marklogic.bindPort",
