@@ -46,11 +46,7 @@
              <artifactId>rackspace-cloudblockstorage-uk</artifactId>
              <version>${jclouds.version}</version>
          </dependency>
-
-
-         Add blobstores-all and  to Brooklyn-location-jclouds Pom,
-
-         <dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
