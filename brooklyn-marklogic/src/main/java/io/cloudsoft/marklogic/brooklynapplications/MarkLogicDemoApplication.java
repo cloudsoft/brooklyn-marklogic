@@ -104,7 +104,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         createReplicatedForrest(databases, node2, node1, forests, database, "forest2");
 
         String appServiceName = "DemoService";
-        markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", "" + appServicePort);
+        markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default",  appServicePort);
 
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }

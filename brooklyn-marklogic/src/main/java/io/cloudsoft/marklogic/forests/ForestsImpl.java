@@ -437,6 +437,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void moveForest(String primaryForestName, String hostName) {
+        LOG.info("Moving forest {} to host {}", primaryForestName,hostName);
+
         Forest primaryForest = getForestOrFail(primaryForestName);
         List<Forest> replicaForests = getReplicasForMaster(primaryForestName);
 

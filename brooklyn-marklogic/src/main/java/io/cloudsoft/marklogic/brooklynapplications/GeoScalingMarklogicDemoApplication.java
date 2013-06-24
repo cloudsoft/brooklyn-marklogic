@@ -105,7 +105,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
             if (member instanceof MarkLogicCluster) {
                 MarkLogicCluster markLogicCluster = (MarkLogicCluster) member;
                 markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-                markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", "" + appServicePort);
+                markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", appServicePort);
             }
         }
 

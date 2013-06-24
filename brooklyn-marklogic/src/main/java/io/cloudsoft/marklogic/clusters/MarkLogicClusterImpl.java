@@ -121,7 +121,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     }
 
     protected List<? extends Entity> getStartableChildren() {
-        LinkedList result = new LinkedList();
+        List<Entity> result = new LinkedList<Entity>();
         for (Entity entity : getChildren()) {
             if (entity instanceof Startable) {
                 result.add(entity);

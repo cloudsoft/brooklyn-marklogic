@@ -1,6 +1,8 @@
 package io.cloudsoft.marklogic.nodes;
 
 import static java.lang.String.format;
+
+import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -181,9 +183,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createRestAppServer(String name, String database, String groupName, String port) {
-        LOG.info(format("Creating appServer '%s'", name));
-        getDriver().createAppServer(name, database, groupName, port);
+    public void createRestAppServer(RestAppServer appServer) {
+        getDriver().createAppServer(appServer);
     }
 
     @Override

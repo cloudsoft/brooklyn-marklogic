@@ -4,6 +4,7 @@ import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
 
+import static brooklyn.entity.basic.ConfigKeys.newIntegerConfigKey;
 import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
 
 @ImplementedBy(RestAppServerImpl.class)
@@ -22,7 +23,7 @@ public interface RestAppServer extends Entity {
             "The name of the group this RestAppServer belongs to");
 
     //todo: should be a port type
-    ConfigKey<String> PORT = newStringConfigKey(
+    ConfigKey<Integer> PORT = newIntegerConfigKey(
             "marklogic.appserver.port",
             "The port this application can be connected to");
 
@@ -30,7 +31,7 @@ public interface RestAppServer extends Entity {
 
     String getDatabaseName();
 
-    String getPort();
+    Integer getPort();
 
     String getGroupName();
 }

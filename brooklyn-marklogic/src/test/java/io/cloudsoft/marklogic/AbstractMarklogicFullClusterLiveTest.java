@@ -1,7 +1,6 @@
 package io.cloudsoft.marklogic;
 
 import brooklyn.config.BrooklynProperties;
-import brooklyn.entity.Entity;
 import brooklyn.entity.basic.ApplicationBuilder;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.trait.Startable;
@@ -32,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 
-public abstract class AbstractMarklogicLiveTest {
+public abstract class AbstractMarklogicFullClusterLiveTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(ForestLiveTest.class);
     public final String user = System.getProperty("user.name");
@@ -61,47 +60,52 @@ public abstract class AbstractMarklogicLiveTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ctx = new LocalManagementContext();
-        brooklynProperties = (BrooklynProperties) ctx.getConfig();
+        try {
+            ctx = new LocalManagementContext();
+            brooklynProperties = (BrooklynProperties) ctx.getConfig();
 
-        // Don't let any defaults from brooklyn.properties (except credentials) interfere with test
-        brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-description-regex");
-        brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-name-regex");
-        brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-id");
-        brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".inboundPorts");
-        brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".hardware-id");
+            // Don't let any defaults from brooklyn.properties (except credentials) interfere with test
+            brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-description-regex");
+            brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-name-regex");
+            brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".image-id");
+            brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".inboundPorts");
+            brooklynProperties.remove("brooklyn.jclouds." + PROVIDER + ".hardware-id");
 
-        // Also removes scriptHeader (e.g. if doing `. ~/.bashrc` and `. ~/.profile`, then that can cause "stdin: is not a tty")
-        brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
+            // Also removes scriptHeader (e.g. if doing `. ~/.bashrc` and `. ~/.profile`, then that can cause "stdin: is not a tty")
+            brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
 
-        app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
-        markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
-                .configure(MarkLogicNode.IS_FORESTS_EBS, true)
-                .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
-                .configure(MarkLogicNode.IS_BACKUP_EBS, false)
-        );
+            app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
+            markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
+                    .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                    .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                    .configure(MarkLogicNode.IS_FORESTS_EBS, true)
+                    .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
+                    .configure(MarkLogicNode.IS_BACKUP_EBS, false)
+            );
 
-        //general purpose centos image
-        String ami = "ami-3275ee5b";
-        //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
-        //String ami = "ami-3d324454";
+            //general purpose centos image
+            String ami = "ami-3275ee5b";
+            //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
+            //String ami = "ami-3d324454";
 
-        Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/"+ami, "loginUser", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
-        jcloudsLocation = ctx.getLocationRegistry().resolve(PROVIDER + ":" + REGION_NAME, jcloudsFlags);
+            Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/" + ami, "loginUser", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
+            jcloudsLocation = ctx.getLocationRegistry().resolve(PROVIDER + ":" + REGION_NAME, jcloudsFlags);
 
-        app.start(Arrays.asList(jcloudsLocation));
-        EntityTestUtils.assertAttributeEqualsEventually(app, Startable.SERVICE_UP, true);
+            app.start(Arrays.asList(jcloudsLocation));
+            EntityTestUtils.assertAttributeEqualsEventually(app, Startable.SERVICE_UP, true);
 
-        databases = markLogicCluster.getDatabases();
-        appServices = markLogicCluster.getAppservices();
-        forests = markLogicCluster.getForests();
-        dgroup = markLogicCluster.getDNodeGroup();
-        egroup = markLogicCluster.getENodeGroup();
-        dNode1 = dgroup.getAnyUpMember();
-        dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
-        dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(),dNode2.getHostName());
+            databases = markLogicCluster.getDatabases();
+            appServices = markLogicCluster.getAppservices();
+            forests = markLogicCluster.getForests();
+            dgroup = markLogicCluster.getDNodeGroup();
+            egroup = markLogicCluster.getENodeGroup();
+            //dNode1 = dgroup.getAnyUpMember();
+            //dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
+            //dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
+        } catch (Exception e) {
+            LOG.error("Failed to setup cluster", e);
+            throw e;
+        }
     }
 
     @AfterClass

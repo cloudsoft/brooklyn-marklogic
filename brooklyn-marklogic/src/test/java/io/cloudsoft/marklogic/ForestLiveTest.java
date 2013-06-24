@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 
 @Test(groups = {"Live"})
-public class ForestLiveTest extends AbstractMarklogicLiveTest {
+public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
     @Test
     public void testCreateForest() throws Exception {

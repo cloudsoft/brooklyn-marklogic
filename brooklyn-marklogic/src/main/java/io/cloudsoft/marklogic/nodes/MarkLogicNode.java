@@ -11,6 +11,7 @@ import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import com.google.common.collect.ImmutableList;
+import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -148,7 +149,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getHostName();
 
-    void createRestAppServer(String name, String database, String groupName, String port);
+    void createRestAppServer(RestAppServer appServer);
 
     void createGroup(String groupName);
 

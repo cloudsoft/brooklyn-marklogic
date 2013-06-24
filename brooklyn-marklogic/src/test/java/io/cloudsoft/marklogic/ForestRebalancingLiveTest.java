@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 import static com.mongodb.util.MyAsserts.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
-public class ForestRebalancingLiveTest extends AbstractMarklogicLiveTest {
+public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
     @Test
     public void testMoveAllForestsFromNode_noReplica() throws Exception {

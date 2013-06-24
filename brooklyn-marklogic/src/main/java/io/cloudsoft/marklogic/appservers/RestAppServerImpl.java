@@ -44,7 +44,7 @@ public class RestAppServerImpl extends AbstractEntity implements RestAppServer {
     }
 
     @Override
-    public String getPort() {
+    public Integer getPort() {
         return getConfig(PORT);
     }
 }

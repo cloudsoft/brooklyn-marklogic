@@ -24,11 +24,10 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
     }
 
     @Override
-    public RestAppServer createRestAppServer(String name, String database, String groupName, String port) {
+    public RestAppServer createRestAppServer(String name, String database, String groupName, int port) {
         LOG.info("Creating REST appServer: " + name);
         MarkLogicNode node = getMarkLogicNode();
 
-        node.createRestAppServer(name, database, groupName, "" + port);
 
         RestAppServer appServer = addChild(EntitySpecs.spec(RestAppServer.class)
                 .configure(RestAppServer.NAME, name)
@@ -36,7 +35,9 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
                 .configure(RestAppServer.PORT, port)
                 .configure(RestAppServer.GROUP_NAME, groupName)
         );
-        //todo: should be moved to the appServer
+
+        node.createRestAppServer(appServer);
+
 
         LOG.info("Successfully created REST appServer: " + name);
 

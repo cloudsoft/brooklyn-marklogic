@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.SoftwareProcessDriver;
+import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 
@@ -16,7 +17,7 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
     void createGroup(String name);
 
-    void createAppServer(String name, String database, String groupName, String port);
+    void createAppServer(RestAppServer appServer);
 
     void assignHostToGroup(String hostAddress, String groupName);
 

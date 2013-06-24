@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.nodes;
 
+import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -485,10 +486,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void createAppServer(String name, String database, String groupName, String port) {
-        LOG.debug("Starting create appServer{} ", name);
+    public void createAppServer(RestAppServer appServer) {
+        LOG.debug("Starting create appServer{} ", appServer.getName());
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appServer", name, "port", port, "database", database, "groupName", groupName);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appserver",appServer);
         File scriptFile = new File(getScriptDirectory(), "create_appserver.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -501,7 +502,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished creating appServer {}", name);
+        LOG.debug("Finished creating appServer {}", appServer.getName());
     }
 
     @Override
