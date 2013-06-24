@@ -266,6 +266,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
+    public String getAdminConnectUrl() {
+        return "http://"+getAttribute(MarkLogicNode.HOSTNAME)+":8001";
+    }
+
+    @Override
     public String getUser() {
         return getConfig(USER);
     }

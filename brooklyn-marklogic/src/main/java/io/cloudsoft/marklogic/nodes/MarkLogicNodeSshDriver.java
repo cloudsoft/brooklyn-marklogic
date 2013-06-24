@@ -1,35 +1,5 @@
 package io.cloudsoft.marklogic.nodes;
 
-import io.cloudsoft.marklogic.appservers.RestAppServer;
-import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
-import io.cloudsoft.marklogic.databases.Database;
-import io.cloudsoft.marklogic.forests.Forest;
-import io.cloudsoft.marklogic.forests.VolumeInfo;
-
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.jclouds.JcloudsLocation;
@@ -39,10 +9,30 @@ import brooklyn.location.volumes.RackspaceVolumeManager;
 import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.collections.MutableMap;
 import brooklyn.util.text.Strings;
-
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.cloudsoft.marklogic.appservers.RestAppServer;
+import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
+import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.VolumeInfo;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.CommonCommands.sudo;
@@ -145,7 +135,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return Integer.toString(getNodeId());
     }
 
-     public String getWebsiteUsername() {
+    public String getWebsiteUsername() {
         return entity.getConfig(MarkLogicNode.WEBSITE_USERNAME);
     }
 
@@ -324,7 +314,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
 
-      @Override
+    @Override
     public void customize() {
         final MarkLogicCluster cluster = getEntity().getCluster();
         boolean isInitialHost = cluster == null || cluster.claimToBecomeInitialHost();
@@ -489,7 +479,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public void createAppServer(RestAppServer appServer) {
         LOG.debug("Starting create appServer{} ", appServer.getName());
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appserver",appServer);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appserver", appServer);
         File scriptFile = new File(getScriptDirectory(), "create_appserver.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -657,90 +647,91 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public Set<String> scanDatabases() {
         LOG.debug("Scanning databases");
 
-        File scriptFile = new File(getScriptDirectory(), "scan_databases.txt");
-        String script = processTemplate(scriptFile);
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            httpClient.getCredentialsProvider().setCredentials(
+                    new AuthScope(null, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(getEntity().getUser(), getEntity().getPassword()));
 
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
+            String adminUrl = getEntity().getAdminConnectUrl();
+            String uri = adminUrl + "/database_list.xqy";
+            HttpGet httpget = new HttpGet(uri);
 
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+            HttpResponse response = httpClient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+            String result = IOUtils.toString(entity.getContent());
+            EntityUtils.consume(entity);
 
-        //todo:
-        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
-        if (exitStatus != 0) {
-            LOG.error("Failed to databases");
-            return ImmutableSet.of();
+            Set<String> forests = new HashSet();
+            String[] split = result.split("\n");
+            for (int k = 0; k < split.length - 1; k++) {
+                forests.add(split[k]);
+            }
+            return forests;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
         }
-        String s = new String(stdout.toByteArray());
-
-        Set<String> databases = new HashSet<String>();
-        String[] split = s.split("\n");
-        for (int k = 0; k < split.length - 1; k++) {
-            databases.add(split[k]);
-        }
-
-        return databases;
     }
 
     @Override
     public Set<String> scanForests() {
         LOG.debug("Scanning forests");
 
-        File scriptFile = new File(getScriptDirectory(), "scan_forests.txt");
-        String script = processTemplate(scriptFile);
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            httpClient.getCredentialsProvider().setCredentials(
+                    new AuthScope(null, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(getEntity().getUser(), getEntity().getPassword()));
 
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
+            String adminUrl = getEntity().getAdminConnectUrl();
+            String uri = adminUrl + "/forest_list.xqy";
+            HttpGet httpget = new HttpGet(uri);
 
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+            HttpResponse response = httpClient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+            String result = IOUtils.toString(entity.getContent());
+            EntityUtils.consume(entity);
 
-        //todo:
-        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
-        if (exitStatus != 0) {
-            LOG.error("Failed to scan forests");
-            return Collections.EMPTY_SET;
+            Set<String> forests = new HashSet();
+            String[] split = result.split("\n");
+            for (int k = 0; k < split.length - 1; k++) {
+                forests.add(split[k]);
+            }
+            return forests;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
         }
-        String s = new String(stdout.toByteArray());
-
-        Set<String> forests = new HashSet();
-        String[] split = s.split("\n");
-        for (int k = 0; k < split.length - 1; k++) {
-            forests.add(split[k]);
-        }
-        return forests;
     }
 
     @Override
     public String getForestStatus(String forestName) {
         LOG.debug("Getting status for forest {}", forestName);
 
-        Map<String, Object> extraSubstitutions = (Map<String, Object>) (Map) MutableMap.of("forestName", forestName);
-        File scriptFile = new File(getScriptDirectory(), "get_forest_status.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            httpClient.getCredentialsProvider().setCredentials(
+                    new AuthScope(null, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(getEntity().getUser(), getEntity().getPassword()));
 
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
+            String adminUrl = getEntity().getAdminConnectUrl();
+            String uri = adminUrl + format("/forest_detailed_status.xqy?forest=%s", forestName);
+            HttpGet httpget = new HttpGet(uri);
 
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
-
-        //todo:
-        int exitStatus = getMachine().run(MutableMap.of("out", stdout, "err", stderr), script, new HashMap());
-        if (exitStatus != 0) {
-            LOG.error("Failed to get status for forest");
-            return null;
+            HttpResponse response = httpClient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+            String status = IOUtils.toString(entity.getContent());
+            EntityUtils.consume(entity);
+            return status;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
         }
-        String s = new String(stdout.toByteArray());
-
-        String[] split = s.split("\n\n");
-        return split[0];
     }
-
 
     private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
@@ -768,7 +759,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 String filesystemType = "ext3";
 
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                 forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
 
                 ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
@@ -784,7 +775,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                     String osDeviceName = "/dev/xvd" + deviceSuffix;
                     String filesystemType = "ext3";
 
-                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(),osDeviceName);
+                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                     forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
                     ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
                 }

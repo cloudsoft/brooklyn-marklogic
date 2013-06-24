@@ -183,6 +183,8 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getPassword();
 
+    String getAdminConnectUrl();
+
     @Effector
     void unmount(@EffectorParam(name = "forest") Forest forest);
 
