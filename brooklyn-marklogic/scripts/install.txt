@@ -109,8 +109,13 @@ waitForMarkLogicUp
 echo Finished Starting MarkLogic
 
 echo Installing new license
-curl  'http://localhost:8001/license-go.xqy?license-key=${driver.licenseKey}&licensee=${driver.licensee}&ok'
-sleep 2
+curl -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/license -d \
+'<license xmlns="http://marklogic.com/manage">
+    <license-key>${driver.licenseKey}</license-key>
+    <licensee>${driver.licensee}</licensee>
+</license>'
+#sleep 2
+waitForMarkLogicUp
 echo Finished installing new license
 
 echo Accepting agreement
@@ -118,14 +123,14 @@ curl 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
 sleep 2
 echo Finished accepting agreement
 
-echo initialize-go.xqy
-curl 'http://localhost:8001/initialize-go.xqy'
-sleep 2
+#echo initialize-go.xqy
+#curl 'http://localhost:8001/initialize-go.xqy'
+#sleep 2
 
-echo Restarting MarkLogic
-curl 'http://localhost:8001/qa-restart.xqy'
+#echo Restarting MarkLogic
+#curl 'http://localhost:8001/qa-restart.xqy'
 waitForMarkLogicUp
-echo Finished restarting MarkLogic
+#echo Finished restarting MarkLogic
 
 echo ==============================================================================
 echo  FINISHED INSTALLING MARKLOGIC HOST

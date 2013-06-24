@@ -77,6 +77,8 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 dgroup.getAnyUpMember().getHostName() +
                 ":8002/dashboard'");
 
+        if(true)return;
+
         Database db = markLogicCluster.getDatabases().createDatabase("peter");
 
 

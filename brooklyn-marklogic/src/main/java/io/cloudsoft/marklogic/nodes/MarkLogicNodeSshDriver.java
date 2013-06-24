@@ -156,11 +156,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     public String getLicensee() {
-        return entity.getConfig(MarkLogicNode.LICENSEE).replace(" ", "%20");
+        return entity.getConfig(MarkLogicNode.LICENSEE);
     }
 
     public String getClusterName() {
-        return entity.getConfig(MarkLogicNode.CLUSTER_NAME).replace(" ", "%20");
+        return entity.getConfig(MarkLogicNode.CLUSTER_NAME);
     }
 
     public boolean isInitialHost() {

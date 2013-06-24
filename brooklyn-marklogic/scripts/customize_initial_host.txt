@@ -21,12 +21,20 @@ echo ===========================================================================
 cd ~/marklogic_install
 
 echo Setting new credentials
-curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
-sleep 2
+#curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
+#sleep 2
+
+curl -i -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/instance-admin -d \
+'<instance-admin xmlns="http://marklogic.com/manage">
+   <admin-password>${driver.password}</admin-password>
+   <admin-username>${driver.user}</admin-username>
+   <realm>public</realm>
+</instance-admin>'
+waitForMarkLogicUp
 echo Finished setting new credentials
 
 echo Restarting MarkLogic
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+curl -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' --data state=restart
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
