@@ -83,6 +83,10 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
 
         try {
+
+            if(true)return;
+
+
             MarkLogicNode node1 = dgroup.getAnyUpMember();
 //            MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
 //            MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostName(), node2.getHostName());

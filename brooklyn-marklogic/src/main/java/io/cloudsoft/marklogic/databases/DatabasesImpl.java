@@ -3,13 +3,20 @@ package io.cloudsoft.marklogic.databases;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.location.Location;
+import brooklyn.management.Task;
+import brooklyn.util.task.BasicTask;
+import brooklyn.util.task.ScheduledTask;
+import com.google.common.base.Throwables;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,14 +27,9 @@ import static java.lang.String.format;
 public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
-    private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private final Object mutex = new Object();
 
-    public MarkLogicGroup getGroup() {
-        return getConfig(GROUP);
-    }
-
-    private boolean databaseExists(String databaseName) {
+      private boolean databaseExists(String databaseName) {
         for (Entity member : getChildren()) {
             if (member instanceof Database) {
                 Database db = (Database) member;
@@ -41,47 +43,6 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     }
 
     @Override
-    public void init() {
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MarkLogicNode node = getGroup().getAnyUpMember();
-                    if (node == null) {
-                        LOG.debug("Can't discover forests, no nodes in cluster");
-                        return;
-                    }
-
-                    Set<String> databaseNames = node.scanDatabases();
-                    for (String databaseName : databaseNames) {
-                        synchronized (mutex) {
-                            if (!databaseExists(databaseName)) {
-                                LOG.info("Discovered database {}", databaseName);
-                                addChild(BasicEntitySpec.newInstance(Database.class)
-                                        .displayName(databaseName)
-                                        .configure(Database.NAME, databaseName)
-                                );
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                //    LOG.error("Failed to discover databases", e);
-                }
-            }
-        };
-        scheduler.scheduleAtFixedRate(task, 0, 30, TimeUnit.SECONDS);
-    }
-
-     private MarkLogicNode getAnyNode() {
-        MarkLogicGroup cluster = getGroup();
-        final Iterator<Entity> iterator = cluster.getMembers().iterator();
-        if (!iterator.hasNext()) {
-            throw new IllegalStateException("Can't create a database, there are no members in the cluster");
-        }
-        return (MarkLogicNode) iterator.next();
-    }
-
-    @Override
     public Database createDatabase(String name) {
         return createDatabaseWithSpec(spec(Database.class).configure(Database.NAME, name));
     }
@@ -90,6 +51,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     public Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec) {
         String databaseName = (String) databaseSpec.getConfig().get(Database.NAME);
         LOG.info("Creating database {}", databaseName);
+        MarkLogicNode node = getGroup().getAnyUpMember();
+        if(node == null){
+            throw new IllegalStateException("No available member found in group: "+getGroup().getGroupName());
+        }
+
         Database database;
         synchronized (mutex) {
             if (databaseExists(databaseName)) {
@@ -98,8 +64,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
             database = addChild(databaseSpec);
         }
-        MarkLogicNode node = getAnyNode();
-        node.createDatabase(database);
+          node.createDatabase(database);
         LOG.info("Successfully created database: " + database.getName());
         return database;
     }
@@ -108,9 +73,64 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     public void attachForestToDatabase(String forestName, String databaseName) {
         LOG.info("Attaching forest {} to database {}", forestName, databaseName);
 
-        MarkLogicNode node = getAnyNode();
+        MarkLogicNode node = getGroup().getAnyUpMember();
+        if(node == null){
+            throw new IllegalStateException("No available member found in group: "+getGroup().getGroupName());
+        }
         node.attachForestToDatabase(forestName, databaseName);
 
         LOG.info("Finished attach forest {} to database {}", forestName, databaseName);
+    }
+
+    public MarkLogicGroup getGroup() {
+        return getConfig(GROUP);
+    }
+
+    @Override
+    public void start(Collection<? extends Location> locations) {
+        Callable<Task<?>> taskFactory = new Callable<Task<?>>() {
+            @Override public Task<Void> call() {
+                return new BasicTask<Void>(new Callable<Void>() {
+                    public Void call() {
+                        try {
+                            MarkLogicNode node = getGroup().getAnyUpMember();
+                            if (node == null) {
+                                LOG.debug("Can't discover databases, no nodes in cluster");
+                                return null;
+                            }
+
+                            Set<String> databaseNames = node.scanDatabases();
+                            for (String databaseName : databaseNames) {
+                                synchronized (mutex) {
+                                    if (!databaseExists(databaseName)) {
+                                        LOG.info("Discovered database {}", databaseName);
+                                        addChild(BasicEntitySpec.newInstance(Database.class)
+                                                .displayName(databaseName)
+                                                .configure(Database.NAME, databaseName)
+                                        );
+                                    }
+                                }
+                            }
+                            return null;
+                        } catch (Exception e) {
+                            LOG.warn("Problem scanning databases", e);
+                            return null;
+                        } catch (Throwable t) {
+                            LOG.warn("Problem scanning databases (rethrowing)", t);
+                            throw Throwables.propagate(t);
+                        }
+                    }});
+            }
+        };
+        ScheduledTask scheduledTask = new ScheduledTask(taskFactory).period(TimeUnit.SECONDS.toMillis(30));
+        getManagementContext().getExecutionManager().submit(scheduledTask);
+    }
+
+    @Override
+    public void restart() {
+    }
+
+    @Override
+    public void stop() {
     }
 }

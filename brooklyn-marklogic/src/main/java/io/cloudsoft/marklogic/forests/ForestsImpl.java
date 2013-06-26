@@ -7,18 +7,19 @@ import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
 import brooklyn.management.Task;
+import brooklyn.util.task.BasicTask;
+import brooklyn.util.task.ScheduledTask;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
@@ -26,7 +27,6 @@ import static java.lang.String.format;
 
 public class ForestsImpl extends AbstractEntity implements Forests {
 
-    private final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private static final Logger LOG = LoggerFactory.getLogger(ForestsImpl.class);
     private final Object mutex = new Object();
 
@@ -102,9 +102,9 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     public void rebalance() {
         LOG.info("Rebalance");
 
-       // for(Forest forest: asList()){
-       //     if(forest.)
-       // }
+        // for(Forest forest: asList()){
+        //     if(forest.)
+        // }
     }
 
     @Override
@@ -139,7 +139,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     private MarkLogicNode getNodeOrFail(String hostname) {
         MarkLogicGroup cluster = getGroup();
         Set<String> availableHostnames = Sets.newLinkedHashSet();
-        
+
         for (Entity member : cluster.getChildren()) {
             if (member instanceof MarkLogicNode) {
                 MarkLogicNode node = (MarkLogicNode) member;
@@ -175,49 +175,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         return forest;
     }
 
-    @Override
-    public void init() {
-        super.init();
-
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MarkLogicNode node = getGroup().getAnyUpMember();
-                    if (node == null) {
-                        LOG.debug("Can't discover forests, no nodes in cluster");
-                        return;
-                    }
-
-                    Set<String> forests = node.scanForests();
-                    for (String forestName : forests) {
-                        synchronized (mutex) {
-                            if (!forestExists(forestName)) {
-                                LOG.info("Discovered forest {}", forestName);
-
-                                BasicEntitySpec<Forest, ?> spec = BasicEntitySpec.newInstance(Forest.class)
-                                        .displayName(forestName)
-                                        .configure(Forest.CREATED_BY_BROOKLYN, false)
-                                        .configure(Forest.GROUP, getGroup())
-                                        .configure(Forest.NAME, forestName);
-
-                                Forest forest = addChild(spec);
-
-                                Entities.invokeEffectorList(
-                                        ForestsImpl.this,
-                                        Lists.newArrayList(forest),
-                                        Startable.START,
-                                        ImmutableMap.of("locations", getLocations())).getUnchecked();
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    //    LOG.error("Failed to discover forests", e);
-                }
-            }
-        };
-        scheduler.scheduleAtFixedRate(task, 0, 30, TimeUnit.SECONDS);
-    }
 
     @Override
     public Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec) {
@@ -349,15 +306,64 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     @Override
     public void start(Collection<? extends Location> locations) {
         final List<? extends Entity> startableChildren = getStartableChildren();
-        if (startableChildren.isEmpty())
-            return;
+        if (!startableChildren.isEmpty()) {
 
-        final Task<List<Void>> task = Entities.invokeEffectorList(
-                this,
-                startableChildren,
-                Startable.START,
-                ImmutableMap.of("locations", locations));
-        task.getUnchecked();
+            final Task<List<Void>> task = Entities.invokeEffectorList(
+                    this,
+                    startableChildren,
+                    Startable.START,
+                    ImmutableMap.of("locations", locations));
+            task.getUnchecked();
+        }
+
+        Callable<Task<?>> taskFactory = new Callable<Task<?>>() {
+            @Override
+            public Task<Void> call() {
+                return new BasicTask<Void>(new Callable<Void>() {
+                    public Void call() {
+                        try {
+                            MarkLogicNode node = getGroup().getAnyUpMember();
+                            if (node == null) {
+                                LOG.debug("Can't discover forests, no nodes in cluster");
+                                return null;
+                            }
+
+                            Set<String> forests = node.scanForests();
+                            for (String forestName : forests) {
+                                synchronized (mutex) {
+                                    if (!forestExists(forestName)) {
+                                        LOG.info("Discovered forest {}", forestName);
+
+                                        BasicEntitySpec<Forest, ?> spec = BasicEntitySpec.newInstance(Forest.class)
+                                                .displayName(forestName)
+                                                .configure(Forest.CREATED_BY_BROOKLYN, false)
+                                                .configure(Forest.GROUP, getGroup())
+                                                .configure(Forest.NAME, forestName);
+
+                                        Forest forest = addChild(spec);
+
+                                        Entities.invokeEffectorList(
+                                                ForestsImpl.this,
+                                                Lists.newArrayList(forest),
+                                                Startable.START,
+                                                ImmutableMap.of("locations", getLocations())).getUnchecked();
+                                    }
+                                }
+                            }
+                            return null;
+                        } catch (Exception e) {
+                            LOG.warn("Problem scanning forests", e);
+                            return null;
+                        } catch (Throwable t) {
+                            LOG.warn("Problem scanning forests (rethrowing)", t);
+                            throw Throwables.propagate(t);
+                        }
+                    }
+                });
+            }
+        };
+        ScheduledTask scheduledTask = new ScheduledTask(taskFactory).period(TimeUnit.SECONDS.toMillis(30));
+        getManagementContext().getExecutionManager().submit(scheduledTask);
     }
 
     @Override
@@ -405,7 +411,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         return result;
     }
 
-    private void sleepSome(){
+    private void sleepSome() {
         try {
             Thread.sleep(5);
         } catch (InterruptedException e) {
@@ -415,7 +421,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void moveForest(String primaryForestName, String hostName) {
-        LOG.info("Moving forest {} to host {}", primaryForestName,hostName);
+        LOG.info("Moving forest {} to host {}", primaryForestName, hostName);
 
         Forest primaryForest = getForestOrFail(primaryForestName);
         List<Forest> replicaForests = getReplicasForMaster(primaryForestName);

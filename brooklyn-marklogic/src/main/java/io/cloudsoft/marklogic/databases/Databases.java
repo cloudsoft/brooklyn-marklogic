@@ -6,14 +6,13 @@ import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.AbstractGroup;
 import brooklyn.entity.proxying.BasicEntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.util.flags.SetFromFlag;
+import brooklyn.entity.trait.Startable;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 
 @ImplementedBy(DatabasesImpl.class)
-public interface Databases extends AbstractGroup {
+public interface Databases extends AbstractGroup, Startable {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
