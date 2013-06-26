@@ -11,8 +11,6 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
     void createForest(Forest forest);
 
-    void createDatabaseWithForest(String name);
-
     void createDatabase(Database database);
 
     void createGroup(String name);

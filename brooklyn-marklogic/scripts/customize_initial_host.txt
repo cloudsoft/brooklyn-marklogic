@@ -1,17 +1,5 @@
 function waitForMarkLogicUp(){
   sleep 30
-  #for i in {1..60}
-  #do
-  #   if [ "curl --silent http://localhost:8001" ];
-  #   then
-  #      return
-  #   else
-  #      echo Waiting for MarkLogic to be started
-  #      sleep 1
-  #   fi
-  #done
-  #echo "The MarkLogic was not up in 60 seconds"
-  #exit 1
 }
 
 echo ==============================================================================
@@ -21,9 +9,6 @@ echo ===========================================================================
 cd ~/marklogic_install
 
 echo Setting new credentials
-#curl 'http://localhost:8001/security-install-go.xqy?auto=true&user=${driver.user}&password1=${driver.password}&password2=${driver.password}&realm=public'
-#sleep 2
-
 curl -i -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/instance-admin -d \
 '<instance-admin xmlns="http://marklogic.com/manage">
    <admin-password>${driver.password}</admin-password>
@@ -34,11 +19,11 @@ waitForMarkLogicUp
 echo Finished setting new credentials
 
 echo Restarting MarkLogic
-curl -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' --data state=restart
+curl -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' \
+    --data state=restart
 waitForMarkLogicUp
 echo Finished restarting MarkLogic
 
 echo ==============================================================================
 echo  FINISHED CUSTOMIZING MARKLOGIC INITIAL HOST
 echo ==============================================================================
-

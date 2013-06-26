@@ -13,7 +13,13 @@ import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
+import brooklyn.util.text.Identifiers;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
+import io.cloudsoft.marklogic.databases.Database;
+import io.cloudsoft.marklogic.databases.Databases;
+import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.forests.Forests;
+import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
     public static final Logger log = LoggerFactory.getLogger(GeoScalingMarklogicDemoApplication.class);
+    private final String user = System.getProperty("user.name");
 
     private String appServiceName = "DemoService";
     private int appServicePort = 8011;
@@ -104,8 +111,29 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
         for (Entity member : markLogicFabric.getMembers()) {
             if (member instanceof MarkLogicCluster) {
                 MarkLogicCluster markLogicCluster = (MarkLogicCluster) member;
-                markLogicCluster.getDatabases().createDatabaseWithForest(databaseName);
-                markLogicCluster.getAppservices().createRestAppServer(appServiceName, databaseName, "Default", appServicePort);
+
+                final Databases databases = markLogicCluster.getDatabases();
+
+                Database database = databases.createDatabaseWithSpec(spec(Database.class)
+                        .configure(Database.NAME, databaseName)
+                        .configure(Database.JOURNALING, "strict")
+                );
+
+                Forests forests  = markLogicCluster.getForests();
+                String primaryForestId = Identifiers.makeRandomId(8);
+
+                Forest forest = forests.createForestWithSpec(spec(Forest.class)
+                        .configure(Forest.HOST, markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName())
+                        .configure(Forest.NAME, user + "-forest"+primaryForestId)
+                        .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                        .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                        .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
+                        .configure(Forest.REBALANCER_ENABLED, true)
+                        .configure(Forest.FAILOVER_ENABLED, true)
+                );
+
+               databases.attachForestToDatabase(forest.getName(), database.getName());
+                markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
             }
         }
 

@@ -1,17 +1,5 @@
 function waitForMarkLogicUp(){
   sleep 30
-  #for i in {1..60}
-  #do
-  #   if [ "curl --silent http://localhost:8001" ];
-  #   then
-  #      return
-  #   else
-  #      echo Waiting for MarkLogic to be started
-  #      sleep 1
-  #   fi
-  #done
-  #echo "The MarkLogic was not up in 60 seconds"
-  #exit 1
 }
 
 echo ==============================================================================
@@ -109,12 +97,29 @@ waitForMarkLogicUp
 echo Finished Starting MarkLogic
 
 echo Installing new license
-curl -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/license -d \
+resetTimestamp=$(curl -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/license -d \
 '<license xmlns="http://marklogic.com/manage">
     <license-key>${driver.licenseKey}</license-key>
     <licensee>${driver.licensee}</licensee>
-</license>'
-#sleep 2
+</license>')
+
+#echo Reset-Timestamp: $resetTimestamp
+#
+#<#noparse>
+#echo Waiting for MarkLogic server restart complete
+#for num in {1..20}
+#do
+#    timestamp=$((curl --silent http://localhost:8001/admin/v1/timestamp)||true)
+#    echo timestamp = $timestamp
+#    if[ (${#timestamp}>0) ]
+#    then
+#    fi
+#    sleep 1
+#done
+#</#noparse>
+#
+#curl http://localhost:8001/admin/v1/timestamp
+sleep 2
 waitForMarkLogicUp
 echo Finished installing new license
 
@@ -123,14 +128,8 @@ curl 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
 sleep 2
 echo Finished accepting agreement
 
-#echo initialize-go.xqy
-#curl 'http://localhost:8001/initialize-go.xqy'
-#sleep 2
-
-#echo Restarting MarkLogic
-#curl 'http://localhost:8001/qa-restart.xqy'
 waitForMarkLogicUp
-#echo Finished restarting MarkLogic
+echo Finished restarting MarkLogic
 
 echo ==============================================================================
 echo  FINISHED INSTALLING MARKLOGIC HOST

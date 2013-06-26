@@ -173,11 +173,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createDatabaseWithForest(String name) {
-        getDriver().createDatabaseWithForest(name);
-    }
-
-    @Override
     public void createDatabase(Database database) {
         getDriver().createDatabase(database);
     }

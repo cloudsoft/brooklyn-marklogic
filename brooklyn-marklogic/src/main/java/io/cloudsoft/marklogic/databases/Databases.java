@@ -17,10 +17,6 @@ public interface Databases extends AbstractGroup {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
-    @Effector(description = "Creates a new database and automatically creates forests and attaches them to the database.")
-    void createDatabaseWithForest(
-            @EffectorParam(name = "name", description = "The name of the database") String name);
-
     @Effector(description = "Creates a new database without forests attached to it.")
     Database createDatabase(
             @EffectorParam(name = "name", description = "The name of the database") String name);

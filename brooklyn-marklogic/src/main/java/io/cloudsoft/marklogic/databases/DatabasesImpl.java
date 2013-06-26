@@ -72,26 +72,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         scheduler.scheduleAtFixedRate(task, 0, 30, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void createDatabaseWithForest(String name) {
-        LOG.info("Creating database: " + name);
-
-        synchronized (mutex) {
-            if (databaseExists(name)) {
-                throw new IllegalArgumentException(format("A database with name '%s' already exists", name));
-            }
-
-            addChild(spec(Database.class)
-                    .configure(Database.NAME, name)
-            );
-        }
-        MarkLogicNode node = getAnyNode();
-        node.createDatabaseWithForest(name);
-
-        LOG.info("Successfully created database: " + name);
-    }
-
-    private MarkLogicNode getAnyNode() {
+     private MarkLogicNode getAnyNode() {
         MarkLogicGroup cluster = getGroup();
         final Iterator<Entity> iterator = cluster.getMembers().iterator();
         if (!iterator.hasNext()) {

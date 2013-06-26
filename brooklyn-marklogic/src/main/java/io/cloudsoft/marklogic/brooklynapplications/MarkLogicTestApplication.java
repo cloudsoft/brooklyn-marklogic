@@ -77,7 +77,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
                 dgroup.getAnyUpMember().getHostName() +
                 ":8002/dashboard'");
 
-        if(true)return;
+
 
         Database db = markLogicCluster.getDatabases().createDatabase("peter");
 
@@ -103,6 +103,8 @@ public class MarkLogicTestApplication extends AbstractApplication {
                     .configure(Forest.REBALANCER_ENABLED, true)
                     .configure(Forest.FAILOVER_ENABLED, true)
             );
+
+            if(true)return;
 
 //            String forestId2= Identifiers.makeRandomId(8);
 //            Forest forest2 = forests.createForestWithSpec(spec(Forest.class)

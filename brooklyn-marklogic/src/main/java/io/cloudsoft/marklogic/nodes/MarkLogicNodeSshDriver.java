@@ -433,27 +433,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         LOG.debug("Finished creating forest {}", forest.getName());
     }
 
-
-    @Override
-    public void createDatabaseWithForest(String name) {
-        LOG.debug("Starting create database-with-forest {}", name);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("database", name);
-        File scriptFile = new File(getScriptDirectory(), "create_database_with_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createDatabaseWithForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-        LOG.debug("Finished creating database-with-forest {}", name);
-    }
-
     @Override
     public void createDatabase(Database database) {
         LOG.debug("Starting create database {}", database.getName());

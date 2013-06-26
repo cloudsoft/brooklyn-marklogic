@@ -29,6 +29,19 @@ curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-fo
    -d forest-0-large-data-directory=${forest.largeDataDir!""} \
    -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
+#curl -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
+#'<forest xmlns="http://marklogic.com/manage">
+#    <forest-name>${forest.name}</forest-name>
+#    <host>$HOST_ID</host>
+#    <database></database>
+#    <data-directory>${forest.dataDir!""}</data-directory>
+#    <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
+#    <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
+#    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
+#    <availability>online</availability>
+#    <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
+#</forest>'
+
 echo ==============================================================================
 echo                 FINISHED CREATING FOREST ${forest.name}
 echo ==============================================================================
