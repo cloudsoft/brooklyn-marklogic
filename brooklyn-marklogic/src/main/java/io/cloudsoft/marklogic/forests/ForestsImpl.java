@@ -307,28 +307,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public void deleteForestConfiguration(String forestName) {
-        LOG.info("Delete forest {} configuration", forestName);
-
-        synchronized (mutex) {
-            Forest forest = getForest(forestName);
-            if (forest != null) {
-                forest.clearParent();
-
-                LOG.info("Forest {} still found after delete:", forestExists(forestName));
-
-            } else {
-                LOG.info("Forest {} not found in Brooklyn", forestName);
-            }
-        }
-
-        MarkLogicNode node = getGroup().getAnyUpMember();
-        node.deleteForestConfiguration(forestName);
-
-        LOG.info("Finished deleting forest {} configuration", forestName);
-    }
-
-    @Override
     public void setForestHost(String forestName, String newHostName) {
         LOG.info("Setting Forest {} host {}", forestName, newHostName);
 

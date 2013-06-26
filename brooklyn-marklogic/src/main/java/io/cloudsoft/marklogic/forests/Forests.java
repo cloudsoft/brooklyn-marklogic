@@ -43,10 +43,6 @@ public interface Forests extends Entity, Startable {
             @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,
             @EffectorParam(name = "enabled", description = "If the forest should be enabled") boolean enabled);
 
-    @Effector(description = "Deletes the configuration of a forest")
-    void deleteForestConfiguration(
-            @EffectorParam(name = "forestName", description = "The name of the forest to delete") String forestName);
-
     void setForestHost(String forestName, String hostname);
 
     void unmountForest(String forestName);
