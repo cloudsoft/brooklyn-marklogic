@@ -120,13 +120,13 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                 );
 
                 Forests forests  = markLogicCluster.getForests();
-                String primaryForestId = Identifiers.makeRandomId(8);
+                String forestId = Identifiers.makeRandomId(8);
 
                 Forest forest = forests.createForestWithSpec(spec(Forest.class)
                         .configure(Forest.HOST, markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName())
-                        .configure(Forest.NAME, user + "-forest"+primaryForestId)
-                        .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
-                        .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
+                        .configure(Forest.NAME, forestId)
+                        .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
+                        .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)
                         .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                         .configure(Forest.REBALANCER_ENABLED, true)
                         .configure(Forest.FAILOVER_ENABLED, true)

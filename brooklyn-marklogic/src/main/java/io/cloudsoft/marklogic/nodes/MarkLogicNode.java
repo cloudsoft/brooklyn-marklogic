@@ -142,8 +142,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
-    @Effector
-    void createForest(@EffectorParam(name = "forest") Forest forest);
+    void createForest(Forest forest, boolean create);
 
     String getHostName();
 
@@ -167,7 +166,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     MarkLogicCluster getCluster();
 
-    void attachReplicaForest(String primaryForestName, String replicaForestName);
+    void attachReplicaForest(Forest primaryForest, Forest replicaForest);
 
     void enableForest(String forestName, boolean enabled);
 

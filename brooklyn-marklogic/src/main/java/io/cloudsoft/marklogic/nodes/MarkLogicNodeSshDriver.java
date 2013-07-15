@@ -403,7 +403,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void createForest(Forest forest) {
+    public void createForest(Forest forest, boolean create) {
         LOG.debug("Starting create forest {}", forest.getName());
 
         if (getMachine() instanceof JcloudsSshMachineLocation) {
@@ -429,7 +429,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             }
         }
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest,"create",create);
         File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -547,11 +547,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
+    public void attachReplicaForest(Forest primaryForest, Forest replicaForest) {
 
-        LOG.debug("Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
+        LOG.debug("Attach replica forest {} to forest {}", replicaForest.getName(), primaryForest.getName());
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("primaryForestName", primaryForestName, "replicaForestName", replicaForestName);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("primaryForest", primaryForest, "replicaForest", replicaForest);
         File scriptFile = new File(getScriptDirectory(), "attach_replica_forest.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 
@@ -564,7 +564,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .body.append(commands)
                 .execute();
 
-        LOG.debug("Finished Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
+        LOG.debug("Finished Attach replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
 
     }
 
@@ -680,7 +680,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public String getForestStatus(String forestName) {
-        LOG.debug("Getting status for forest {}", forestName);
+        //LOG.debug("Getting status for forest {}", forestName);
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {

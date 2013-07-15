@@ -17,30 +17,34 @@ sudo chown -R daemon ${forest.largeDataDir!""}
 sudo chown -R daemon ${forest.fastDataDir!""}
 </#if>
 
-echo Creating MarkLogic forrest
-curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
-   -d forest-0-forest-name=${forest.name} \
-   -d forest-0-host=$HOST_ID \
-   -d forest-0-updates-allowed=${forest.updatesAllowed} \
-   -d forest-0-enabled=true \
-   -d forest-0-rebalancer-enable=${forest.rebalancerEnabled?string} \
-   -d forest-0-failover-enable=${forest.failoverEnabled?string} \
-   -d forest-0-data-directory=${forest.dataDir!""} \
-   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
-   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
+<#if create??>
+#echo Creating MarkLogic forrest
+#curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
+#   -d forest-0-forest-name=${forest.name} \
+#   -d forest-0-host=$HOST_ID \
+#   -d forest-0-updates-allowed=${forest.updatesAllowed} \
+#   -d forest-0-enabled=true \
+#   -d forest-0-rebalancer-enable=${forest.rebalancerEnabled?string} \
+#   -d forest-0-failover-enable=${forest.failoverEnabled?string} \
+#   -d forest-0-data-directory=${forest.dataDir!""} \
+#   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
+#   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
-#curl -L -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
-#'<forest xmlns="http://marklogic.com/manage">
-#    <forest-name>${forest.name}</forest-name>
-#    <host>$HOST_ID</host>
-#    <database></database>
-#    <data-directory>${forest.dataDir!""}</data-directory>
-#    <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
-#    <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
-#    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
-#    <availability>online</availability>
-#    <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
-#</forest>'
+
+
+# Using double quoated for the "<forest-create ...> " part to prevent substitution of  ML-LOCALHOST
+curl -L -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
+'<forest-create xmlns="http://marklogic.com/manage">
+    <forest-name>${forest.name}</forest-name>
+    <host>${driver.hostname}</host>
+    <data-directory>${forest.dataDir!""}</data-directory>
+    <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
+    <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
+    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
+    <availability>online</availability>
+    <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
+</forest-create>'
+</#if>
 
 echo ==============================================================================
 echo                 FINISHED CREATING FOREST ${forest.name}

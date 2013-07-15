@@ -2,9 +2,14 @@ echo ===========================================================================
 echo              ATTACHING FOREST ${forestName} to DATABASE ${databaseName}
 echo ==============================================================================
 
-curl -L --digest -u  ${driver.user}:${driver.password} "localhost:8001/attach_forest.xqy" \
-    -d database=${databaseName} \
-    -d forest=${forestName}
+# this is the pre EA3 way of attaching a forest to a database.
+#curl -L --digest -u  ${driver.user}:${driver.password} "localhost:8001/attach_forest.xqy" \
+#    -d database=${databaseName} \
+#    -d forest=${forestName}
+
+curl -L -i -X POST --digest --user ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forestName}  \
+    --header "Content-Type:application/x-www-form-urlencoded" \
+    --data "state=attach&database=${databaseName}"
 
 echo ==============================================================================
 echo         FINISHED ATTACHING FOREST ${forestName} to DATABASE ${databaseName}

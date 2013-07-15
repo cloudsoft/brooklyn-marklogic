@@ -14,6 +14,9 @@
     <include resource="brooklyn/logback-debug.xml"/>
 
     <logger name="io.cloudsoft" level="DEBUG"/>
+    <logger name="jclouds" level="INFO"/>
+    <logger name="org.jclouds" level="INFO"/>
+
     <logger name="brooklyn.rest.util.WebResourceUtils" level="ERROR"/>
     <logger name="brooklyn.management.internal.EffectorUtils" level="ERROR"/>
     <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/>

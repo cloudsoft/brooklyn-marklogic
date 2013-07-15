@@ -180,7 +180,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())
-                .configure(Forest.NAME, forestBaseName + "-primary")
+                .configure(Forest.NAME, forestBaseName + "Primary")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
@@ -191,7 +191,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         String replicaForestId = Identifiers.makeRandomId(8);
         Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node2.getHostName())
-                .configure(Forest.NAME, forestBaseName + "-replica")
+                .configure(Forest.NAME, forestBaseName + "Replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)

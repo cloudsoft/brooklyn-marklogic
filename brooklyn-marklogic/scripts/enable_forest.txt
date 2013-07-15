@@ -2,7 +2,15 @@ echo ===========================================================================
 echo         Enabling forest ${forestName} ${enabled?string}
 echo ==============================================================================
 
-FOREST_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest_get_id.xqy?forest=${forestName}")
+#curl -L -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forestName}/properties  \
+#    --header "Content-type: application/xml" \
+#    --data '
+#<forest-properties xmlns="http://marklogic.com/manage">
+#    <enabled>${enabled?string}</enabled>
+#</forest-properties>'
+
+ this is code that was used before EA3.
+FOREST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/forest_get_id.xqy?forest=${forestName}")
 echo FOREST_ID $FOREST_ID
 
 <#if enabled>

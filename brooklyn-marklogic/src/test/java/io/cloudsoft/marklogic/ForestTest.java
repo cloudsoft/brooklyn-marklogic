@@ -2,6 +2,8 @@ package io.cloudsoft.marklogic;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
+
+import com.maxmind.geoip.regionName;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
@@ -37,6 +39,7 @@ public class ForestTest {
     public static final Logger LOG = LoggerFactory.getLogger(ForestTest.class);
 
     public static final String PROVIDER = "aws-ec2";
+    public static final String REGION_NAME = "us-east-1";
 
     public static final String MEDIUM_HARDWARE_ID = "m1.medium";
 
@@ -60,14 +63,13 @@ public class ForestTest {
         // Also removes scriptHeader (e.g. if doing `. ~/.bashrc` and `. ~/.profile`, then that can cause "stdin: is not a tty")
         brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
 
-        String regionName = "us-east-1";
-        String amiId = "ami-3275ee5b";
+        String ami = "ami-3275ee5b";
         String loginUser = "ec2-user";
-        String imageId = format("%s/%s", regionName, amiId);
+        String imageId = format("%s/%s", REGION_NAME, ami);
         Map<?, ?> flags = ImmutableMap.of("imageId", imageId, "hardwareId", MEDIUM_HARDWARE_ID, "loginUser", loginUser);
 
         Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
-        String locationSpec = format("%s:%s", "ec2", regionName);
+        String locationSpec = format("%s:%s", "ec2", REGION_NAME);
 
         ctx = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);

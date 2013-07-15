@@ -1,11 +1,22 @@
 echo ==============================================================================
-echo         Attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo         Attaching replica forest ${replicaForest.name} to primary forest ${primaryForest.name}
 echo ==============================================================================
 
-curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/attach_replica.xqy" \
-  -d fname=${primaryForestName} \
-  -d repname=${replicaForestName}
+curl -L -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${primaryForest.name}/properties \
+    --header Content-Type:application/xml \
+    --data \
+'<forest-properties xmlns="http://marklogic.com/manage">
+    <forest-replicas>
+        <forest-replica>
+            <replica-name>${replicaForest.name}</replica-name>
+            <host>${replicaForest.hostname}</host>
+            <data-directory>${replicaForest.dataDir!""}</data-directory>
+            <large-data-directory>${replicaForest.largeDataDir!""}</large-data-directory>
+            <fast-data-directory>${replicaForest.fastDataDir!""}</fast-data-directory>
+        </forest-replica>
+    </forest-replicas>
+</forest-properties>'
 
 echo ==============================================================================
-echo         Finished attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo         Finished attaching replica forest ${replicaForest.name} to primary forest ${primaryForest.name}
 echo ==============================================================================

@@ -56,7 +56,7 @@ sudo -E -n -S -- sed -i 's/MARKLOGIC_EC2_HOST=1/MARKLOGIC_EC2_HOST=0/' /etc/sysc
 pushd .
 
 mkdir -p ~/marklogic_install/
-unzip -u  -d ~ ~/upload.zip
+unzip -n  -d ~ ~/upload.zip
 cd ~/marklogic_install
 echo Copying xqy files
 sudo -E -n -S -- cp join-cluster.xqy \

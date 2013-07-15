@@ -175,8 +175,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createForest(Forest forest) {
-        getDriver().createForest(forest);
+    public void createForest(Forest forest, boolean create) {
+        getDriver().createForest(forest,create);
         addToAttributeSet(FOREST_NAMES, forest.getName());
     }
 
@@ -238,8 +238,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
-        getDriver().attachReplicaForest(primaryForestName, replicaForestName);
+    public void attachReplicaForest(Forest primaryForest, Forest replicaForest) {
+        getDriver().attachReplicaForest(primaryForest, replicaForest);
     }
 
     @Override

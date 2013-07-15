@@ -33,7 +33,7 @@ import static brooklyn.entity.proxying.EntitySpecs.spec;
 
 public abstract class AbstractMarklogicFullClusterLiveTest {
 
-    public static final Logger LOG = LoggerFactory.getLogger(ForestLiveTest.class);
+    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarklogicFullClusterLiveTest.class);
     public final String user = System.getProperty("user.name");
 
     public static final String PROVIDER = "aws-ec2";
@@ -76,7 +76,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
 
             app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
             markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
-                    .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
+                    .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                     .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                     .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                     .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
@@ -86,9 +86,9 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             //general purpose centos image
             String ami = "ami-3275ee5b";
             //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
-            //String ami = "ami-3d324454";
+            //String ami = "ami-c4f78aad";
 
-            Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/" + ami, "loginUser", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
+            Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/" + ami, "user", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
             jcloudsLocation = ctx.getLocationRegistry().resolve(PROVIDER + ":" + REGION_NAME, jcloudsFlags);
 
             app.start(Arrays.asList(jcloudsLocation));
@@ -99,9 +99,9 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             forests = markLogicCluster.getForests();
             dgroup = markLogicCluster.getDNodeGroup();
             egroup = markLogicCluster.getENodeGroup();
-            //dNode1 = dgroup.getAnyUpMember();
-            //dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
-            //dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
+            dNode1 = dgroup.getAnyUpMember();
+            dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
+            dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
         } catch (Exception e) {
             LOG.error("Failed to setup cluster", e);
             throw e;
@@ -110,9 +110,16 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        //LOG.info("------------------------------------------------------------------");
-        //LOG.info("afterClass");
-        //LOG.info("------------------------------------------------------------------");
+        LOG.info("------------------------------------------------------------------");
+        LOG.info("afterClass: waiting");
+        LOG.info("------------------------------------------------------------------");
+
+        Thread.sleep(10000000);
+
+        LOG.info("------------------------------------------------------------------");
+        LOG.info("afterClass: done");
+        LOG.info("------------------------------------------------------------------");
+
 
         if (app != null) {
             //for (Entity entity : forests.getChildren()) {
@@ -132,7 +139,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
         String forestId = Identifiers.makeRandomId(8);
         return forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node.getHostName())
-                .configure(Forest.NAME, user + "-forest" + ID_GENERATOR.incrementAndGet())
+                .configure(Forest.NAME, user + "Forest" + ID_GENERATOR.incrementAndGet())
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)
                         //.configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + forestId)

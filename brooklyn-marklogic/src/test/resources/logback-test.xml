@@ -25,5 +25,7 @@
     <include resource="brooklyn/logback-debug.xml"/>
 
     <logger name="io.cloudsoft" level="DEBUG"/>
+    <logger name="jclouds" level="INFO"/>
+    <logger name="org.jclouds" level="INFO"/>
 
 </configuration>
