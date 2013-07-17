@@ -38,9 +38,6 @@ public interface Forests extends Entity, Startable {
 
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
-    Forest createAndAttachReplicaForest(String primaryForestName, BasicEntitySpec<Forest, ?> forestSpec);
-
-
     @Effector(description = "Enables a forest")
     void enableForest(
             @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,

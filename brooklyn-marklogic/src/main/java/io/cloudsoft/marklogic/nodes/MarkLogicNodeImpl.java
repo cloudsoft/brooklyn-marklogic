@@ -175,8 +175,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createForest(Forest forest, boolean create) {
-        getDriver().createForest(forest,create);
+    public void createForest(Forest forest) {
+        getDriver().createForest(forest);
         addToAttributeSet(FOREST_NAMES, forest.getName());
     }
 

@@ -199,48 +199,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             forest = addChild(forestSpec);
         }
 
-        node.createForest(forest,true);
+        node.createForest(forest);
+
         forest.start(new LinkedList<Location>());
 
         LOG.info("Finished creating forest {} on host {}", forestName, hostName);
 
         return forest;
     }
-
-    @Override
-    public Forest createAndAttachReplicaForest(String primaryForestName, BasicEntitySpec<Forest, ?> forestSpec) {
-        Forest primaryForest = getForest(primaryForestName);
-        String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
-        String hostName = (String) forestSpec.getConfig().get(Forest.HOST);
-
-        LOG.info("Creating forest {} on host {}", forestName, hostName);
-
-        MarkLogicNode node = getNodeOrFail(hostName);
-
-        forestSpec = wrapSpec(forestSpec)
-                .configure(Forest.GROUP, getGroup())
-                .configure(Forest.CREATED_BY_BROOKLYN, true)
-                .displayName(forestName);
-
-        Forest forest;
-        synchronized (mutex) {
-            if (forestExists(forestName)) {
-                throw new IllegalArgumentException(format("A forest with name '%s' already exists", forestName));
-            }
-
-            forest = addChild(forestSpec);
-        }
-
-        node.createForest(forest,false);
-        node.attachReplicaForest(primaryForest,forest);
-        forest.start(new LinkedList<Location>());
-
-        LOG.info("Finished creating forest {} on host {}", forestName, hostName);
-
-        return forest;
-    }
-
-
 
     @Override
     public Forest createForest(
@@ -279,7 +245,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         LOG.info("Finished attaching replica-forest {} to primary-forest {}", replicaForestName, primaryForestName);
     }
 
-      @Override
+    @Override
     public void enableForest(String forestName, boolean enabled) {
         if (enabled) {
             LOG.info("Enabling forest {}", forestName);
@@ -287,20 +253,20 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             LOG.info("Disabling forest {}", forestName);
         }
 
-        if(getGroup() == null){
+        if (getGroup() == null) {
             throw new RuntimeException("Group is null, not possible");
         }
         MarkLogicNode node = getGroup().getAnyUpMember();
-        if(node == null){
-            LOG.info("Group: "+getGroup().getGroupName());
-            LOG.info("Group.size: "+getGroup().getCurrentSize());
-            for(Entity entity: getGroup().getChildren()){
-                if(entity instanceof MarkLogicNode){
-                    MarkLogicNode child = (MarkLogicNode)entity;
-                    LOG.info("child.hostname:"+child.getHostName()+" isUp: "+child.isUp());
+        if (node == null) {
+            LOG.info("Group: " + getGroup().getGroupName());
+            LOG.info("Group.size: " + getGroup().getCurrentSize());
+            for (Entity entity : getGroup().getChildren()) {
+                if (entity instanceof MarkLogicNode) {
+                    MarkLogicNode child = (MarkLogicNode) entity;
+                    LOG.info("child.hostname:" + child.getHostName() + " isUp: " + child.isUp());
                 }
             }
-            throw new IllegalStateException("No up members found in group: "+getGroup().getGroupName());
+            throw new IllegalStateException("No up members found in group: " + getGroup().getGroupName());
         }
         node.enableForest(forestName, enabled);
 

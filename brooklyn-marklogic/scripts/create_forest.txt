@@ -7,17 +7,38 @@ echo found HOST_ID: $HOST_ID
 
 <#if forest.dataDir??>
 sudo chown -R daemon ${forest.dataDir!""}
+echo changed ownership of dataDir
 </#if>
 
 <#if forest.largeDataDir??>
 sudo chown -R daemon ${forest.largeDataDir!""}
+echo changed ownership of largeDataDir
 </#if>
 
 <#if forest.fastDataDir??>
 sudo chown -R daemon ${forest.fastDataDir!""}
+echo changed ownership of fastDataDir
 </#if>
 
-<#if create??>
+<#if forest.master??>
+
+curl -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${forest.master}/properties \
+    --header Content-Type:application/xml \
+    --data \
+'<forest-properties xmlns="http://marklogic.com/manage">
+    <forest-replicas>
+        <forest-replica>
+            <replica-name>${forest.name}</replica-name>
+            <host>${forest.hostname}</host>
+            <data-directory>${forest.dataDir!""}</data-directory>
+            <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
+            <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
+        </forest-replica>
+    </forest-replicas>
+</forest-properties>'
+
+<#else>
+
 #echo Creating MarkLogic forrest
 #curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
 #   -d forest-0-forest-name=${forest.name} \
@@ -30,9 +51,6 @@ sudo chown -R daemon ${forest.fastDataDir!""}
 #   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
 #   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
-
-
-# Using double quoated for the "<forest-create ...> " part to prevent substitution of  ML-LOCALHOST
 curl -L -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
 '<forest-create xmlns="http://marklogic.com/manage">
     <forest-name>${forest.name}</forest-name>

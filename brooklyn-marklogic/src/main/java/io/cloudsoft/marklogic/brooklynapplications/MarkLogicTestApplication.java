@@ -105,10 +105,11 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
 
             String replicaForestId = Identifiers.makeRandomId(8);
-            Forest replicaForest = forests.createAndAttachReplicaForest(primaryForest.getName(),
+            Forest replicaForest = forests.createForestWithSpec(
                     spec(Forest.class)
                             .configure(Forest.HOST, node2.getHostName())
                             .configure(Forest.NAME, replicaForestId)
+                            .configure(Forest.MASTER,primaryForestId)
                             .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                             .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                             .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
@@ -120,12 +121,17 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
            // forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
 //
-//            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
 //
-//            primaryForest.awaitStatus("open");
-//            replicaForest.awaitStatus("sync replicating");
+            primaryForest.awaitStatus("open");
+            replicaForest.awaitStatus("sync replicating");
+
+         //   forests.enableForest(primaryForest.getName(), false);
+         //   forests.enableForest(primaryForest.getName(), true);
+
+
 //
-//            forests.moveForest(primaryForest.getName(),node3.getHostName());
+            forests.moveForest(primaryForest.getName(),node3.getHostName());
 
 //            replicaForest.awaitStatus("sync replicating");
 

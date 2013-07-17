@@ -403,7 +403,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void createForest(Forest forest, boolean create) {
+    public void createForest(Forest forest) {
         LOG.debug("Starting create forest {}", forest.getName());
 
         if (getMachine() instanceof JcloudsSshMachineLocation) {
@@ -429,7 +429,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             }
         }
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest,"create",create);
+        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest);
         File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
         String script = processTemplate(scriptFile, extraSubstitutions);
 

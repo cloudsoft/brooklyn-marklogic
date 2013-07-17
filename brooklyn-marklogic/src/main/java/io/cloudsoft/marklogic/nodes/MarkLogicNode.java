@@ -142,7 +142,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
-    void createForest(Forest forest, boolean create);
+    void createForest(Forest forest);
 
     String getHostName();
 

@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
-    void createForest(Forest forest, boolean create);
+    void createForest(Forest forest);
 
     void createDatabase(Database database);
 
