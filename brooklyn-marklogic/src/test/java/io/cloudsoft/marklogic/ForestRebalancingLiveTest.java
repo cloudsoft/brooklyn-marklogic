@@ -31,7 +31,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         forest.setParent(null);
     }
 
-    @Test
+    //@Test
     public void testMoveAllForestsFromNode_movingPrimary() throws Exception {
         LOG.info("-----------------testMoveAllForestsFromNode_movingPrimary-----------------");
 
@@ -40,11 +40,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         Forest primaryForest = createForest(dNode1);
         primaryForest.awaitStatus("open");
 
-        Forest replicaForest = createForest(dNode2);
-        primaryForest.awaitStatus("open");
-        replicaForest.awaitStatus("open");
-
-        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+        Forest replicaForest = createForest(dNode2, primaryForest.getName());
 
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
         primaryForest.awaitStatus("open");
@@ -62,7 +58,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         replicaForest.setParent(null);
     }
 
-    @Test
+    //@Test
     public void testMoveAllForestsFromNode_movingReplica() throws Exception {
         LOG.info("-----------------testMoveAllForestsFromNode_movingReplica-----------------");
 
@@ -71,11 +67,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         Forest primaryForest = createForest(dNode1);
         primaryForest.awaitStatus("open");
 
-        Forest replicaForest = createForest(dNode2);
-        primaryForest.awaitStatus("open");
-        replicaForest.awaitStatus("open");
-
-        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+        Forest replicaForest = createForest(dNode2, primaryForest.getName());
 
         databases.attachForestToDatabase(primaryForest.getName(), database.getName());
         primaryForest.awaitStatus("open");

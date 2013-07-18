@@ -110,17 +110,6 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        LOG.info("------------------------------------------------------------------");
-        LOG.info("afterClass: waiting");
-        LOG.info("------------------------------------------------------------------");
-
-        Thread.sleep(10000000);
-
-        LOG.info("------------------------------------------------------------------");
-        LOG.info("afterClass: done");
-        LOG.info("------------------------------------------------------------------");
-
-
         if (app != null) {
             //for (Entity entity : forests.getChildren()) {
             //    if (entity instanceof Forest) {
@@ -136,6 +125,10 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
     }
 
     public Forest createForest(MarkLogicNode node) {
+        return createForest(node,null);
+    }
+
+    public Forest createForest(MarkLogicNode node, String master) {
         String forestId = Identifiers.makeRandomId(8);
         return forests.createForestWithSpec(spec(Forest.class)
                 .configure(Forest.HOST, node.getHostName())
@@ -143,6 +136,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)
                         //.configure(Forest.FAST_DATA_DIR, "/var/opt/mldata/" + forestId)
+                .configure(Forest.MASTER, master)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
                 .configure(Forest.FAILOVER_ENABLED, true)

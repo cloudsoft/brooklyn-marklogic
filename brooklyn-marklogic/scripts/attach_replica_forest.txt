@@ -2,6 +2,10 @@ echo ===========================================================================
 echo         Attaching replica forest ${replicaForest.name} to primary forest ${primaryForest.name}
 echo ==============================================================================
 
+# With the EA3 release this functionality isn't working. It is only possible to assign a non existing forest to primary
+# and the non existing forest will be created on the fly. So you can't create 2 normal forests, and then assign one
+# as replica to the other.
+
 curl -L -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${primaryForest.name}/properties \
     --header Content-Type:application/xml \
     --data \
@@ -9,10 +13,6 @@ curl -L -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhos
     <forest-replicas>
         <forest-replica>
             <replica-name>${replicaForest.name}</replica-name>
-            <host>${replicaForest.hostname}</host>
-            <data-directory>${replicaForest.dataDir!""}</data-directory>
-            <large-data-directory>${replicaForest.largeDataDir!""}</large-data-directory>
-            <fast-data-directory>${replicaForest.fastDataDir!""}</fast-data-directory>
         </forest-replica>
     </forest-replicas>
 </forest-properties>'

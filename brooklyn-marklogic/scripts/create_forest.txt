@@ -21,8 +21,7 @@ echo changed ownership of fastDataDir
 </#if>
 
 <#if forest.master??>
-
-curl -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${forest.master}/properties \
+curl -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forest.master}/properties \
     --header Content-Type:application/xml \
     --data \
 '<forest-properties xmlns="http://marklogic.com/manage">
@@ -39,7 +38,6 @@ curl -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8
 
 <#else>
 
-#echo Creating MarkLogic forrest
 #curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
 #   -d forest-0-forest-name=${forest.name} \
 #   -d forest-0-host=$HOST_ID \
@@ -51,7 +49,9 @@ curl -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8
 #   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
 #   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
-curl -L -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
+curl -L -i -X POST --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests \
+    --header Content-Type:application/xml \
+    --data \
 '<forest-create xmlns="http://marklogic.com/manage">
     <forest-name>${forest.name}</forest-name>
     <host>${driver.hostname}</host>

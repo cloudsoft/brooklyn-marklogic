@@ -9,7 +9,7 @@ import static org.testng.AssertJUnit.assertEquals;
 public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
 
-    @Test
+    //  @Test
     public void testMoveForestWithReplica() throws Exception {
         try {
 
@@ -84,107 +84,97 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
         } catch (Exception e) {
             LOG.error("", e);
-        }  finally{
+        } finally {
             Thread.sleep(1000000000);
         }
 
         LOG.info("14-------------------------------------------");
     }
 
-//    @Test
-//    public void testMoveForestWithoutReplica() throws Exception {
-//        LOG.info("-----------------testMoveForestWithoutReplica-----------------");
-//
-//        Database database = createDatabase();
-//
-//        Forest primaryForest = createForest(dNode1);
-//        primaryForest.awaitStatus("open");
-//
-//        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-//        primaryForest.awaitStatus("open");
-//
-//        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
-//
-//        assertEquals("open", primaryForest.getStatus());
-//        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
-//    }
-//
-//    @Test
-//    public void testMoveForestWithReplica2() throws Exception {
-//        LOG.info("-----------------testMoveForestWithReplica2-----------------");
-//
-//        Database database = createDatabase();
-//
-//        Forest primaryForest = createForest(dNode1);
-//        primaryForest.awaitStatus("open");
-//
-//        Forest replicaForest = createForest(dNode2);
-//        primaryForest.awaitStatus("open");
-//        replicaForest.awaitStatus("open");
-//
-//        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-//
-//        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-//        primaryForest.awaitStatus("open");
-//        replicaForest.awaitStatus("sync replicating");
-//
-//        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
-//
-//        assertEquals("open", primaryForest.getStatus());
-//        assertEquals("sync replicating", replicaForest.getStatus());
-//        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
-//    }
-//
-//
-//    @Test
-//    public void testMoveReplicaForest() throws Exception {
-//        LOG.info("-----------------testMoveReplicaForest-----------------");
-//
-//        Database database = createDatabase();
-//
-//        Forest primaryForest = createForest(dNode1);
-//        primaryForest.awaitStatus("open");
-//
-//        Forest replicaForest = createForest(dNode2);
-//        primaryForest.awaitStatus("open");
-//        replicaForest.awaitStatus("open");
-//
-//        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-//
-//        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-//        primaryForest.awaitStatus("open");
-//        replicaForest.awaitStatus("sync replicating");
-//
-//        forests.moveForest(replicaForest.getName(), dNode3.getHostName());
-//
-//        assertEquals("open", primaryForest.getStatus());
-//        assertEquals("sync replicating", replicaForest.getStatus());
-//        assertEquals(dNode3.getHostName(), replicaForest.getHostname());
-//    }
-//
-//    @Test
-//    public void testMoveWithoutReplica() throws Exception {
-//        LOG.info("-----------------testMoveWithoutReplica-----------------");
-//
-//        Database database = createDatabase();
-//
-//        Forest forest = createForest(dNode1);
-//        forest.awaitStatus("open");
-//
-//        databases.attachForestToDatabase(forest.getName(), database.getName());
-//        forest.awaitStatus("open");
-//
-//        forests.enableForest(forest.getName(), false);
-//        forest.awaitStatus("unmounted");
-//
-//        forests.unmountForest(forest.getName());
-//        forests.setForestHost(forest.getName(), dNode3.getHostName());
-//        forests.mountForest(forest.getName());
-//        forests.enableForest(forest.getName(), true);
-//        forest.awaitStatus("open");
-//
-//        assertEquals(dNode3.getHostName(), forest.getHostname());
-//    }
+    @Test
+    public void testMoveForestWithoutReplica() throws Exception {
+        LOG.info("-----------------testMoveForestWithoutReplica-----------------");
+
+        Database database = createDatabase();
+        Forest primaryForest = createForest(dNode1);
+        primaryForest.awaitStatus("open");
+
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        primaryForest.awaitStatus("open");
+
+        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
+
+        assertEquals("open", primaryForest.getStatus());
+        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+    }
+
+    @Test
+    public void testMoveForestWithReplica2() throws Exception {
+        LOG.info("-----------------testMoveForestWithReplica2-----------------");
+
+        Database database = createDatabase();
+
+        Forest primaryForest = createForest(dNode1);
+        primaryForest.awaitStatus("open");
+
+        Forest replicaForest = createForest(dNode2, primaryForest.getName());
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
+
+        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
+
+        assertEquals("open", primaryForest.getStatus());
+        assertEquals("sync replicating", replicaForest.getStatus());
+        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+    }
+
+
+    @Test
+    public void testMoveReplicaForest() throws Exception {
+        LOG.info("-----------------testMoveReplicaForest-----------------");
+
+        Database database = createDatabase();
+
+        Forest primaryForest = createForest(dNode1);
+        primaryForest.awaitStatus("open");
+
+        Forest replicaForest = createForest(dNode2, primaryForest.getName());
+
+        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        primaryForest.awaitStatus("open");
+        replicaForest.awaitStatus("sync replicating");
+
+        forests.moveForest(replicaForest.getName(), dNode3.getHostName());
+
+        assertEquals("open", primaryForest.getStatus());
+        assertEquals("sync replicating", replicaForest.getStatus());
+        assertEquals(dNode3.getHostName(), replicaForest.getHostname());
+    }
+
+    @Test
+    public void testMoveWithoutReplica() throws Exception {
+        LOG.info("-----------------testMoveWithoutReplica-----------------");
+
+        Database database = createDatabase();
+
+        Forest forest = createForest(dNode1);
+        forest.awaitStatus("open");
+
+        databases.attachForestToDatabase(forest.getName(), database.getName());
+        forest.awaitStatus("open");
+
+        forests.enableForest(forest.getName(), false);
+        forest.awaitStatus("unmounted");
+
+        forests.unmountForest(forest.getName());
+        forests.setForestHost(forest.getName(), dNode3.getHostName());
+        forests.mountForest(forest.getName());
+        forests.enableForest(forest.getName(), true);
+        forest.awaitStatus("open");
+
+        assertEquals(dNode3.getHostName(), forest.getHostname());
+    }
 
 
 }

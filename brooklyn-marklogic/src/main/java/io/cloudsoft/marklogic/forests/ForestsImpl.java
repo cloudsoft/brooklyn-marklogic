@@ -175,7 +175,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         return forest;
     }
 
-
     @Override
     public Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec) {
         String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
