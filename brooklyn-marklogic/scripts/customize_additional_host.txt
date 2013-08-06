@@ -20,16 +20,16 @@ echo ===========================================================================
 
 echo Joining cluster
 hostname
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${clusterHostName}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
+curl -L --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${clusterHostName}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
 echo Finished joining cluster
 
 echo Transferring Cluster Config
-curl --digest -u ${driver.user}:${driver.password} \
+curl -L --digest -u ${driver.user}:${driver.password} \
    'http://${clusterHostName}:8001/transfer-cluster-config.xqy?server=${clusterHostName}&joiner=${driver.hostname}'
 echo Finished transferring Cluster config
 
 echo Restarting Host
-curl --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
+curl -L --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
 waitForMarkLogicUp
 echo Finished restarting Host
 

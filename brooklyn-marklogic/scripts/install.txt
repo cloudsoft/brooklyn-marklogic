@@ -11,7 +11,7 @@ then
     echo ~/${driver.downloadFilename} already downloaded.
 else
     echo Downloading ${driver.downloadFilename}
-    curl -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename} &
+    curl -L -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename} &
 fi
 
 # A temporary workaround to change the hostname of the rackspace machine. The hostname used in rackspace is not usable
@@ -97,7 +97,7 @@ waitForMarkLogicUp
 echo Finished Starting MarkLogic
 
 echo Installing new license
-resetTimestamp=$(curl -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/license -d \
+resetTimestamp=$(curl -L -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/license -d \
 '<license xmlns="http://marklogic.com/manage">
     <license-key>${driver.licenseKey}</license-key>
     <licensee>${driver.licensee}</licensee>
@@ -118,13 +118,13 @@ resetTimestamp=$(curl -X POST -H 'Content-type: application/xml' http://localhos
 #done
 #</#noparse>
 #
-#curl http://localhost:8001/admin/v1/timestamp
+#curl -L http://localhost:8001/admin/v1/timestamp
 sleep 2
 waitForMarkLogicUp
 echo Finished installing new license
 
 echo Accepting agreement
-curl 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
+curl -L 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
 sleep 2
 echo Finished accepting agreement
 

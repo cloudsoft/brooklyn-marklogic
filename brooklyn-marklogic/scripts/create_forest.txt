@@ -2,7 +2,7 @@ echo ===========================================================================
 echo                 CREATING FOREST ${forest.name}
 echo ==============================================================================
 
-HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
+HOST_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
 echo found HOST_ID: $HOST_ID
 
 <#if forest.dataDir??>
@@ -18,7 +18,7 @@ sudo chown -R daemon ${forest.fastDataDir!""}
 </#if>
 
 echo Creating MarkLogic forrest
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
+curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
    -d forest-0-forest-name=${forest.name} \
    -d forest-0-host=$HOST_ID \
    -d forest-0-updates-allowed=${forest.updatesAllowed} \
@@ -29,7 +29,7 @@ curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-fo
    -d forest-0-large-data-directory=${forest.largeDataDir!""} \
    -d forest-0-fast-data-directory=${forest.fastDataDir!""}
 
-#curl -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
+#curl -L -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
 #'<forest xmlns="http://marklogic.com/manage">
 #    <forest-name>${forest.name}</forest-name>
 #    <host>$HOST_ID</host>

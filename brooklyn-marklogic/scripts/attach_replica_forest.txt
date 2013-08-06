@@ -2,7 +2,7 @@ echo ===========================================================================
 echo         Attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
 echo ==============================================================================
 
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/attach_replica.xqy" \
+curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/attach_replica.xqy" \
   -d fname=${primaryForestName} \
   -d repname=${replicaForestName}
 

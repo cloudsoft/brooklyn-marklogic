@@ -4,16 +4,16 @@ echo ===========================================================================
 
 GROUP_NAME="${group}"
 
-GROUP_ID=$(curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate_id.xqy)
+GROUP_ID=$(curl -L --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate_id.xqy)
 echo GROUP_ID = $GROUP_ID
 
-SECURITY_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Security")
+SECURITY_DATABASE_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Security")
 echo SECURITY_DATABASE = $SECURITY_DATABASE
 
-METERS_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Meters")
+METERS_DATABASE_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Meters")
 echo METERS_DATABASE_ID = $METERS_DATABASE_ID
 
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-group-go.xqy"  \
+curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-group-go.xqy"  \
         -H "Accept-Encoding: gzip,deflate,sdch" \
         -H "Accept-Language: en-US,en;q=0.8" \
         -H "Content-Type: application/x-www-form-urlencoded" \

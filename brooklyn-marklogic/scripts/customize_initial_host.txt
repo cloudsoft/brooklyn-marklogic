@@ -9,7 +9,7 @@ echo ===========================================================================
 cd ~/marklogic_install
 
 echo Setting new credentials
-curl -i -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/instance-admin -d \
+curl -L -i -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/instance-admin -d \
 '<instance-admin xmlns="http://marklogic.com/manage">
    <admin-password>${driver.password}</admin-password>
    <admin-username>${driver.user}</admin-username>
@@ -19,7 +19,7 @@ waitForMarkLogicUp
 echo Finished setting new credentials
 
 echo Restarting MarkLogic
-curl -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' \
+curl -L -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' \
     --data state=restart
 waitForMarkLogicUp
 echo Finished restarting MarkLogic

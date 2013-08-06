@@ -99,7 +99,7 @@ public class ForestTest {
         String password = node.getConfig(MarkLogicNode.PASSWORD);
 
         List<String> checkIfExistCommand = ImmutableList.of(
-                format("curl --digest -u %s:%s 'http://localhost:8001/forest-summary.xqy?section=forest' | grep %s", username, password, forestName));
+                format("curl -L --digest -u %s:%s 'http://localhost:8001/forest-summary.xqy?section=forest' | grep %s", username, password, forestName));
 
         SshMachineLocation sshMachineLocation = (SshMachineLocation) node.getLocations().iterator().next();
 
