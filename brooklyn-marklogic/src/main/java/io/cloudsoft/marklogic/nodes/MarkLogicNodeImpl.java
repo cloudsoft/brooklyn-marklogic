@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.event.AttributeSensor;
@@ -93,9 +94,16 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
    @Override
    public void stop() {
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
-        getCluster().getForests().moveAllForestFromNode(getHostName());
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+        Lifecycle clusterState = getCluster().getAttribute(MarkLogicCluster.SERVICE_STATE);
+        boolean moveForests = (clusterState != Lifecycle.STOPPING && clusterState != Lifecycle.STOPPED);
+
+        if (moveForests) {
+            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
+            getCluster().getForests().moveAllForestFromNode(getHostName());
+            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+        } else {
+            LOG.info("Stopping MarkLogicNode (and cluster): "+getHostName()+" Not moving forests out");
+        }
         super.stop();
         LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
    }

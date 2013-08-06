@@ -1,32 +1,36 @@
 package io.cloudsoft.marklogic.clusters;
 
-import brooklyn.enricher.basic.SensorPropagatingEnricher;
-import brooklyn.entity.Entity;
-import brooklyn.entity.basic.AbstractEntity;
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.Entities;
-import brooklyn.entity.proxy.AbstractController;
-import brooklyn.entity.proxy.nginx.NginxController;
-import brooklyn.entity.proxying.EntitySpec;
-import brooklyn.entity.trait.Startable;
-import brooklyn.location.Location;
-import com.google.common.collect.ImmutableMap;
+import static brooklyn.entity.proxying.EntitySpecs.spec;
+import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
-import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import brooklyn.enricher.basic.SensorPropagatingEnricher;
+import brooklyn.entity.Entity;
+import brooklyn.entity.basic.AbstractEntity;
+import brooklyn.entity.basic.ConfigKeys;
+import brooklyn.entity.basic.Entities;
+import brooklyn.entity.basic.Lifecycle;
+import brooklyn.entity.proxy.AbstractController;
+import brooklyn.entity.proxy.nginx.NginxController;
+import brooklyn.entity.proxying.EntitySpec;
+import brooklyn.entity.trait.Startable;
+import brooklyn.location.Location;
+import brooklyn.util.exceptions.Exceptions;
+
+import com.google.common.collect.ImmutableMap;
 
 public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicCluster {
 
@@ -103,6 +107,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
+                throw Exceptions.propagate(e);
             }
         }
     }
@@ -132,18 +137,25 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     @Override
     public void start(Collection<? extends Location> locations) {
-        if(locations.size()==1){
-           Location location = locations.iterator().next();
-           setDisplayName(getDisplayName()+":"+location.getName());
+        setAttribute(SERVICE_STATE, Lifecycle.STARTING);
+        try {
+            if(locations.size()==1){
+               Location location = locations.iterator().next();
+               setDisplayName(getDisplayName()+":"+location.getName());
+            }
+    
+            Entities.invokeEffectorList(
+                    this,
+                    getStartableChildren(),
+                    Startable.START,
+                    ImmutableMap.of("locations", locations)).getUnchecked();
+    
+            connectSensors();
+            setAttribute(SERVICE_STATE, Lifecycle.RUNNING);
+        } catch (Exception e) {
+            setAttribute(SERVICE_STATE, Lifecycle.ON_FIRE);
+            throw Exceptions.propagate(e);
         }
-
-        Entities.invokeEffectorList(
-                this,
-                getStartableChildren(),
-                Startable.START,
-                ImmutableMap.of("locations", locations)).getUnchecked();
-
-        connectSensors();
     }
 
     void connectSensors() {
@@ -155,10 +167,17 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     @Override
     public void stop() {
-        Entities.invokeEffectorList(
-                this,
-                getStartableChildren(),
-                Startable.STOP).getUnchecked();
+        setAttribute(SERVICE_STATE, Lifecycle.STOPPING);
+        try {
+            Entities.invokeEffectorList(
+                    this,
+                    getStartableChildren(),
+                    Startable.STOP).getUnchecked();
+            setAttribute(SERVICE_STATE, Lifecycle.STOPPED);
+        } catch (Exception e) {
+            setAttribute(SERVICE_STATE, Lifecycle.ON_FIRE);
+            throw Exceptions.propagate(e);
+        }
     }
 
     @Override
