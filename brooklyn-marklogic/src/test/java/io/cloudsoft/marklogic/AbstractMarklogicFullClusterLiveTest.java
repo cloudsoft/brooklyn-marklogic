@@ -58,7 +58,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
     public static MarkLogicNode dNode2;
     public static MarkLogicNode dNode3;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public static void beforeClass() throws Exception {
         try {
             ctx = new LocalManagementContext();
@@ -108,7 +108,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
         }
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public static void afterClass() throws Exception {
         if (app != null) {
             //for (Entity entity : forests.getChildren()) {

@@ -9,7 +9,7 @@ import static org.testng.AssertJUnit.assertEquals;
 public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
 
-    //  @Test
+    //  @Test(groups = {"Live"})
     public void testMoveForestWithReplica() throws Exception {
         try {
 
@@ -91,7 +91,7 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
         LOG.info("14-------------------------------------------");
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testMoveForestWithoutReplica() throws Exception {
         LOG.info("-----------------testMoveForestWithoutReplica-----------------");
 
@@ -108,7 +108,7 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode3.getHostName(), primaryForest.getHostname());
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testMoveForestWithReplica2() throws Exception {
         LOG.info("-----------------testMoveForestWithReplica2-----------------");
 
@@ -130,7 +130,7 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
     }
 
 
-    @Test
+    @Test(groups = {"Live"})
     public void testMoveReplicaForest() throws Exception {
         LOG.info("-----------------testMoveReplicaForest-----------------");
 
@@ -152,7 +152,7 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode3.getHostName(), replicaForest.getHostname());
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testMoveWithoutReplica() throws Exception {
         LOG.info("-----------------testMoveWithoutReplica-----------------");
 

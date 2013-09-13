@@ -20,6 +20,12 @@
         <testng.version>6.7</testng.version>
     </properties>
 
+    <modules>
+        <module>demo-war</module>
+        <module>brooklyn-marklogic</module>
+        <module>dist</module>
+    </modules>
+
     <repositories>
         <repository>
             <id>cloudsoft-releases</id>
@@ -43,12 +49,6 @@
     </repositories>
 
     <build>
-        <testSourceDirectory>src/test/java</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -166,9 +166,4 @@
         </profile>
     </profiles>
 
-    <modules>
-        <module>demo-war</module>
-        <module>brooklyn-marklogic</module>
-        <module>dist</module>
-    </modules>
 </project>

@@ -33,7 +33,6 @@ import brooklyn.util.MutableMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-@Test(groups = {"Live"})
 public class ForestTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(ForestTest.class);
@@ -85,7 +84,7 @@ public class ForestTest {
         if (app != null) Entities.destroyAll(app);
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testCreateForest() throws Exception {
         app.start(ImmutableList.of(jcloudsLocation));
         LOG.info("Waiting for app to start");

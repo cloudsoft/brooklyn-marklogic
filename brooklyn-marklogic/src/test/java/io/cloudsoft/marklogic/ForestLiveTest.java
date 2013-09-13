@@ -6,10 +6,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-@Test(groups = {"Live"})
 public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
-    @Test
+    @Test(groups = {"Live"})
     public void testCreateForest() throws Exception {
         LOG.info("-----------------testCreateForest-----------------");
 
@@ -19,7 +18,7 @@ public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode1.getHostName(), forest.getHostname());
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testDisableAndEnableForest() throws Exception {
         LOG.info("-----------------testDisableAndEnableForest-----------------");
 
@@ -33,7 +32,7 @@ public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
         forest.awaitStatus("open");
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testAttachForestToDatabase() throws Exception {
         LOG.info("-----------------testAttachForestToDatabase-----------------");
 
@@ -47,7 +46,7 @@ public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode1.getHostName(), primaryForest.getHostname());
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testAttachForestWithReplicaToDatabase() throws Exception {
         LOG.info("-----------------testAttachForestWithReplicaToDatabase-----------------");
 
@@ -66,7 +65,7 @@ public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode2.getHostName(), replicaForest.getHostname());
     }
 
-    @Test
+    @Test(groups = {"Live"})
     public void testUnmountMountOfForestWithoutReplica() throws Exception {
         LOG.info("-----------------testUnmountMountOfForestWithoutReplica-----------------");
 

@@ -22,7 +22,6 @@ import brooklyn.util.collections.MutableMap;
 
 import com.google.common.collect.ImmutableMap;
 
-@Test(groups = {"Live"})
 public class MarkLogicInstallationOnEc2LiveTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(MarkLogicInstallationOnEc2LiveTest.class);
@@ -38,7 +37,6 @@ public class MarkLogicInstallationOnEc2LiveTest {
 
     protected TestApplication app;
     protected Location jcloudsLocation;
-    private MarkLogicNode markLogicNode;
 
     @DataProvider(name = "regionImageIdLoginUser")
     public Object[][] regionImageIdLoginUser() {
@@ -70,7 +68,12 @@ public class MarkLogicInstallationOnEc2LiveTest {
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
     }
 
-    @Test(dataProvider = "regionImageIdLoginUser")
+    @AfterMethod(alwaysRun = true)
+    public void tearDown() throws Exception {
+        if (app != null) Entities.destroyAll(app.getManagementContext());
+    }
+
+    @Test(groups = {"Live"}, dataProvider = "regionImageIdLoginUser")
     public void testMarkLogicNodeOnEC2(String regionName, String amiId, String loginUser) throws Exception {
         String imageId = String.format("%s/%s", regionName, amiId);
         Map<?, ?> flags = ImmutableMap.of("imageId", imageId,
@@ -92,10 +95,5 @@ public class MarkLogicInstallationOnEc2LiveTest {
         //
         //app.start(ImmutableList.of(loc));
         //EntityTestUtils.assertAttributeEqualsEventually(markLogicNode, SoftwareProcess.SERVICE_UP, true);
-    }
-
-    @AfterMethod(alwaysRun = true)
-    public void tearDown() throws Exception {
-        if (app != null) Entities.destroyAll(app);
     }
 }

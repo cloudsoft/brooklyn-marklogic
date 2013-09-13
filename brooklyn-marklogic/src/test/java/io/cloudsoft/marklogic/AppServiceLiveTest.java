@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class AppServiceLiveTest extends AbstractMarklogicFullClusterLiveTest {
     public final static AtomicLong ID_GENERATOR = new AtomicLong();
 
-    @Test
+    @Test(groups = {"Live"})
     public void testCreateRestAppService() throws Exception {
         LOG.info("-----------------testCreateRestAppService-----------------");
 

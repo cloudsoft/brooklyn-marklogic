@@ -9,7 +9,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
-    @Test
+    @Test(groups = {"Live"})
     public void testMoveAllForestsFromNode_noReplica() throws Exception {
         LOG.info("-----------------testMoveAllForestsFromNode_noReplica-----------------");
 
@@ -31,7 +31,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         forest.setParent(null);
     }
 
-    //@Test
+    //@Test(groups = {"Live"})
     public void testMoveAllForestsFromNode_movingPrimary() throws Exception {
         LOG.info("-----------------testMoveAllForestsFromNode_movingPrimary-----------------");
 
@@ -58,7 +58,7 @@ public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveT
         replicaForest.setParent(null);
     }
 
-    //@Test
+    //@Test(groups = {"Live"})
     public void testMoveAllForestsFromNode_movingReplica() throws Exception {
         LOG.info("-----------------testMoveAllForestsFromNode_movingReplica-----------------");
 
