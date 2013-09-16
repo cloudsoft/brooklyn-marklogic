@@ -1,7 +1,8 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.forests;
 
+import io.cloudsoft.marklogic.AbstractMarklogicFullClusterLiveTest;
 import io.cloudsoft.marklogic.databases.Database;
-import io.cloudsoft.marklogic.forests.Forest;
+
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;

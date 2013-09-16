@@ -1,9 +1,8 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.forests;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
 
-import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 

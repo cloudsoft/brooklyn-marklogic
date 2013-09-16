@@ -1,5 +1,6 @@
-package io.cloudsoft.marklogic;
+package io.cloudsoft.marklogic.appservers;
 
+import io.cloudsoft.marklogic.AbstractMarklogicFullClusterLiveTest;
 import io.cloudsoft.marklogic.databases.Database;
 import org.testng.annotations.Test;
 
