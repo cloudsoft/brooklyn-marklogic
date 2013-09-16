@@ -76,7 +76,7 @@ public abstract class AbstractVolumeManagerLiveTest {
 
     @AfterMethod(alwaysRun=true)
     public void tearDown() throws Exception {
-        if (app != null) Entities.destroyAll(app);
+        if (app != null) Entities.destroyAll(app.getManagementContext());
         if (volumeId != null) volumeManager.deleteVolume(jcloudsLocation, volumeId);
     }
 

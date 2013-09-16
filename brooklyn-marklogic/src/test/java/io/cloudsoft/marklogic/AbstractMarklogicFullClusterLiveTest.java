@@ -120,7 +120,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             //        }
             //    }
             //}
-            Entities.destroyAll(app);
+            Entities.destroyAll(app.getManagementContext());
         }
     }
 

@@ -3,7 +3,6 @@ package io.cloudsoft.marklogic;
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
 
-import com.maxmind.geoip.regionName;
 import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
@@ -28,7 +27,7 @@ import brooklyn.management.ManagementContext;
 import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
 import brooklyn.test.entity.TestApplication;
-import brooklyn.util.MutableMap;
+import brooklyn.util.collections.MutableMap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -68,20 +67,19 @@ public class ForestTest {
         Map<?, ?> flags = ImmutableMap.of("imageId", imageId, "hardwareId", MEDIUM_HARDWARE_ID, "loginUser", loginUser);
 
         Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
-        String locationSpec = format("%s:%s", "ec2", REGION_NAME);
+        String locationSpec = format("%s:%s", PROVIDER, REGION_NAME);
 
         ctx = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
         group = app.createAndManageChild(spec(MarkLogicGroup.class));
         forests = app.createAndManageChild(spec(Forests.class)
-                .configure(Forests.GROUP, group)
-        );
+                .configure(Forests.GROUP, group));
     }
 
     @AfterMethod(alwaysRun = true)
     public void tearDown() throws Exception {
-        if (app != null) Entities.destroyAll(app);
+        if (app != null) Entities.destroyAll(app.getManagementContext());
     }
 
     @Test(groups = {"Live"})
