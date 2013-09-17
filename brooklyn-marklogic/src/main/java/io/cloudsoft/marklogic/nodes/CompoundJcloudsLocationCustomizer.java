@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.nodes;
 
+import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsLocationCustomizer;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 import com.google.common.collect.ImmutableList;
@@ -20,21 +21,24 @@ public class CompoundJcloudsLocationCustomizer implements JcloudsLocationCustomi
         this.delegates = ImmutableList.copyOf(delegates);
     }
 
-    public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
+    @Override
+    public void customize(JcloudsLocation jcloudsLocation, ComputeService computeService, TemplateBuilder templateBuilder) {
         for (JcloudsLocationCustomizer delegate : delegates) {
-            delegate.customize(computeService, templateBuilder);
+            delegate.customize(jcloudsLocation, computeService, templateBuilder);
         }
     }
 
-    public void customize(ComputeService computeService, TemplateOptions templateOptions) {
+    @Override
+    public void customize(JcloudsLocation jcloudsLocation, ComputeService computeService, TemplateOptions templateOptions) {
         for (JcloudsLocationCustomizer delegate : delegates) {
-            delegate.customize(computeService, templateOptions);
+            delegate.customize(jcloudsLocation, computeService, templateOptions);
         }
     }
 
-    public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
+    @Override
+    public void customize(JcloudsLocation jcloudsLocation, ComputeService computeService, JcloudsSshMachineLocation machine) {
         for (JcloudsLocationCustomizer delegate : delegates) {
-            delegate.customize(computeService, machine);
+            delegate.customize(jcloudsLocation, computeService, machine);
         }
     }
 }

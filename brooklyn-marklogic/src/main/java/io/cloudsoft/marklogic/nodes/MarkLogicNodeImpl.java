@@ -1,21 +1,11 @@
 package io.cloudsoft.marklogic.nodes;
 
-import static java.lang.String.format;
+import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.basic.SoftwareProcessImpl;
@@ -24,6 +14,14 @@ import brooklyn.event.SensorEvent;
 import brooklyn.event.SensorEventListener;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
@@ -45,7 +43,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
-        setConfig(ConfigKeys.START_TIMEOUT, 240);
+        setConfig(BrooklynConfigKeys.START_TIMEOUT, 240);
 
         //todo: ugly.. we don't want to get the properties  this way, but for the time being it works.
         setConfig(WEBSITE_USERNAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-username"));

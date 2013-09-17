@@ -2,6 +2,7 @@ package io.cloudsoft.marklogic.clusters;
 
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
+
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;
@@ -46,7 +47,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
-        setConfig(ConfigKeys.START_TIMEOUT, 240);
+        setConfig(BrooklynConfigKeys.START_TIMEOUT, 240);
 
         eNodeGroup = addChild(spec(MarkLogicGroup.class)
                 .displayName("E-Nodes")
