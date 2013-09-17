@@ -73,17 +73,20 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     private void onServiceUp(boolean up) {
         if (up) {
             LOG.info("MarkLogicNode: " + getHostName() + " is up");
-            Forests forests = getCluster().getForests();
-            Forest targetForest = null;
-            for (Forest forest : forests.asList()) {
-                if (forest.createdByBrooklyn() && forest.getMaster() == null) {
-                    targetForest = forest;
-                    break;
+            if (getCluster() != null) {
+                // TODO: Need an explanation of this.
+                Forests forests = getCluster().getForests();
+                Forest targetForest = null;
+                for (Forest forest : forests.asList()) {
+                    if (forest.createdByBrooklyn() && forest.getMaster() == null) {
+                        targetForest = forest;
+                        break;
+                    }
                 }
-            }
 
-            if (targetForest != null)
-                forests.moveForest(targetForest.getName(), getHostName());
+                if (targetForest != null)
+                    forests.moveForest(targetForest.getName(), getHostName());
+            }
         } else {
             LOG.info("MarkLogicNode: " + getHostName() + " is not up");
         }
