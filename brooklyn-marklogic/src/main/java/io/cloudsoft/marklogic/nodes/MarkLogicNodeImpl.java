@@ -123,7 +123,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                 .entity(this)
                 .period(5000)
                 .poll(new FunctionPollConfig<Boolean, Boolean>(SERVICE_UP)
-                        .onError(Functions.constant(Boolean.FALSE))
+                        .onException(Functions.constant(Boolean.FALSE))
                         .callable(new Callable<Boolean>() {
                             public Boolean call() {
                                 return getDriver().isRunning();

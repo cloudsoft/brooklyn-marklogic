@@ -3,13 +3,14 @@ package io.cloudsoft.marklogic;
 import brooklyn.config.BrooklynProperties;
 import brooklyn.entity.basic.ApplicationBuilder;
 import brooklyn.entity.basic.Entities;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
 import brooklyn.management.ManagementContext;
 import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
 import brooklyn.test.entity.TestApplication;
-import brooklyn.util.MutableMap;
+import brooklyn.util.collections.MutableMap;
 import brooklyn.util.text.Identifiers;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -28,8 +29,6 @@ import org.testng.annotations.BeforeClass;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static brooklyn.entity.proxying.EntitySpecs.spec;
 
 public abstract class AbstractMarklogicFullClusterLiveTest {
 
@@ -75,7 +74,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
 
             app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
-            markLogicCluster = app.createAndManageChild(spec(MarkLogicCluster.class)
+            markLogicCluster = app.createAndManageChild(EntitySpec.create(MarkLogicCluster.class)
                     .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                     .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
                     .configure(MarkLogicNode.IS_FORESTS_EBS, true)
@@ -130,7 +129,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
 
     public Forest createForest(MarkLogicNode node, String master) {
         String forestId = Identifiers.makeRandomId(8);
-        return forests.createForestWithSpec(spec(Forest.class)
+        return forests.createForestWithSpec(EntitySpec.create(Forest.class)
                 .configure(Forest.HOST, node.getHostName())
                 .configure(Forest.NAME, user + "Forest" + ID_GENERATOR.incrementAndGet())
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
@@ -144,7 +143,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
     }
 
     public Database createDatabase() {
-        return databases.createDatabaseWithSpec(spec(Database.class)
+        return databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
                 .configure(Database.NAME, "database-" + user + ID_GENERATOR.incrementAndGet())
                 .configure(Database.JOURNALING, "strict")
         );

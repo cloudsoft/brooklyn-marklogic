@@ -2,7 +2,7 @@ package io.cloudsoft.marklogic.databases;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.location.Location;
 import brooklyn.management.Task;
 import brooklyn.util.task.BasicTask;
@@ -14,14 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
 
 public class DatabasesImpl extends AbstractGroupImpl implements Databases {
@@ -44,11 +40,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     @Override
     public Database createDatabase(String name) {
-        return createDatabaseWithSpec(spec(Database.class).configure(Database.NAME, name));
+        return createDatabaseWithSpec(EntitySpec.create(Database.class).configure(Database.NAME, name));
     }
 
     @Override
-    public Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec) {
+    public Database createDatabaseWithSpec(EntitySpec<Database> databaseSpec) {
         String databaseName = (String) databaseSpec.getConfig().get(Database.NAME);
         LOG.info("Creating database {}", databaseName);
         MarkLogicNode node = getGroup().getAnyUpMember();
@@ -104,7 +100,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                                 synchronized (mutex) {
                                     if (!databaseExists(databaseName)) {
                                         LOG.info("Discovered database {}", databaseName);
-                                        addChild(BasicEntitySpec.newInstance(Database.class)
+                                        addChild(EntitySpec.newInstance(Database.class)
                                                 .displayName(databaseName)
                                                 .configure(Database.NAME, databaseName)
                                         );

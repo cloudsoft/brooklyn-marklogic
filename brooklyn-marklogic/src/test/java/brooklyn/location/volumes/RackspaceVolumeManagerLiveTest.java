@@ -62,6 +62,6 @@ public class RackspaceVolumeManagerLiveTest extends AbstractVolumeManagerLiveTes
                 "user", "root", 
                 "password", "Bko8gLpZs6CJ",
                 JcloudsLocation.PUBLIC_KEY_FILE.getName(), "/Users/aled/.ssh/id_rsa");
-        return jcloudsLocation.rebindMachine(jcloudsLocation.getConfigBag().putAll(machineFlags));
+        return jcloudsLocation.rebindMachine(jcloudsLocation.getRawLocalConfigBag().putAll(machineFlags));
     }
 }

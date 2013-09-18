@@ -24,6 +24,7 @@ import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.AbstractController;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
 import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
@@ -39,7 +40,16 @@ import brooklyn.util.text.Identifiers;
 
 import com.google.common.collect.Lists;
 
+import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
+import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MarkLogicDemoApplication extends AbstractApplication {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicDemoApplication.class);
+    
     private final String user = System.getProperty("user.name");
 
     private final int appServicePort = 8011;
@@ -81,7 +91,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         //     int backupVolumeSize = 100;
 
         // For AWS
-        markLogicCluster = addChild(spec(MarkLogicCluster.class)
+        markLogicCluster = addChild(EntitySpec.create(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
                 .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
@@ -92,7 +102,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)
                 .configure(MarkLogicNode.IS_REPLICA_EBS, true)
                 .configure(MarkLogicNode.IS_FASTDIR_EBS, false)
-                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
+                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, EntitySpec.create(NginxController.class)
                         .displayName("LoadBalancer")
                         .configure("port", 80)
                                 //todo: temporary hack to feed the app port to nginx.
@@ -123,23 +133,23 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 //      );
 
         if (startWebApp) {
-            web = addChild(spec(ControlledDynamicWebAppCluster.class)
+            web = addChild(EntitySpec.create(ControlledDynamicWebAppCluster.class)
                     .displayName("WebApp cluster")
                     .configure("initialSize", 1)
-                    .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, spec(NginxController.class)
+                    .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, EntitySpec.create(NginxController.class)
                             .displayName("WebAppCluster Nginx")
                             .configure("port", 8080)
                             .configure("portNumberSensor", WebAppService.HTTP_PORT))
-                    .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
+                    .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, EntitySpec.create(JBoss7Server.class)
                             .configure("initialSize", 1)
                             .configure("httpPort", 8080)
-    
+
                             .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), AbstractController.HOSTNAME))
                             .configure(javaSysProp("marklogic.port"), "" + appServicePort)
                             .configure(javaSysProp("marklogic.password"), password)
                             .configure(javaSysProp("marklogic.user"), username)
                             .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war")));
-    
+
             web.getCluster().addPolicy(AutoScalerPolicy.builder()
                     .metric(WebAppServiceConstants.REQUESTS_PER_SECOND_LAST)
                     .sizeRange(1, 5)
@@ -162,7 +172,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
         Forests forests = markLogicCluster.getForests();
 
-        Database database = databases.createDatabaseWithSpec(spec(Database.class)
+        Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
                 .configure(Database.NAME, "database-" + user)
                 .configure(Database.JOURNALING, "strict")
         );
@@ -178,7 +188,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
     private void createReplicatedForrest(Databases databases, MarkLogicNode node1, MarkLogicNode node2, Forests forests, Database database, String forestBaseName) {
         String primaryForestId = Identifiers.makeRandomId(8);
-        Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
+        Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())
                 .configure(Forest.NAME, forestBaseName + "Primary")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
@@ -189,7 +199,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         );
 
         String replicaForestId = Identifiers.makeRandomId(8);
-        Forest replicaForest = forests.createForestWithSpec(spec(Forest.class)
+        Forest replicaForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                 .configure(Forest.HOST, node2.getHostName())
                 .configure(Forest.NAME, forestBaseName + "Replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)

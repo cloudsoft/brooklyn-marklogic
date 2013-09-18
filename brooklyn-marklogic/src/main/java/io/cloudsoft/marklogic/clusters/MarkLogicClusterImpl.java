@@ -49,7 +49,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         //we give it a bit longer timeout for starting up
         setConfig(BrooklynConfigKeys.START_TIMEOUT, 240);
 
-        eNodeGroup = addChild(spec(MarkLogicGroup.class)
+        eNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
                 .displayName("E-Nodes")
                 .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_E_NODES_SIZE))
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
@@ -57,7 +57,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .configure(MarkLogicGroup.CLUSTER, this)
         );
 
-        dNodeGroup = addChild(spec(MarkLogicGroup.class)
+        dNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
                 .displayName("D-Nodes")
                 .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
                 .configure(MarkLogicGroup.CLUSTER, this)
@@ -65,17 +65,17 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
         );
 
-        databases = addChild(spec(Databases.class)
+        databases = addChild(EntitySpec.create(Databases.class)
                 .displayName("Databases")
                 .configure(Databases.GROUP, dNodeGroup)
         );
 
-        forests = addChild(spec(Forests.class)
+        forests = addChild(EntitySpec.create(Forests.class)
                 .displayName("Forests")
                 .configure(Forests.GROUP, dNodeGroup)
         );
 
-        appservices = addChild(spec(AppServices.class)
+        appservices = addChild(EntitySpec.create(AppServices.class)
                 .displayName("AppServices")
                 .configure(AppServices.CLUSTER, eNodeGroup)
         );
@@ -83,7 +83,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         EntitySpec<? extends AbstractController> loadBalancerSpec = getConfig(LOAD_BALANCER_SPEC);
         if (loadBalancerSpec != null) {
             //the cluster needs to be set.
-            loadBalancerSpec = wrapSpec(loadBalancerSpec).configure("cluster",getENodeGroup());
+            loadBalancerSpec = EntitySpec.create(loadBalancerSpec).configure("cluster",getENodeGroup());
             loadBalancer = addChild(loadBalancerSpec);
         }
     }

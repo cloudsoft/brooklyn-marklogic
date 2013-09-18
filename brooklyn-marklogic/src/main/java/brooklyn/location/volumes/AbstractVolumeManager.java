@@ -1,15 +1,15 @@
 package brooklyn.location.volumes;
 
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-import brooklyn.util.MutableMap;
+import brooklyn.util.collections.MutableMap;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
-import static brooklyn.util.ssh.CommonCommands.sudo;
+import static brooklyn.util.ssh.BashCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.BashCommands.sudo;
 import static java.lang.String.format;
 
 public abstract class AbstractVolumeManager implements VolumeManager {

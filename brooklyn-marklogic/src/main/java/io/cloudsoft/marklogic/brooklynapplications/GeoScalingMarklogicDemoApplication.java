@@ -6,8 +6,7 @@ import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.dns.geoscaling.GeoscalingDnsService;
 import brooklyn.entity.group.DynamicFabric;
 import brooklyn.entity.proxy.nginx.NginxController;
-import brooklyn.entity.proxying.BasicEntitySpec;
-import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
 import brooklyn.entity.webapp.JavaWebAppService;
 import brooklyn.entity.webapp.WebAppService;
@@ -27,12 +26,12 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 
 import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
-import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
-    public static final Logger log = LoggerFactory.getLogger(GeoScalingMarklogicDemoApplication.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(GeoScalingMarklogicDemoApplication.class);
     private final String user = System.getProperty("user.name");
 
     private String appServiceName = "DemoService";
@@ -49,30 +48,30 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
     public void init() {
         StringConfigMap config = getManagementContext().getConfig();
 
-        webGeoDns = getEntityManager().createEntity(EntitySpecs.spec(GeoscalingDnsService.class)
+        webGeoDns = getEntityManager().createEntity(EntitySpec.create(GeoscalingDnsService.class)
                 .displayName("Web GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
 
-        marklogicGeoDns = getEntityManager().createEntity(EntitySpecs.spec(GeoscalingDnsService.class)
+        marklogicGeoDns = getEntityManager().createEntity(EntitySpec.create(GeoscalingDnsService.class)
                 .displayName("Marklogic GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
                 .configure("smartSubdomainName", "brooklyn"));
 
-        webFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
+        webFabric = addChild(EntitySpec.create(DynamicFabric.class)
                 .displayName("Web Fabric")
-                .configure(DynamicFabric.MEMBER_SPEC, BasicEntitySpec.newInstance(ControlledDynamicWebAppCluster.class)
+                .configure(DynamicFabric.MEMBER_SPEC, EntitySpec.create(ControlledDynamicWebAppCluster.class)
                         .displayName("WebApp cluster")
                         .configure("initialSize", 1)
-                        .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, spec(NginxController.class)
+                        .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, EntitySpec.create(NginxController.class)
                                 .displayName("WebAppCluster Nginx")
                                 .configure("port", 80)
                                 .configure("portNumberSensor", WebAppService.HTTP_PORT))
-                        .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, spec(JBoss7Server.class)
+                        .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, EntitySpec.create(JBoss7Server.class)
                                 .configure("initialSize", 1)
                                 .configure("httpPort", 8080)
                                 .configure(javaSysProp("marklogic.host"), attributeWhenReady(marklogicGeoDns, GeoscalingDnsService.HOSTNAME))
@@ -82,15 +81,15 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                                 .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war"))
                 ));
 
-        markLogicFabric = addChild(EntitySpecs.spec(DynamicFabric.class)
+        markLogicFabric = addChild(EntitySpec.create(DynamicFabric.class)
                 .displayName("MarkLogic Fabric")
-                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
+                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, EntitySpec.create(NginxController.class)
                         .displayName("LoadBalancer")
                         .configure("port", 80)
                                 //todo: temporary hack to feed the app port to nginx.
                         .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
                 )
-                .configure(DynamicFabric.MEMBER_SPEC, spec(MarkLogicCluster.class)
+                .configure(DynamicFabric.MEMBER_SPEC, EntitySpec.create(MarkLogicCluster.class)
                         .displayName("MarkLogic Cluster")
                         .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 1)
                         .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)));
@@ -114,7 +113,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
 
                 final Databases databases = markLogicCluster.getDatabases();
 
-                Database database = databases.createDatabaseWithSpec(spec(Database.class)
+                Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
                         .configure(Database.NAME, databaseName)
                         .configure(Database.JOURNALING, "strict")
                 );
@@ -122,7 +121,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                 Forests forests  = markLogicCluster.getForests();
                 String forestId = Identifiers.makeRandomId(8);
 
-                Forest forest = forests.createForestWithSpec(spec(Forest.class)
+                Forest forest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                         .configure(Forest.HOST, markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName())
                         .configure(Forest.NAME, forestId)
                         .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)

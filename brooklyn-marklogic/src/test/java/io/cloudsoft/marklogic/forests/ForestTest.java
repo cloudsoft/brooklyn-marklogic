@@ -1,8 +1,8 @@
 package io.cloudsoft.marklogic.forests;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static java.lang.String.format;
 
+import brooklyn.entity.proxying.EntitySpec;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -71,8 +71,8 @@ public class ForestTest {
         ctx = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = ctx.getLocationRegistry().resolve(locationSpec, jcloudsFlags);
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
-        group = app.createAndManageChild(spec(MarkLogicGroup.class));
-        forests = app.createAndManageChild(spec(Forests.class)
+        group = app.createAndManageChild(EntitySpec.create(MarkLogicGroup.class));
+        forests = app.createAndManageChild(EntitySpec.create(Forests.class)
                 .configure(Forests.GROUP, group));
     }
 

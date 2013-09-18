@@ -38,8 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
-import static brooklyn.util.ssh.CommonCommands.sudo;
+import static brooklyn.util.ssh.BashCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.BashCommands.sudo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
@@ -126,6 +126,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return (MarkLogicNodeImpl) super.getEntity();
     }
 
+    @Override
     public String getDownloadFilename() {
         // TODO To support other platforms, need to customize this based on OS
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
@@ -756,7 +757,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
-            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());
         }
     }
 
@@ -786,7 +787,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
-            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());
         }
     }
 

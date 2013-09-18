@@ -2,7 +2,7 @@ package io.cloudsoft.marklogic.appservers;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
-import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.entity.proxying.EntitySpec;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
         MarkLogicNode node = getMarkLogicNode();
 
 
-        RestAppServer appServer = addChild(EntitySpecs.spec(RestAppServer.class)
+        RestAppServer appServer = addChild(EntitySpec.create(RestAppServer.class)
                 .configure(RestAppServer.NAME, name)
                 .configure(RestAppServer.DATABASE_NAME, database)
                 .configure(RestAppServer.PORT, port)

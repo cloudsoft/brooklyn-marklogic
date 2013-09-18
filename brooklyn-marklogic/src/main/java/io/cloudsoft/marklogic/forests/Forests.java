@@ -1,21 +1,17 @@
 package io.cloudsoft.marklogic.forests;
 
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
+
+import java.util.List;
+
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import io.cloudsoft.marklogic.nodes.MarkLogicNodeImpl;
-
-import java.util.List;
-
-import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 
 @ImplementedBy(ForestsImpl.class)
 public interface Forests extends Entity, Startable {
@@ -23,7 +19,7 @@ public interface Forests extends Entity, Startable {
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
-    Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
+    Forest createForestWithSpec(EntitySpec<Forest> forestSpec);
 
     @Effector(description = "Creates a new forest")
     Forest createForest(

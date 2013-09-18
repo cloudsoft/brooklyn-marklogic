@@ -3,7 +3,7 @@ package io.cloudsoft.marklogic.forests;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.entity.basic.Entities;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.trait.Startable;
 import brooklyn.location.Location;
 import brooklyn.management.Task;
@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
 import static java.lang.String.format;
 
 public class ForestsImpl extends AbstractEntity implements Forests {
@@ -176,7 +175,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec) {
+    public Forest createForestWithSpec(EntitySpec<Forest> forestSpec) {
         String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
         String hostName = (String) forestSpec.getConfig().get(Forest.HOST);
 
@@ -184,7 +183,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         MarkLogicNode node = getNodeOrFail(hostName);
 
-        forestSpec = wrapSpec(forestSpec)
+        forestSpec = EntitySpec.create(forestSpec)
                 .configure(Forest.GROUP, getGroup())
                 .configure(Forest.CREATED_BY_BROOKLYN, true)
                 .displayName(forestName);
@@ -218,7 +217,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             boolean rebalancerEnabled,
             boolean failoverEnabled) {
 
-        BasicEntitySpec<Forest, ?> forestSpec = BasicEntitySpec.newInstance(Forest.class)
+        EntitySpec<Forest> forestSpec = EntitySpec.create(Forest.class)
                 .configure(Forest.NAME, forestName)
                 .configure(Forest.HOST, hostname)
                 .configure(Forest.DATA_DIR, dataDir)
@@ -347,7 +346,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                                     if (!forestExists(forestName)) {
                                         LOG.info("Discovered forest {}", forestName);
 
-                                        BasicEntitySpec<Forest, ?> spec = BasicEntitySpec.newInstance(Forest.class)
+                                        EntitySpec<Forest> spec = EntitySpec.create(Forest.class)
                                                 .displayName(forestName)
                                                 .configure(Forest.CREATED_BY_BROOKLYN, false)
                                                 .configure(Forest.GROUP, getGroup())

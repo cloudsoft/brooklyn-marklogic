@@ -70,6 +70,6 @@ public class EbsVolumeManagerLiveTest extends AbstractVolumeManagerLiveTest {
                 "hostname", "ec2-54-224-215-144.compute-1.amazonaws.com",
                 "user", "aled",
                 JcloudsLocation.PUBLIC_KEY_FILE.getName(), "/Users/aled/.ssh/id_rsa");
-        return jcloudsLocation.rebindMachine(jcloudsLocation.getConfigBag().putAll(machineFlags));
+        return jcloudsLocation.rebindMachine(jcloudsLocation.getRawLocalConfigBag().putAll(machineFlags));
     }
 }

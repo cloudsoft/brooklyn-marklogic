@@ -3,7 +3,7 @@ package io.cloudsoft.marklogic.brooklynapplications;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Entities;
-import brooklyn.entity.proxying.EntitySpecs;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.launcher.BrooklynLauncher;
 import brooklyn.location.Location;
 import brooklyn.util.CommandLineUtil;
@@ -21,7 +21,8 @@ import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import java.util.Collection;
 import java.util.List;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * App to create a MarkLogic cluster (in a single availability zone).
@@ -34,6 +35,8 @@ import static brooklyn.entity.proxying.EntitySpecs.spec;
  */
 public class MarkLogicTestApplication extends AbstractApplication {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicTestApplication.class);
+
     // For naming databases/forests, so can tell in cloud provider's console who ran it
     private final String user = System.getProperty("user.name");
 
@@ -44,7 +47,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
     @Override
     public void init() {
-        markLogicCluster = addChild(spec(MarkLogicCluster.class)
+        markLogicCluster = addChild(EntitySpec.create(MarkLogicCluster.class)
                 .displayName("MarkLogic Cluster")
                 .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
                 .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 0)
@@ -82,13 +85,13 @@ public class MarkLogicTestApplication extends AbstractApplication {
             MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
             MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostName(), node2.getHostName());
 //
-            Database database = databases.createDatabaseWithSpec(spec(Database.class)
+            Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
                     .configure(Database.NAME, Identifiers.makeRandomId(8))
                     .configure(Database.JOURNALING, "strict")
             );
 
             String primaryForestId = Identifiers.makeRandomId(8);
-            Forest primaryForest = forests.createForestWithSpec(spec(Forest.class)
+            Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                     .configure(Forest.HOST, node1.getHostName())
                     .configure(Forest.NAME, primaryForestId)
                     .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
@@ -106,7 +109,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
             String replicaForestId = Identifiers.makeRandomId(8);
             Forest replicaForest = forests.createForestWithSpec(
-                    spec(Forest.class)
+                    EntitySpec.create(Forest.class)
                             .configure(Forest.HOST, node2.getHostName())
                             .configure(Forest.NAME, replicaForestId)
                             .configure(Forest.MASTER,primaryForestId)
@@ -172,7 +175,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
         String location = CommandLineUtil.getCommandLineOption(args, "--location", "localhost");
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
-                .application(EntitySpecs.appSpec(MarkLogicTestApplication.class).displayName("Brooklyn MarkLogic Application"))
+                .application(EntitySpec.create(MarkLogicTestApplication.class).displayName("Brooklyn MarkLogic Application"))
                 .webconsolePort(port)
                 .location(location)
                 .start();

@@ -4,7 +4,7 @@ import brooklyn.config.ConfigKey;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.AbstractGroup;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
@@ -20,7 +20,7 @@ public interface Databases extends AbstractGroup, Startable {
     Database createDatabase(
             @EffectorParam(name = "name", description = "The name of the database") String name);
 
-    Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec);
+    Database createDatabaseWithSpec(EntitySpec<Database> databaseSpec);
 
     @Effector(description = "Attaches a forest to a database.")
     void attachForestToDatabase(

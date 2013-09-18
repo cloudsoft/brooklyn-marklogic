@@ -2,7 +2,7 @@ package io.cloudsoft.marklogic.groups;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.group.DynamicClusterImpl;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.DependentConfiguration;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -36,7 +36,7 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
      */
     @Override
     protected Entity createNode(Map flags) {
-        return addChild(BasicEntitySpec.newInstance(MarkLogicNode.class)
+        return addChild(EntitySpec.create(MarkLogicNode.class)
                 .configure(MarkLogicNode.GROUP, getGroupName())
                 .configure(MarkLogicNode.CLUSTER, getConfig(MarkLogicGroup.CLUSTER)));
     }

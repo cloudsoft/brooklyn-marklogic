@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import brooklyn.location.jclouds.BasicJcloudsLocationCustomizer;
+import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsLocationCustomizer;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 import brooklyn.location.volumes.EbsVolumeManager;
@@ -41,15 +42,18 @@ public class EbsVolumeCustomizer {
             final String availabilityZone, final int sizeInGib, final boolean deleteOnTermination) {
 
         return new BasicJcloudsLocationCustomizer() {
-            public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, TemplateBuilder templateBuilder) {
                 templateBuilder.locationId(availabilityZone);
             }
 
-            public void customize(ComputeService computeService, TemplateOptions templateOptions) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, TemplateOptions templateOptions) {
                 ((EC2TemplateOptions) templateOptions).mapNewVolumeToDeviceName(volumeDeviceName, sizeInGib, deleteOnTermination);
             }
 
-            public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, JcloudsSshMachineLocation machine) {
                 ebsVolumeManager.createFilesystem(machine, osDeviceName, filesystemType);
                 ebsVolumeManager.mountFilesystem(machine, osDeviceName, mountPoint, filesystemType);
             }
@@ -69,15 +73,18 @@ public class EbsVolumeCustomizer {
             final String availabilityZone, final String snapshotId, final int sizeInGib, final boolean deleteOnTermination) {
 
         return new BasicJcloudsLocationCustomizer() {
-            public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, TemplateBuilder templateBuilder) {
                 templateBuilder.locationId(availabilityZone);
             }
 
-            public void customize(ComputeService computeService, TemplateOptions templateOptions) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, TemplateOptions templateOptions) {
                 ((EC2TemplateOptions) templateOptions).mapEBSSnapshotToDeviceName(volumeDeviceName, snapshotId, sizeInGib, deleteOnTermination);
             }
 
-            public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, JcloudsSshMachineLocation machine) {
                 ebsVolumeManager.mountFilesystem(machine, osDeviceName, mountPoint);
             }
         };
@@ -95,11 +102,13 @@ public class EbsVolumeCustomizer {
             final String region, final String availabilityZone, final String volumeId) {
 
         return new BasicJcloudsLocationCustomizer() {
-            public void customize(ComputeService computeService, TemplateBuilder templateBuilder) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, TemplateBuilder templateBuilder) {
                 templateBuilder.locationId(availabilityZone);
             }
 
-            public void customize(ComputeService computeService, JcloudsSshMachineLocation machine) {
+            @Override
+            public void customize(JcloudsLocation location, ComputeService computeService, JcloudsSshMachineLocation machine) {
                 ebsVolumeManager.attachVolume(machine, volumeId, volumeDeviceName);
                 ebsVolumeManager.mountFilesystem(machine, osDeviceName, mountPoint);
             }
