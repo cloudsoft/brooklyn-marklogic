@@ -13,6 +13,7 @@ import brooklyn.util.text.Strings;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -253,23 +254,25 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private void uploadFiles() {
-        LOG.info("Starting upload to {}", getHostname());
+        File dir = getUploadDirectory();
+        LOG.info("Starting upload of {} to {}", dir, getHostname());
         try {
-            File dir = getUploadDirectory();
             File zipFile = File.createTempFile("upload", "zip");
             zipFile.deleteOnExit();
             zip(dir, zipFile);
+            LOG.debug("Copying {} to {} as {}", new Object[]{zipFile, getLocation(), "./upload.zip"});
             getLocation().copyTo(zipFile, "./upload.zip");
             zipFile.delete();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw Exceptions.propagate(e);
         }
 
-        LOG.info("Finished upload to {}", getHostname());
+        LOG.info("Finished upload of {} to {}", dir, getHostname());
 
     }
 
     public static void zip(File directory, File zipfile) throws IOException {
+        LOG.info("Making zip file containing {} in {}", checkNotNull(directory, "directory"), checkNotNull(zipfile, "zipfile"));
         URI base = directory.toURI();
         Deque<File> queue = new LinkedList<File>();
         queue.push(directory);
@@ -612,7 +615,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public Set<String> scanAppServices() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException("scanAppServices has not been implemented");
     }
 
     @Override
@@ -634,11 +637,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String result = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
 
-            Set<String> forests = new HashSet();
+            Set<String> forests = Sets.newHashSet();
             String[] split = result.split("\n");
-            for (int k = 0; k < split.length - 1; k++) {
-                forests.add(split[k]);
-            }
+            Collections.addAll(forests, split);
             return forests;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -668,9 +669,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
             Set<String> forests = new HashSet();
             String[] split = result.split("\n");
-            for (int k = 0; k < split.length - 1; k++) {
-                forests.add(split[k]);
-            }
+            Collections.addAll(forests, split);
             return forests;
         } catch (IOException e) {
             throw new RuntimeException(e);
