@@ -80,7 +80,7 @@ public abstract class AbstractVolumeManagerLiveTest {
         if (volumeId != null) volumeManager.deleteVolume(jcloudsLocation, volumeId);
     }
 
-    @Test(groups="Live")
+    @Test(groups={"WIP"})
     public void testCreateVolume() throws Exception {
         volumeId = volumeManager.createVolume(jcloudsLocation, getDefaultAvailabilityZone(), getVolumeSize(), 
                 ImmutableMap.of("user", System.getProperty("user.name"), "purpose", "markLogic-VolumeManagerLiveTest"));
@@ -88,7 +88,7 @@ public abstract class AbstractVolumeManagerLiveTest {
         assertVolumeAvailable(volumeId);
     }
 
-    @Test(groups="Live")
+    @Test(groups={"WIP"})
     public void testCreateAndAttachVolume() throws Throwable {
         // TODO For speed of my initial testing, I created a VM in advance and used that.
         // Test could be re-written to first create a VM.

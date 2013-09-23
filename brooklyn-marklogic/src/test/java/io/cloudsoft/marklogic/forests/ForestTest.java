@@ -33,6 +33,10 @@ import com.google.common.collect.ImmutableMap;
 
 public class ForestTest {
 
+    // TODO: Merge with ForestLiveTest?
+    // Difference: beforeClass in AMFCLT starts application in @BeforeClass method.
+    // ForestTest below initialises app in @BeforeMethod and runs it in test.
+
     public static final Logger LOG = LoggerFactory.getLogger(ForestTest.class);
 
     public static final String PROVIDER = "aws-ec2";
@@ -81,7 +85,7 @@ public class ForestTest {
         if (app != null) Entities.destroyAll(app.getManagementContext());
     }
 
-    @Test(groups = {"Live"})
+    @Test(groups = {"WIP"})
     public void testCreateForest() throws Exception {
         app.start(ImmutableList.of(jcloudsLocation));
         LOG.info("Waiting for app to start");

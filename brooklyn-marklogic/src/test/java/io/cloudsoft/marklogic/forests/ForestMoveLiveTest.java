@@ -9,7 +9,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
 
-
+    // TODO: Delete?
     //  @Test(groups = {"Live"})
     public void testMoveForestWithReplica() throws Exception {
         try {
@@ -131,7 +131,7 @@ public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
     }
 
 
-    @Test(groups = {"Live"})
+    @Test(groups = {"WIP"})
     public void testMoveReplicaForest() throws Exception {
         LOG.info("-----------------testMoveReplicaForest-----------------");
 

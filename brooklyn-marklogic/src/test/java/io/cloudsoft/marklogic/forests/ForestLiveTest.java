@@ -19,7 +19,7 @@ public class ForestLiveTest extends AbstractMarklogicFullClusterLiveTest {
         assertEquals(dNode1.getHostName(), forest.getHostname());
     }
 
-    @Test(groups = {"Live"})
+    @Test(groups = {"WIP"})
     public void testDisableAndEnableForest() throws Exception {
         LOG.info("-----------------testDisableAndEnableForest-----------------");
 

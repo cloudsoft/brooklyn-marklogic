@@ -172,5 +172,27 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>WIP</id>
+            <properties>
+                <includedTestGroups>WIP</includedTestGroups>
+                <excludedTestGroups>Integration,Live</excludedTestGroups>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-jar-creation</id>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
