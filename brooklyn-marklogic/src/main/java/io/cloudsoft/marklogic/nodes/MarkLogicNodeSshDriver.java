@@ -13,6 +13,7 @@ import brooklyn.util.text.Strings;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import io.cloudsoft.marklogic.appservers.RestAppServer;
@@ -185,8 +186,32 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return new File(home);
     }
 
+    private String loadAndProcessTemplate(String template) {
+        return loadAndProcessTemplate(template, ImmutableMap.<String, Object>of());
+    }
+
+    private String loadAndProcessTemplate(String template, Map<String, Object> substitutions) {
+        File script = new File(getScriptDirectory(), template);
+        return processTemplate(script, substitutions);
+    }
+
     public File getScriptDirectory() {
         return new File(getBrooklynMarkLogicHome(), "scripts");
+    }
+
+    private void executeScript(String name, String script) {
+        executeScript(name, script, ImmutableMap.of());
+    }
+
+    private void executeScript(String name, String script, Map<?, ?> scriptFlags) {
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript(scriptFlags, name)
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
     }
 
     public File getUploadDirectory() {
@@ -225,32 +250,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
 
         LOG.info("Starting installation of MarkLogic host {}", getHostname());
-
         uninstall();
         uploadFiles();
-
-        String script = processTemplate(new File(getScriptDirectory(), "install.txt"));
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("install.txt");
+        executeScript(INSTALLING, script, MutableMap.of("nonStandardLayout", Boolean.TRUE));
         LOG.info("Finished installation of MarkLogic host {}", getHostname());
     }
 
     private void uninstall() {
-        String installScript = processTemplate(new File(getScriptDirectory(), "uninstall.txt"));
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
-        newScript("uninstall")
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
+        String script = loadAndProcessTemplate("uninstall.txt");
+        executeScript("uninstall", script);
     }
 
     private void uploadFiles() {
@@ -329,12 +338,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         boolean isInitialHost = cluster == null || cluster.claimToBecomeInitialHost();
         getEntity().setConfig(MarkLogicNode.IS_INITIAL_HOST, isInitialHost);
 
-        File scriptFile;
-        Map<String, Object> substitutions = new HashMap<String, Object>();
+        String scriptName;
+        Map<String, Object> substitutions = Maps.newHashMap();
+
         if (isInitialHost) {
             LOG.info("Starting customize of MarkLogic initial host {}", getHostname());
-            scriptFile = new File(getScriptDirectory(), "customize_initial_host.txt");
-            substitutions = new HashMap<String, Object>();
+            scriptName = "customize_initial_host.txt";
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
             MarkLogicNode node = cluster.getAnyNodeOrWait();
@@ -346,19 +355,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             }
             
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
-            scriptFile = new File(getScriptDirectory(), "customize_additional_host.txt");
+            scriptName = "customize_additional_host.txt";
             substitutions.put("clusterHostName", node.getHostName());
         }
 
-        String script = processTemplate(scriptFile, substitutions);
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
+        String script = loadAndProcessTemplate(scriptName, substitutions);
+        executeScript(INSTALLING, script, MutableMap.of("nonStandardLayout", "true"));
 
         if (isInitialHost) {
             LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
@@ -433,185 +435,81 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             }
         }
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest);
-        File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_forest.txt", MutableMap.<String, Object>of("forest", forest));
+        executeScript("createForest", script);
         LOG.debug("Finished creating forest {}", forest.getName());
     }
 
     @Override
     public void createDatabase(Database database) {
         LOG.debug("Starting create database {}", database.getName());
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("database", database);
-        File scriptFile = new File(getScriptDirectory(), "create_database.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("create_database")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-
+        String script = loadAndProcessTemplate("create_database.txt", MutableMap.<String, Object>of("database", database));
+        executeScript("createDatabase", script);
         LOG.debug("Finished create database {}", database.getName());
     }
 
     @Override
     public void createAppServer(RestAppServer appServer) {
         LOG.debug("Starting create appServer{} ", appServer.getName());
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appserver", appServer);
-        File scriptFile = new File(getScriptDirectory(), "create_appserver.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createRestAppServer")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_appserver.txt", MutableMap.<String, Object>of("appserver", appServer));
+        executeScript("createRestAppServer", script);
         LOG.debug("Finished creating appServer {}", appServer.getName());
     }
 
     @Override
     public void createGroup(String name) {
         LOG.debug("Starting create group {}", name);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("group", name);
-        File scriptFile = new File(getScriptDirectory(), "create_group.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createGroup")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_group.txt", MutableMap.<String, Object>of("group", name));
+        executeScript("createGroup", script);
         LOG.debug("Finished creating group {}", name);
     }
 
     @Override
     public void assignHostToGroup(String hostAddress, String groupName) {
         LOG.debug("Assigning host '" + hostAddress + "'+ to group " + groupName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("groupName", groupName, "hostName", hostAddress);
-        File scriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("assignHostToGroup")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("assign_host_to_group.txt", MutableMap.<String, Object>of(
+                "groupName", groupName,
+                "hostName", hostAddress));
+        executeScript("assignHostToGroup", script);
         LOG.debug("Finished Assigning host '" + hostAddress + "'+ to group " + groupName);
     }
 
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
-        LOG.debug("Attach forest {} to database {}", forestName, databaseName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "databaseName", databaseName);
-        File scriptFile = new File(getScriptDirectory(), "attach_forest_to_database.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("attachForestToDatabase")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        LOG.debug("Attaching forest {} to database {}", forestName, databaseName);
+        String script = loadAndProcessTemplate("attach_forest_to_database.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "databaseName", databaseName));
+        executeScript("attachForestToDatabase", script);
         LOG.debug("Finished attaching forest {} to database {}", forestName, databaseName);
     }
 
     @Override
     public void attachReplicaForest(Forest primaryForest, Forest replicaForest) {
-
-        LOG.debug("Attach replica forest {} to forest {}", replicaForest.getName(), primaryForest.getName());
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("primaryForest", primaryForest, "replicaForest", replicaForest);
-        File scriptFile = new File(getScriptDirectory(), "attach_replica_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("attachReplicaForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-        LOG.debug("Finished Attach replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
+        LOG.debug("Attaching replica forest {} to forest {}", replicaForest.getName(), primaryForest.getName());
+        String script = loadAndProcessTemplate("attach_replica_forest.txt", MutableMap.<String, Object>of(
+                "primaryForest", primaryForest,
+                "replicaForest", replicaForest));
+        executeScript("attachReplicaForest", script);
+        LOG.debug("Finished attaching replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
 
     }
 
     @Override
     public void enableForest(String forestName, boolean enabled) {
         LOG.debug("Enabling forest {} {}", forestName, enabled);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "enabled", enabled);
-        File scriptFile = new File(getScriptDirectory(), "enable_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("enableForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of("forestName", forestName, "enabled", enabled));
+        executeScript("enableForest", script);
         LOG.debug("Finished Enabling forest {} {}", forestName, enabled);
     }
 
     @Override
     public void setForestHost(String forestName, String hostName) {
         LOG.debug("Setting forest {} host {}", forestName, hostName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName);
-        File scriptFile = new File(getScriptDirectory(), "forest_set_host.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("setForestHost")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("forest_set_host.txt", MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName));
+        executeScript("setForestHost", script);
         LOG.debug("Finished setting forest {} host {}", forestName, hostName);
     }
-
 
     @Override
     public Set<String> scanAppServices() {
@@ -667,7 +565,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String result = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
 
-            Set<String> forests = new HashSet();
+            Set<String> forests = new HashSet<String>();
             String[] split = result.split("\n");
             Collections.addAll(forests, split);
             return forests;
@@ -680,7 +578,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public String getForestStatus(String forestName) {
-        //LOG.debug("Getting status for forest {}", forestName);
+        LOG.debug("Getting status for forest {}", forestName);
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
@@ -705,6 +603,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
+        checkState(getMachine() instanceof JcloudsSshMachineLocation, "createAttachAndMountVolume only valid of instances of " + JcloudsSshMachineLocation.class.getName());
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
         char deviceSuffix = claimDeviceSuffix();
