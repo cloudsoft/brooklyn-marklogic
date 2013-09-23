@@ -8,6 +8,10 @@ import brooklyn.util.flags.SetFromFlag;
 
 import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
 
+/**
+ * A database is one or more {@link io.cloudsoft.marklogic.forests.Forest forests} that appear as
+ * a single contiguous set of content for queries.
+ */
 @ImplementedBy(DatabaseImpl.class)
 public interface Database extends Entity {
 

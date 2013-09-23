@@ -22,7 +22,7 @@ import static brooklyn.entity.basic.ConfigKeys.*;
 import static brooklyn.event.basic.Sensors.newStringSensor;
 
 /**
- * A node in a MarkLogic cluster.
+ * A single node in a MarkLogic {@link MarkLogicCluster cluster}.
  */
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {

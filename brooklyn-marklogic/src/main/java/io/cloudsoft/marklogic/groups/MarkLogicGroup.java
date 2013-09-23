@@ -15,7 +15,8 @@ import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
 
 /**
- * Creates a cluster of MarkLogic nodes
+ * A group is a set of hosts with uniform HTTP, WebDAV and XDBC configurations.
+ * They simplify cluster management.
  */
 @ImplementedBy(MarkLogicGroupImpl.class)
 public interface MarkLogicGroup extends DynamicCluster {

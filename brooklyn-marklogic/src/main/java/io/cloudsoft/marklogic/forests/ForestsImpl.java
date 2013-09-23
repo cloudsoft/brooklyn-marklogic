@@ -24,6 +24,9 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
+/**
+ * Manages the {@link Forest forests} in a {@link io.cloudsoft.marklogic.clusters.MarkLogicCluster cluster}.
+ */
 public class ForestsImpl extends AbstractEntity implements Forests {
 
     private static final Logger LOG = LoggerFactory.getLogger(ForestsImpl.class);

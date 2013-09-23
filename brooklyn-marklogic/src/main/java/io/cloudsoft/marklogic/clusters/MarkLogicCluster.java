@@ -17,6 +17,17 @@ import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 
+/**
+ * A cluster is one or more instances of {@link MarkLogicNode}, all running the same version.
+ * All members of the cluster must run on the same platform and run identical software.
+ * <p/>
+ * Notes on cluster admin:
+ * <ul>
+ *     <li>There are no master/slave relationships in a cluster.</li>
+ *     <li>Hosts can be added to and removed from clusters without taking the cluster offline.</li>
+ *     <li>Cluster administration can be performed from any member, excluding leaving and altering license keys.</li>
+ * </ul>
+ */
 @ImplementedBy(MarkLogicClusterImpl.class)
 public interface MarkLogicCluster extends Entity, Startable {
 

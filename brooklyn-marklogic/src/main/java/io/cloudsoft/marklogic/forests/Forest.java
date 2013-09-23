@@ -16,6 +16,10 @@ import static brooklyn.entity.basic.ConfigKeys.*;
 import static brooklyn.event.basic.Sensors.newLongSensor;
 import static brooklyn.event.basic.Sensors.newStringSensor;
 
+/**
+ * A forest is a repository for documents. Forests are managed by a single host - in Brooklyn a
+ * {@link io.cloudsoft.marklogic.nodes.MarkLogicNode MarkLogicNode}. Hosts may have many forests.
+ */
 @ImplementedBy(ForestImpl.class)
 public interface Forest extends Entity, Startable {
 
