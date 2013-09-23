@@ -41,7 +41,7 @@ public interface MarkLogicCluster extends Entity, Startable {
     BasicAttributeSensorAndConfigKey<EntitySpec<? extends AbstractController>> LOAD_BALANCER_SPEC = new BasicAttributeSensorAndConfigKey(
             EntitySpec.class, "marklogic.cluster.loadbalancer.spec", "Spec for nginx in front of marklogic", null);
 
-    AppServices getAppservices();
+    AppServices getAppServices();
 
     Databases getDatabases();
 
@@ -55,6 +55,6 @@ public interface MarkLogicCluster extends Entity, Startable {
 
     boolean claimToBecomeInitialHost();
 
-    MarkLogicNode getAnyNodeOrWait();
+    MarkLogicNode getAnyUpNodeOrWait();
 }
 

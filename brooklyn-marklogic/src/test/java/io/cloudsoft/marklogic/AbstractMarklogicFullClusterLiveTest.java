@@ -94,7 +94,7 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             EntityTestUtils.assertAttributeEqualsEventually(app, Startable.SERVICE_UP, true);
 
             databases = markLogicCluster.getDatabases();
-            appServices = markLogicCluster.getAppservices();
+            appServices = markLogicCluster.getAppServices();
             forests = markLogicCluster.getForests();
             dgroup = markLogicCluster.getDNodeGroup();
             egroup = markLogicCluster.getENodeGroup();

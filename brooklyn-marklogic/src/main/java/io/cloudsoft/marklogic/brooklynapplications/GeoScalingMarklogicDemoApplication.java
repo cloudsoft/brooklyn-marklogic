@@ -132,7 +132,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                 );
 
                databases.attachForestToDatabase(forest.getName(), database.getName());
-                markLogicCluster.getAppservices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
+                markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
             }
         }
 

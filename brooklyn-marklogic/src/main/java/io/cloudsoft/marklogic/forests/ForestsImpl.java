@@ -430,7 +430,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         try {
             Thread.sleep(5);
         } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
 

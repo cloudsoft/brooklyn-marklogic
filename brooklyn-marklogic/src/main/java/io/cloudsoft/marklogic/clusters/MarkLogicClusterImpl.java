@@ -40,7 +40,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     private MarkLogicGroup eNodeGroup;
     private MarkLogicGroup dNodeGroup;
     private Databases databases;
-    private AppServices appservices;
+    private AppServices appServices;
     private Forests forests;
     private AbstractController loadBalancer;
 
@@ -75,7 +75,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
                 .configure(Forests.GROUP, dNodeGroup)
         );
 
-        appservices = addChild(EntitySpec.create(AppServices.class)
+        appServices = addChild(EntitySpec.create(AppServices.class)
                 .displayName("AppServices")
                 .configure(AppServices.CLUSTER, eNodeGroup)
         );
@@ -96,7 +96,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     }
 
     @Override
-    public MarkLogicNode getAnyNodeOrWait() {
+    public MarkLogicNode getAnyUpNodeOrWait() {
         for (; ; ) {
 
             MarkLogicNode node = dNodeGroup.getAnyUpMember();
@@ -187,8 +187,8 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
     }
 
     @Override
-    public AppServices getAppservices() {
-        return appservices;
+    public AppServices getAppServices() {
+        return appServices;
     }
 
     @Override

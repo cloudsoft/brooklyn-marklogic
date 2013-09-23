@@ -1,5 +1,7 @@
 package io.cloudsoft.marklogic.nodes;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -39,7 +42,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     private FunctionFeed serviceUp;
 
     private final Object attributeSetMutex = new Object();
-    
+
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
@@ -72,7 +75,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     private void onServiceUp(boolean up) {
         if (up) {
-            LOG.info("MarkLogicNode: " + getHostName() + " is up");
+            LOG.info("MarkLogic node is up: {}", this);
             if (getCluster() != null) {
                 // TODO: Need an explanation of this.
                 Forests forests = getCluster().getForests();
@@ -88,7 +91,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                     forests.moveForest(targetForest.getName(), getHostName());
             }
         } else {
-            LOG.info("MarkLogicNode: " + getHostName() + " is not up");
+            LOG.info("MarkLogic node is down: {}", this);
         }
     }
 
@@ -118,7 +121,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     protected void connectSensors() {
         super.connectSensors();
-
         serviceUp = FunctionFeed.builder()
                 .entity(this)
                 .period(5000)
@@ -136,7 +138,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     protected void disconnectSensors() {
         super.disconnectSensors();
-
         if (serviceUp != null) serviceUp.stop();
     }
 
@@ -177,6 +178,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     @Override
     public void createForest(Forest forest) {
+        checkNotNull(forest.getName(), "Forest requires a name");
         getDriver().createForest(forest);
         addToAttributeSet(FOREST_NAMES, forest.getName());
     }

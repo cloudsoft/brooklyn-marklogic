@@ -70,6 +70,4 @@ public class MarkLogicNodeImplLiveTest extends BrooklynMgmtContextTestSupport {
         EntityTestUtils.assertAttributeEqualsEventually(app, Startable.SERVICE_UP, true);
     }
 
-
-
 }
