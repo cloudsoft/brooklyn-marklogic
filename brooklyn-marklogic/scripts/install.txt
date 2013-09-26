@@ -140,7 +140,7 @@ waitForMarkLogicUp
 echo Finished installing new license
 
 echo Accepting agreement
-curl -L 'http://localhost:8001/agree-go.xqy?accepted-agreement=development'
+curl -L 'http://localhost:8001/agree-go.xqy?accepted-agreement=${driver.licenseType}'
 sleep 2
 echo Finished accepting agreement
 
