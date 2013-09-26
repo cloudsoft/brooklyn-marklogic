@@ -11,11 +11,16 @@
       <iconUrl>http://releng3.cloudsoftcorp.com/downloads/brooklyn/img/JBoss_by_Red_Hat.png</iconUrl>
     </template>
 
-    <template type="io.cloudsoft.marklogic.brooklynapplications.MarkLogicTestApplication" name="MarkLogic Server">
-      <description>MarkLogic enables customers to build a variety of information applications including custom publishing, search-based applications, content analytics, unified information access, metadata catalogs, and threat intelligence systems</description>
+    <template type="io.cloudsoft.marklogic.brooklynapplications.MarkLogicTestApplication" name="MarkLogic Test Server">
+      <description>MarkLogic enables customers to build a variety of information applications including custom publishing, search-based applications, content analytics, unified information access, metadata catalogs, and threat intelligence systems.</description>
       <iconUrl>http://www.codefry.com/images/tech/marklogic.jpg</iconUrl>
     </template>
-    
+
+    <template type="io.cloudsoft.marklogic.brooklynapplications.MarkLogicDemoApplication" name="MarkLogic Cluster">
+      <description>MarkLogic enables customers to build a variety of information applications including custom publishing, search-based applications, content analytics, unified information access, metadata catalogs, and threat intelligence systems.</description>
+      <iconUrl>http://releng3.cloudsoftcorp.com/downloads/brooklyn/img/JBoss_by_Red_Hat.png</iconUrl>
+    </template>
+
     <classpath>
       <entry>file://../lib/*</entry>
     </classpath>
