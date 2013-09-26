@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
@@ -30,7 +31,7 @@ public class EbsVolumeManager extends AbstractVolumeManager {
     private static final Logger LOG = LoggerFactory.getLogger(EbsVolumeManager.class);
 
     @Override
-    public String createVolume(JcloudsLocation location, String availabilityZone, int size, Map<String, String> tags) {
+    public String createVolume(final JcloudsLocation location, String availabilityZone, int size, Map<String, String> tags) {
         LOG.debug("Creating volume: location={}; availabilityZone={}; size={}", new Object[]{location, availabilityZone, size});
 
         EC2Client ec2Client = location.getComputeService().getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
@@ -38,11 +39,33 @@ public class EbsVolumeManager extends AbstractVolumeManager {
         TagApi tagClient = ec2Client.getTagApi().get();
 
         Volume volume = ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
+        final String volumeId = volume.getId();
+        final AtomicReference<Volume.Status> volumeStatus = new AtomicReference<Volume.Status>();
+        
         if (tags != null && tags.size() > 0) {
             tagClient.applyToResources(tags, ImmutableList.of(volume.getId()));
         }
 
-        return volume.getId();
+        // Wait for available
+        boolean available = Repeater.create("wait for created volume available " + volume.getId())
+                .every(1, TimeUnit.SECONDS)
+                .limitTimeTo(60, TimeUnit.SECONDS)
+                        //.repeat(Callables.returning(null))
+                .until(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        Volume volume = describeVolume(location, volumeId);
+                        volumeStatus.set(volume.getStatus());
+                        return volumeStatus.get() == Volume.Status.AVAILABLE;
+                    }
+                })
+                .run();
+
+        if (!available) {
+            LOG.error("Volume {}->{} still not available (status {}); continuing...", new Object[] {location, volumeId, volumeStatus.get()});
+        }
+
+        return volumeId;
     }
 
     @Override
