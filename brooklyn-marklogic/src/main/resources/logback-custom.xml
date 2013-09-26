@@ -1,0 +1,35 @@
+<included>
+
+    <!-- if you're just going to have a few debug categories these are recommended -->
+    <logger name="brooklyn.SSH" level="DEBUG"/>
+    <logger name="brooklyn.location.basic.jclouds" level="DEBUG"/>
+    <logger name="brooklyn.util.internal.ssh" level="DEBUG"/>
+
+    <logger name="io.cloudsoft.marklogic" level="DEBUG"/>
+
+    <!-- <logger name="io.cloudsoft.marklogic.forests.ForestsImpl" level="INFO"/> -->
+    <!-- <logger name="io.cloudsoft.marklogic.databases.DatabasesImpl" level="INFO"/> -->
+
+    <!-- <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/> -->
+
+
+    <!-- From conf/logback.xml -->
+    <!-- [> <appender name="FILE" class="ch.qos.logback.core.FileAppender"> <] -->
+        <!-- [> <file>brooklyn-marklogic.log</file> <] -->
+        <!-- [> <append>false</append> <] -->
+        <!-- [> <encoder> <] -->
+            <!-- [> <pattern>%-5level %logger{30} %msg%n</pattern> <] -->
+        <!-- [> </encoder> <] -->
+    <!-- [> </appender> <] -->
+
+    <!-- <logger name="io.cloudsoft" level="DEBUG"/> -->
+    <logger name="jclouds" level="INFO"/>
+    <logger name="org.jclouds" level="INFO"/>
+    <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/>
+
+    <!-- <logger name="brooklyn.rest.util.WebResourceUtils" level="ERROR"/> -->
+    <!-- <logger name="brooklyn.management.internal.EffectorUtils" level="ERROR"/> -->
+    <!-- <logger name="net.schmizz.sshj.DefaultConfig" level="ERROR"/> -->
+    <!-- <logger name="io.cloudsoft.marklogic.forests.ForestsImpl" level="INFO"/> -->
+    <!-- <logger name="io.cloudsoft.marklogic.databases.DatabasesImpl" level="INFO"/> -->
+</included>
