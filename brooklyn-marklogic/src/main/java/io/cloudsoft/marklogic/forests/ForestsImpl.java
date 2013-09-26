@@ -102,8 +102,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void rebalance() {
-        LOG.info("Rebalance");
-
+        LOG.info("Rebalance doing nothing");
         // for(Forest forest: asList()){
         //     if(forest.)
         // }
@@ -322,8 +321,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     @Override
     public void start(Collection<? extends Location> locations) {
         final List<? extends Entity> startableChildren = getStartableChildren();
-        if (!startableChildren.isEmpty()) {
 
+        if (!startableChildren.isEmpty()) {
             final Task<List<Void>> task = Entities.invokeEffectorList(
                     this,
                     startableChildren,

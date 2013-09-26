@@ -2,6 +2,7 @@ package io.cloudsoft.marklogic.databases;
 
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
+import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.location.Location;
 import brooklyn.management.Task;
@@ -25,7 +26,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
     private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
     private final Object mutex = new Object();
 
-      private boolean databaseExists(String databaseName) {
+    private boolean databaseExists(String databaseName) {
         for (Entity member : getChildren()) {
             if (member instanceof Database) {
                 Database db = (Database) member;
@@ -61,7 +62,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             database = addChild(databaseSpec);
             Entities.manage(database);
         }
-          node.createDatabase(database);
+        node.createDatabase(database);
         LOG.info("Successfully created database: " + database.getName());
         return database;
     }
@@ -71,7 +72,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         LOG.info("Attaching forest {} to database {}", forestName, databaseName);
 
         MarkLogicNode node = getGroup().getAnyUpMember();
-        if(node == null){
+        if (node == null){
             throw new IllegalStateException("No available member found in group: "+getGroup().getGroupName());
         }
         node.attachForestToDatabase(forestName, databaseName);

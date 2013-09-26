@@ -106,8 +106,8 @@ public class ForestImpl extends AbstractEntity implements Forest {
     public void awaitStatus(String... expectedStates) {
         for (int k = 0; k < 120; k++) {
             String status = getStatus();
-            for(String expected: expectedStates){
-                if(expected.equals(status)){
+            for (String expected: expectedStates){
+                if (expected.equals(status)){
                     return;
                 }
             }
@@ -130,22 +130,27 @@ public class ForestImpl extends AbstractEntity implements Forest {
                             public String call() throws Exception {
                                 MarkLogicNode node = getAnyUpNode();
                                 if (node == null) {
-                                    LOG.info("No node found to check forest: " + getName());
+                                    LOG.info("No node found to check the status of forest: {}", getName());
                                     return null;
                                 }
+
                                 String status = node.getForestStatus(getName());
                                 if (status == null) {
+                                    LOG.info("Forest status check on on node {} returned null for: {}", node, getName());
                                     return null;
                                 }
+
                                 int beginIndex = status.indexOf("<state>") + "<state>".length();
                                 int endIndex = status.indexOf("</state>");
                                 if (beginIndex == -1 || endIndex == -1) {
-                                    LOG.error("Could not determine the status of forest:"+getName());
+                                    LOG.error("Could not determine the status of forest: {}", getName());
                                     LOG.debug(status);
                                     return null;
                                 }
 
-                                return status.substring(beginIndex, endIndex);
+                                String forestStatus = status.substring(beginIndex, endIndex);
+                                LOG.debug("Status of forest {} is: {}", getName(), forestStatus);
+                                return forestStatus;
                             }
                         })
                 )

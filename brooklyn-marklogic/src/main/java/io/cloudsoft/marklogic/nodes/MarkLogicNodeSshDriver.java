@@ -607,7 +607,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
-        checkState(getMachine() instanceof JcloudsSshMachineLocation, "createAttachAndMountVolume only valid of instances of " + JcloudsSshMachineLocation.class.getName());
+        checkState(getMachine() instanceof JcloudsSshMachineLocation,
+                "createAttachAndMountVolume only valid for instances of " + JcloudsSshMachineLocation.class.getName());
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
         char deviceSuffix = claimDeviceSuffix();

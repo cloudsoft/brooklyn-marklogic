@@ -177,8 +177,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Database.JOURNALING, "strict")
         );
 
-        createReplicatedForrest(databases, node1, node2, forests, database, "forest1");
-        createReplicatedForrest(databases, node2, node1, forests, database, "forest2");
+        createReplicatedForest(databases, node1, node2, forests, database, "forest1");
+        createReplicatedForest(databases, node2, node1, forests, database, "forest2");
 
         String appServiceName = "DemoService";
         markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default",  appServicePort);
@@ -186,7 +186,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }
 
-    private void createReplicatedForrest(Databases databases, MarkLogicNode node1, MarkLogicNode node2, Forests forests, Database database, String forestBaseName) {
+    private void createReplicatedForest(Databases databases, MarkLogicNode node1, MarkLogicNode node2, Forests forests, Database database, String forestBaseName) {
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                 .configure(Forest.HOST, node1.getHostName())

@@ -71,25 +71,23 @@ public class MarkLogicTestApplication extends AbstractApplication {
             k++;
         }
 
-        LOG.info("MarkLogic server is available at 'http://" +
-                dgroup.getAnyUpMember().getHostName() + ":8000'");
-        LOG.info("MarkLogic Cluster summary is available at 'http://" +
-                dgroup.getAnyUpMember().getHostName() +
-                ":8001'");
-        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" +
-                dgroup.getAnyUpMember().getHostName() +
-                ":8002/dashboard'");
+        String anyHostName = dgroup.getAnyUpMember().getHostName();
+        LOG.info("MarkLogic server is available at 'http://{}:8000'", anyHostName);
+        LOG.info("MarkLogic Cluster summary is available at 'http://{}:8001'", anyHostName);
+        LOG.info("MarkLogic Monitoring Dashboard is available at 'http://{}:8002/dashboard'", anyHostName);
 
         try {
             MarkLogicNode node1 = dgroup.getAnyUpMember();
             MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
             MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostName(), node2.getHostName());
-//
+
+            LOG.info("Creating a database in {}", databases);
             Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
                     .configure(Database.NAME, Identifiers.makeRandomId(8))
-                    .configure(Database.JOURNALING, "strict")
-            );
+                    .configure(Database.JOURNALING, "strict"));
+            LOG.info("Created database: {}", database);
 
+            LOG.info("Creating primary forest in {}", forests);
             String primaryForestId = Identifiers.makeRandomId(8);
             Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
                     .configure(Forest.HOST, node1.getHostName())
@@ -100,13 +98,14 @@ public class MarkLogicTestApplication extends AbstractApplication {
                     .configure(Forest.REBALANCER_ENABLED, true)
                     .configure(Forest.FAILOVER_ENABLED, true)
             );
+            LOG.info("Created primary forest: {}", primaryForest);
 
             //forests.enableForest(primaryForest.getName(),false);
 
             //forests.enableForest(primaryForest.getName(),true);
             //primaryForest.awaitStatus("open");
 
-
+            LOG.info("Creating replica forest in {}", forests);
             String replicaForestId = Identifiers.makeRandomId(8);
             Forest replicaForest = forests.createForestWithSpec(
                     EntitySpec.create(Forest.class)
@@ -118,23 +117,24 @@ public class MarkLogicTestApplication extends AbstractApplication {
                             .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                             .configure(Forest.REBALANCER_ENABLED, true)
                             .configure(Forest.FAILOVER_ENABLED, true));
+            LOG.info("Created replica forest: {}", replicaForest);
 
           //  primaryForest.awaitStatus("open");
           //  replicaForest.awaitStatus("open");
-
            // forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-//
             databases.attachForestToDatabase(primaryForest.getName(), database.getName());
-//
+
+            LOG.info("Waiting for {} to have status 'open'", primaryForest);
             primaryForest.awaitStatus("open");
+            LOG.info("Waiting for {} to have status 'sync replicating'", replicaForest);
             replicaForest.awaitStatus("sync replicating");
 
          //   forests.enableForest(primaryForest.getName(), false);
          //   forests.enableForest(primaryForest.getName(), true);
 
 
-//
-            forests.moveForest(primaryForest.getName(),node3.getHostName());
+            LOG.info("Moving forest {} to new node: {}", primaryForest, node3);
+            forests.moveForest(primaryForest.getName(), node3.getHostName());
 
 //            replicaForest.awaitStatus("sync replicating");
 
