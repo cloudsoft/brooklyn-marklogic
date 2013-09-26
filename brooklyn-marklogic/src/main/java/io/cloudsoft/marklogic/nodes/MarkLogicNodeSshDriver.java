@@ -8,14 +8,18 @@ import brooklyn.location.volumes.EbsVolumeManager;
 import brooklyn.location.volumes.RackspaceVolumeManager;
 import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.collections.MutableMap;
+import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.VolumeInfo;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -313,6 +317,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+    private static final AtomicInteger delayOnJoin = new AtomicInteger();
 
     @Override
     public void customize() {
@@ -329,6 +334,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
             MarkLogicNode node = cluster.getAnyNodeOrWait();
+            
+            try {
+                Thread.sleep(delayOnJoin.incrementAndGet()*30*1000);
+            } catch (InterruptedException e) {
+                throw Exceptions.propagate(e);
+            }
+            
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
             scriptFile = new File(getScriptDirectory(), "customize_additional_host.txt");
             substitutions.put("clusterHostName", node.getHostName());
