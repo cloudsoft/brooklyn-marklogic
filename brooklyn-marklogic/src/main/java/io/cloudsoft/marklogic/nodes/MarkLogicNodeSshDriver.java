@@ -2,11 +2,11 @@ package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
+import brooklyn.location.blockstore.ec2.Ec2VolumeManager;
+import brooklyn.location.blockstore.openstack.OpenstackVolumeManager;
+import brooklyn.location.blockstore.VolumeManager;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-import brooklyn.location.volumes.EbsVolumeManager;
-import brooklyn.location.volumes.RackspaceVolumeManager;
-import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.collections.MutableMap;
 import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
@@ -112,9 +112,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String provider = jcloudsLocation.getProvider();
 
             if ("aws-ec2".equals(provider)) {
-                return new EbsVolumeManager();
+                return new Ec2VolumeManager();
             } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")) {
-                return new RackspaceVolumeManager();
+                return new OpenstackVolumeManager();
             } else {
                 throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
             }
@@ -621,7 +621,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if ((getMachine() instanceof JcloudsSshMachineLocation)) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
-            final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
+            final Ec2VolumeManager ec2VolumeManager = new Ec2VolumeManager();
             if (forest.getDataDir() != null) {
                 char deviceSuffix = claimDeviceSuffix();
                 String volumeDeviceName = "/dev/sd" + deviceSuffix;
@@ -632,7 +632,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                 forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
 
-                ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
+                ec2VolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
 
             }
 
@@ -647,12 +647,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
                     VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                     forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
-                    ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
+                    ec2VolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
                 }
             }
 
             //if(forest.getLargeDataDir()!=null){
-            //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+            //    ec2VolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
             LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());
@@ -664,25 +664,25 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if ((getMachine() instanceof JcloudsSshMachineLocation)) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
-            final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
+            final Ec2VolumeManager ec2VolumeManager = new Ec2VolumeManager();
 
             if (forest.getDataDir() != null) {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                ec2VolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                ec2VolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
             }
 
             if (forest.getFastDataDir() != null) {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
 
                 if (volumeInfo != null) {
-                    ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                    ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                    ec2VolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                    ec2VolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
                 }
             }
 
             //if(forest.getLargeDataDir()!=null){
-            //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+            //    ec2VolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
             LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());

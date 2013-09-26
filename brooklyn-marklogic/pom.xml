@@ -17,6 +17,8 @@
     <properties>
         <includedTestGroups/>
         <excludedTestGroups>Integration,Live,WIP</excludedTestGroups>
+
+        <blockstore.version>0.1.0-SNAPSHOT</blockstore.version>
     </properties>
 
      <dependencies>
@@ -32,6 +34,11 @@
             <!-- optional so that this project has logging; dependencies may redeclare or supply their own -->
             <optional>true</optional>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cloudsoft.blockstore</groupId>
+            <artifactId>brooklyn-blockstore</artifactId>
+            <version>${blockstore.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jclouds.api</groupId>
