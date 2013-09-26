@@ -1,7 +1,6 @@
 package io.cloudsoft.marklogic.nodes;
 
 import static java.lang.String.format;
-
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
@@ -155,7 +154,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         int bindPort = getConfig(BIND_PORT);
         int foreignBindPort = getConfig(FOREIGN_BIND_PORT);
         // FIXME hack to open 80,443 (because on GCE shared by network for all nodes)
-        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(bindPort, foreignBindPort, 8000, 8001, 8002, 8011, 80, 443)));
+        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(22, bindPort, foreignBindPort, 8000, 8001, 8002, 8011, 80, 443)));
     }
 
     private NodeType getNodeType() {
