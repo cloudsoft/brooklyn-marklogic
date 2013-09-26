@@ -198,6 +198,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             }
 
             forest = addChild(forestSpec);
+            Entities.manage(forest);
         }
 
         node.createForest(forest);
@@ -356,6 +357,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                                                 .configure(Forest.NAME, forestName);
 
                                         Forest forest = addChild(spec);
+                                        Entities.manage(forest);
 
                                         Entities.invokeEffectorList(
                                                 ForestsImpl.this,

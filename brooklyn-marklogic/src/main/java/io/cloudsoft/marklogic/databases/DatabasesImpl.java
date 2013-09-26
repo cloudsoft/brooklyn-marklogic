@@ -59,6 +59,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             }
 
             database = addChild(databaseSpec);
+            Entities.manage(database);
         }
           node.createDatabase(database);
         LOG.info("Successfully created database: " + database.getName());
@@ -100,10 +101,10 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                                 synchronized (mutex) {
                                     if (!databaseExists(databaseName)) {
                                         LOG.info("Discovered database {}", databaseName);
-                                        addChild(EntitySpec.newInstance(Database.class)
+                                        Database database = addChild(EntitySpec.newInstance(Database.class)
                                                 .displayName(databaseName)
-                                                .configure(Database.NAME, databaseName)
-                                        );
+                                                .configure(Database.NAME, databaseName));
+                                        Entities.manage(database);
                                     }
                                 }
                             }
