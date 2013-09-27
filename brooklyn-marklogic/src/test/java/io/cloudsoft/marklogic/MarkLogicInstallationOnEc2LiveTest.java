@@ -42,13 +42,13 @@ public class MarkLogicInstallationOnEc2LiveTest {
     public Object[][] regionImageIdLoginUser() {
         return new Object[][]{
                 // Amazon Linux AMI
-                {US_EAST_REGION_NAME, "ami-3275ee5b", "ec2-user"}, {EU_WEST_REGION_NAME, "ami-44939930", "ec2-user"},
+                {US_EAST_REGION_NAME, "ami-3275ee5b"}, {EU_WEST_REGION_NAME, "ami-44939930"},
                 // Centos 5.6
-                {US_EAST_REGION_NAME, "ami-49e32320", null}, {EU_WEST_REGION_NAME, "ami-da3003ae", null},
+                {US_EAST_REGION_NAME, "ami-49e32320"}, {EU_WEST_REGION_NAME, "ami-da3003ae"},
                 // Centos 6.3
-                {US_EAST_REGION_NAME, "ami-7d7bfc14", null}, {EU_WEST_REGION_NAME, "ami-0ca7a878", null},
+                {US_EAST_REGION_NAME, "ami-7d7bfc14"}, {EU_WEST_REGION_NAME, "ami-0ca7a878"},
                 // RHEL 6
-                {US_EAST_REGION_NAME, "ami-b30983da", null}, {EU_WEST_REGION_NAME, "ami-c07b75b4", null}
+                {US_EAST_REGION_NAME, "ami-b30983da"}, {EU_WEST_REGION_NAME, "ami-c07b75b4"}
         };
     }
 
@@ -74,11 +74,11 @@ public class MarkLogicInstallationOnEc2LiveTest {
     }
 
     @Test(groups = {"Live"}, dataProvider = "regionImageIdLoginUser")
-    public void testMarkLogicNodeOnEC2(String regionName, String amiId, String loginUser) throws Exception {
+    public void testMarkLogicNodeOnEC2(String regionName, String amiId) throws Exception {
         String imageId = String.format("%s/%s", regionName, amiId);
-        Map<?, ?> flags = ImmutableMap.of("imageId", imageId,
-                "hardwareId", MEDIUM_HARDWARE_ID,
-                "loginUser", loginUser == null ? "root" : loginUser);
+        Map<?, ?> flags = ImmutableMap.of(
+                "imageId", imageId,
+                "hardwareId", MEDIUM_HARDWARE_ID);
         runTest(flags, PROVIDER, regionName);
     }
 

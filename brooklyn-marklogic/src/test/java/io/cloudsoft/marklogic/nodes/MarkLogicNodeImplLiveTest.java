@@ -50,7 +50,6 @@ public class MarkLogicNodeImplLiveTest extends BrooklynMgmtContextTestSupport {
         Map<String, ?> flags = MutableMap.of(
                 "tags", ImmutableList.of(getClass().getName()),
                 "imageId", REGION_NAME + "/" + IMAGE_ID,
-//                "user", "ec2-user",
                 "hardwareId", MEDIUM_HARDWARE_ID);
         mgmt = new LocalManagementContext(brooklynProperties);
         jcloudsLocation = mgmt.getLocationRegistry().resolve(LOCATION_SPEC, flags);

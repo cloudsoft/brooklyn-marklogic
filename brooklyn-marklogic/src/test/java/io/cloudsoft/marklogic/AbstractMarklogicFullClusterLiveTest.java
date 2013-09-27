@@ -21,6 +21,7 @@ import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -85,9 +86,14 @@ public abstract class AbstractMarklogicFullClusterLiveTest {
             //general purpose centos image
             String ami = "ami-3275ee5b";
             //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
+            // [sam] Custom AMI seems to cause jclouds problems. Lots and lots of error messages like this:
+            // jclouds.ssh ... error acquiring SFTPClient() (attempt 2 of 50): Invalid packet: indicated length
+            // 1349281121 too large
             //String ami = "ami-c4f78aad";
 
-            Map<String, ?> jcloudsFlags = MutableMap.of("imageId", REGION_NAME + "/" + ami, "user", "ec2-user", "hardwareId", MEDIUM_HARDWARE_ID);
+            Map<String, ?> jcloudsFlags = MutableMap.of(
+                    "imageId", REGION_NAME + "/" + ami,
+                    "hardwareId", MEDIUM_HARDWARE_ID);
             jcloudsLocation = ctx.getLocationRegistry().resolve(PROVIDER + ":" + REGION_NAME, jcloudsFlags);
 
             app.start(Arrays.asList(jcloudsLocation));

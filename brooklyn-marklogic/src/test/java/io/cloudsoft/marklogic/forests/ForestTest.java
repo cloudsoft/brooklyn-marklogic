@@ -65,11 +65,11 @@ public class ForestTest {
         brooklynProperties.remove("brooklyn.ssh.config.scriptHeader");
 
         String ami = "ami-3275ee5b";
-        String loginUser = "ec2-user";
         String imageId = format("%s/%s", REGION_NAME, ami);
-        Map<?, ?> flags = ImmutableMap.of("imageId", imageId, "hardwareId", MEDIUM_HARDWARE_ID, "loginUser", loginUser);
+        Map<?, ?> jcloudsFlags = ImmutableMap.of(
+                "imageId", imageId,
+                "hardwareId", MEDIUM_HARDWARE_ID);
 
-        Map<?, ?> jcloudsFlags = MutableMap.builder().putAll(flags).build();
         String locationSpec = format("%s:%s", PROVIDER, REGION_NAME);
 
         ctx = new LocalManagementContext(brooklynProperties);
