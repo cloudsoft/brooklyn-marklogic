@@ -38,6 +38,7 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
     protected Entity createNode(Map flags) {
         return addChild(EntitySpec.create(MarkLogicNode.class)
                 .configure(MarkLogicNode.GROUP, getGroupName())
+                .configure(MarkLogicNode.NODE_TYPE, getNodeType())
                 .configure(MarkLogicNode.CLUSTER, getConfig(MarkLogicGroup.CLUSTER)));
     }
 
