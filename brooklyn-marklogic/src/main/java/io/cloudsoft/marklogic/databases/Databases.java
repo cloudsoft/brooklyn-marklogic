@@ -15,7 +15,7 @@ import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
  * Manages the {@link Database databases} in a {@link io.cloudsoft.marklogic.clusters.MarkLogicCluster cluster}.
  */
 @ImplementedBy(DatabasesImpl.class)
-public interface Databases extends AbstractGroup, Startable {
+public interface Databases extends AbstractGroup, Startable, Iterable<Database> {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(MarkLogicGroup.class, "marklogic.databases.group", "The group");
 

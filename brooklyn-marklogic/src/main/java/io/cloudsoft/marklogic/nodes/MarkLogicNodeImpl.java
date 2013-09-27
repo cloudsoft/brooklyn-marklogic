@@ -82,7 +82,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                 // TODO: Need an explanation of this.
                 Forests forests = getCluster().getForests();
                 Forest targetForest = null;
-                for (Forest forest : forests.asList()) {
+                for (Forest forest : forests) {
                     if (forest.createdByBrooklyn() && forest.getMaster() == null) {
                         targetForest = forest;
                         break;
@@ -295,5 +295,14 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             newvals.remove(oldval);
             setAttribute(attribute, newvals);
         }
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+            .add("host", getHostName())
+            .add("group", getGroupName())
+            .add("type", getNodeType().name())
+            .toString();
     }
 }

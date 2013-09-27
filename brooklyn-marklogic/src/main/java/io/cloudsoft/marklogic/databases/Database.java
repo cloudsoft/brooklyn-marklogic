@@ -3,8 +3,6 @@ package io.cloudsoft.marklogic.databases;
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.util.flags.SetFromFlag;
 
 import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
 

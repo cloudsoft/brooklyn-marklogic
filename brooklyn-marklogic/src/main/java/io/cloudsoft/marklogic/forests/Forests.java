@@ -14,7 +14,7 @@ import brooklyn.entity.trait.Startable;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 @ImplementedBy(ForestsImpl.class)
-public interface Forests extends Entity, Startable {
+public interface Forests extends Entity, Startable, Iterable<Forest> {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
@@ -49,8 +49,6 @@ public interface Forests extends Entity, Startable {
     void moveForest(
             @EffectorParam(name = "forest", description = "The name of the forest") String forestName,
             @EffectorParam(name = "host", description = "The new hostname") String hostName);
-
-    List<Forest> asList();
 
     void rebalance();
 

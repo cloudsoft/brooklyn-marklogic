@@ -1,6 +1,21 @@
 package io.cloudsoft.marklogic.databases;
 
-import brooklyn.entity.Entity;
+import static java.lang.String.format;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+
 import brooklyn.entity.basic.AbstractGroupImpl;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxying.EntitySpec;
@@ -8,35 +23,28 @@ import brooklyn.location.Location;
 import brooklyn.management.Task;
 import brooklyn.util.task.BasicTask;
 import brooklyn.util.task.ScheduledTask;
-import com.google.common.base.Throwables;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
 
 public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
     private final Object mutex = new Object();
 
-    private boolean databaseExists(String databaseName) {
-        for (Entity member : getChildren()) {
-            if (member instanceof Database) {
-                Database db = (Database) member;
-                if (databaseName.equals(db.getName())) {
-                    return true;
-                }
-            }
-        }
+    @Override
+    public Iterator<Database> iterator() {
+        // Can Databases have children that aren't instances of Database?
+        return FluentIterable.from(getChildren())
+                .filter(Database.class)
+                .iterator();
+    }
 
-        return false;
+    private boolean databaseExists(final String databaseName) {
+        Predicate<Database> nameMatcher = new Predicate<Database>() {
+            @Override public boolean apply(Database input) {
+                return databaseName.equals(input.getName());
+            }};
+        return Iterables.any(this, nameMatcher);
     }
 
     @Override

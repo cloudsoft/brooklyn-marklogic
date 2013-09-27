@@ -9,8 +9,12 @@ import brooklyn.location.Location;
 import brooklyn.management.Task;
 import brooklyn.util.task.BasicTask;
 import brooklyn.util.task.ScheduledTask;
+
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
@@ -22,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 /**
@@ -33,9 +38,16 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     private final Object mutex = new Object();
 
     @Override
+    public Iterator<Forest> iterator() {
+        // Can Forests have children that aren't instances of Forest?
+        return FluentIterable.from(getChildren())
+                .filter(Forest.class)
+                .iterator();
+    }
+
+    @Override
     public void moveAllForestFromNode(String hostName) {
         LOG.info("MoveAllForestsFromNode:" + hostName);
-
 
         final List<Forest> forests = getBrooklynCreatedForestsOnHosts(hostName);
         if (forests.isEmpty()) {
@@ -45,8 +57,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         LOG.info(format("Moving %s forests from host %s", forests.size(), hostName));
         for (Forest forest : forests) {
-
-
             MarkLogicNode targetNode = findTargetNode(hostName, forest);
 
             if (targetNode == null) {
@@ -88,9 +98,9 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         for (MarkLogicNode upNode : filteredUpNodes) {
             if (lowestForestCount == Integer.MAX_VALUE) {
                 bestNode = upNode;
-                lowestForestCount = getBrooklynCreatedForestsOnHosts(upNode.getHostName()).size();
+                lowestForestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostName()));
             } else {
-                int forestCount = getBrooklynCreatedForestsOnHosts(upNode.getHostName()).size();
+                int forestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostName()));
                 if (forestCount < lowestForestCount) {
                     bestNode = upNode;
                     lowestForestCount = forestCount;
@@ -103,34 +113,18 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     @Override
     public void rebalance() {
         LOG.info("Rebalance doing nothing");
-        // for(Forest forest: asList()){
-        //     if(forest.)
-        // }
     }
 
-    @Override
-    public List<Forest> asList() {
-        List<Forest> result = new LinkedList<Forest>();
-
-        for (Entity member : getChildren()) {
-            if (member instanceof Forest) {
-                Forest forest = (Forest) member;
-                result.add(forest);
+    private List<Forest> getBrooklynCreatedForestsOnHosts(final String hostName) {
+        checkNotNull(hostName, "hostName");
+        Predicate<Forest> filter = new Predicate<Forest>() {
+            @Override public boolean apply(Forest forest) {
+                return forest.createdByBrooklyn() && hostName.equals(forest.getHostname());
             }
-
-        }
-        return result;
-    }
-
-    private List<Forest> getBrooklynCreatedForestsOnHosts(String hostName) {
-        List<Forest> forests = new LinkedList<Forest>();
-
-        for (Forest forest : asList()) {
-            if (forest.createdByBrooklyn() && hostName.equals(forest.getHostname())) {
-                forests.add(forest);
-            }
-        }
-        return forests;
+        };
+        return FluentIterable.from(this)
+                .filter(filter)
+                .toList();
     }
 
     public MarkLogicGroup getGroup() {
@@ -159,7 +153,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     private Forest getForest(String forestName) {
-        for (Forest forest : asList()) {
+        for (Forest forest : this) {
             if (forestName.equals(forest.getName())) {
                 return forest;
             }
@@ -418,7 +412,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     private List<Forest> getReplicasForMaster(String forestName) {
         List<Forest> result = new LinkedList<Forest>();
-        for (Forest forest : asList()) {
+        for (Forest forest : this) {
             if (forestName.equals(forest.getMaster())) {
                 result.add(forest);
             }
@@ -496,4 +490,5 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             throw new RuntimeException();//todo:
         }
     }
+
 }
