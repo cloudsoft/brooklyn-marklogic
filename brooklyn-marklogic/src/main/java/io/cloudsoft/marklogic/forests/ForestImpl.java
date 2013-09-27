@@ -25,11 +25,6 @@ public class ForestImpl extends AbstractEntity implements Forest {
     private FunctionFeed statusFeed;
 
     @Override
-    public <T> T setAttribute(AttributeSensor<T> attribute, T value) {
-        return super.setAttribute(attribute, value);
-    }
-
-    @Override
     public String getName() {
         return getConfig(NAME);
     }
@@ -90,11 +85,6 @@ public class ForestImpl extends AbstractEntity implements Forest {
             throw new NullPointerException("Group was not configured");
         }
         return group.getAnyUpMember();
-    }
-
-    @Override
-    public <T> T setConfig(ConfigKey<T> key, T val) {
-        return super.setConfig(key, val);
     }
 
     @Override
