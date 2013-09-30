@@ -66,7 +66,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
         LOG.info("MarkLogic Cluster Members:");
         int k = 1;
-        for (Entity entity : dgroup.getMembers()) {
+        for (MarkLogicNode entity : dgroup) {
             LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8001");
             k++;
         }

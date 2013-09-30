@@ -11,9 +11,12 @@ import io.cloudsoft.marklogic.nodes.NodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 
 /**
  * TODO:
@@ -25,8 +28,11 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicGroupImpl.class);
 
-    public boolean isUp() {
-        return getAttribute(SERVICE_UP);
+    @Override
+    public Iterator<MarkLogicNode> iterator() {
+        return FluentIterable.from(getMembers())
+                .filter(MarkLogicNode.class)
+                .iterator();
     }
 
     /**
@@ -44,51 +50,39 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
 
     @Override
     public List<MarkLogicNode> getAllUpMembers() {
-        List<MarkLogicNode> result = new LinkedList<MarkLogicNode>();
-
-        for (Entity member : getMembers()) {
-            if (member instanceof MarkLogicNode) {
-                MarkLogicNode node = (MarkLogicNode) member;
-                if (node.isUp()) {
-                    result.add(node);
-                }
+        ImmutableList.Builder<MarkLogicNode> result = ImmutableList.builder();
+        for (MarkLogicNode node : this) {
+            if (node.isUp()) {
+                result.add(node);
             }
         }
-
-        return result;
+        return result.build();
     }
 
     @Override
     public MarkLogicNode getAnyUpMember() {
-        for (Entity member : getMembers()) {
-            if (member instanceof MarkLogicNode) {
-                MarkLogicNode node = (MarkLogicNode) member;
-                if (node.isUp()) {
-                    return node;
-                }
+        for (MarkLogicNode node : this) {
+            if (node.isUp()) {
+                return node;
             }
         }
-
         return null;
     }
 
     @Override
     public MarkLogicNode getAnyOtherUpMember(String... hostNames) {
-        for (Entity member : getMembers()) {
-            if (member instanceof MarkLogicNode) {
-                MarkLogicNode node = (MarkLogicNode) member;
-                if (node.isUp()) {
-                    boolean excluded = false;
-                    for (String hostName : hostNames) {
-                        if (hostName.endsWith(node.getHostName())) {
-                            excluded = true;
-                            break;
-                        }
+        for (MarkLogicNode node : this) {
+            if (node.isUp()) {
+                boolean excluded = false;
+                for (String hostName : hostNames) {
+                    if (hostName.endsWith(node.getHostName())) {
+                        excluded = true;
+                        break;
                     }
+                }
 
-                    if (!excluded) {
-                        return node;
-                    }
+                if (!excluded) {
+                    return node;
                 }
             }
         }
@@ -110,4 +104,10 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
     public NodeType getNodeType() {
         return getConfig(NODE_TYPE);
     }
+
+    @Override
+    public boolean isUp() {
+        return getAttribute(SERVICE_UP);
+    }
+
 }

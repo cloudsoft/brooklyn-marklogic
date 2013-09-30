@@ -19,7 +19,7 @@ import static brooklyn.entity.basic.ConfigKeys.newStringConfigKey;
  * They simplify cluster management.
  */
 @ImplementedBy(MarkLogicGroupImpl.class)
-public interface MarkLogicGroup extends DynamicCluster {
+public interface MarkLogicGroup extends DynamicCluster, Iterable<MarkLogicNode> {
 
     ConfigKey<String> GROUP_NAME = newStringConfigKey(
             "marklogic.group.name",

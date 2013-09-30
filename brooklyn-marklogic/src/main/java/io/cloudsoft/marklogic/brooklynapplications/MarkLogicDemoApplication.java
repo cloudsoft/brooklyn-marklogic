@@ -234,15 +234,15 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         LOG.info("MarkLogic Cluster summary is available at 'http://" + hostName + ":8001'");
         LOG.info("E-Nodes");
         k = 1;
-        for (Entity entity : markLogicCluster.getENodeGroup().getMembers()) {
-            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
+        for (MarkLogicNode eNode : markLogicCluster.getENodeGroup()) {
+            LOG.info("   " + k + " MarkLogic node http://" + eNode.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
 
         LOG.info("D-Nodes");
         k = 1;
-        for (Entity entity : markLogicCluster.getDNodeGroup().getMembers()) {
-            LOG.info("   " + k + " MarkLogic node http://" + entity.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
+        for (MarkLogicNode dNode : markLogicCluster.getDNodeGroup()) {
+            LOG.info("   " + k + " MarkLogic node http://" + dNode.getAttribute(MarkLogicNode.HOSTNAME) + ":8000");
             k++;
         }
         LOG.info("MarkLogic Monitoring Dashboard is available at 'http://" + hostName + ":8002/dashboard'");
