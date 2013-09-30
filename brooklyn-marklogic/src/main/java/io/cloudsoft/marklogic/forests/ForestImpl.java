@@ -6,6 +6,7 @@ import brooklyn.event.AttributeSensor;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
 import brooklyn.location.Location;
+import brooklyn.util.internal.Repeater;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -17,6 +18,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+
+import com.google.common.base.Joiner;
 
 public class ForestImpl extends AbstractEntity implements Forest {
 
@@ -93,22 +96,24 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
-    public void awaitStatus(String... expectedStates) {
-        for (int k = 0; k < 120; k++) {
-            String status = getStatus();
-            for (String expected: expectedStates){
-                if (expected.equals(status)){
-                    return;
-                }
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            }
-        }
-
-        throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s", getName(), Arrays.asList(expectedStates), getStatus()));
+    public void awaitStatus(final String... expectedStates) {
+        boolean gotStatus = Repeater.create(this + " awaiting states: " + Joiner.on(',').join(expectedStates))
+                .repeat()
+                .every(1, TimeUnit.SECONDS)
+                .limitIterationsTo(120)
+                .until(new Callable<Boolean>() {
+                    @Override public Boolean call() throws Exception {
+                        String status = getStatus();
+                        for (String expected: expectedStates) {
+                            if (expected.equals(status)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }})
+                .run();
+        if (!gotStatus)
+            throw new RuntimeException(format("Status of forest %s didn't change in time to %s, currently is %s", getName(), Arrays.asList(expectedStates), getStatus()));
     }
 
     public void connectSensors() {

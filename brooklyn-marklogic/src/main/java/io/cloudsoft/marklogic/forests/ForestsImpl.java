@@ -172,8 +172,8 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public Forest createForestWithSpec(EntitySpec<Forest> forestSpec) {
-        String forestName = (String) forestSpec.getConfig().get(Forest.NAME);
-        String hostName = (String) forestSpec.getConfig().get(Forest.HOST);
+        String forestName = (String) checkNotNull(forestSpec.getConfig().get(Forest.NAME), "Spec missing Forest.NAME config");
+        String hostName = (String) checkNotNull(forestSpec.getConfig().get(Forest.HOST), "Spec missing Forest.HOST config");
 
         LOG.info("Creating forest {} on host {}", forestName, hostName);
 
