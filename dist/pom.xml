@@ -56,7 +56,6 @@
                                 <descriptor>src/main/config/build-distribution-archive.xml</descriptor>
                             </descriptors>
                             <finalName>brooklyn-marklogic-${project.version}</finalName>
-                            <useProjectArtifact>false</useProjectArtifact>
                         </configuration>
                     </execution>
                 </executions>
