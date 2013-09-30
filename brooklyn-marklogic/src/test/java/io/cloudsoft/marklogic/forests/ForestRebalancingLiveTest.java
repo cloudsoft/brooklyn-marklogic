@@ -1,6 +1,6 @@
 package io.cloudsoft.marklogic.forests;
 
-import io.cloudsoft.marklogic.AbstractMarklogicFullClusterLiveTest;
+import io.cloudsoft.marklogic.AbstractMarkLogicFullClusterLiveTest;
 import io.cloudsoft.marklogic.databases.Database;
 
 import org.testng.annotations.Test;
@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 import static com.mongodb.util.MyAsserts.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
-public class ForestRebalancingLiveTest extends AbstractMarklogicFullClusterLiveTest {
+public class ForestRebalancingLiveTest extends AbstractMarkLogicFullClusterLiveTest {
 
     @Test(groups = {"WIP"})
     public void testMoveAllForestsFromNode_noReplica() throws Exception {

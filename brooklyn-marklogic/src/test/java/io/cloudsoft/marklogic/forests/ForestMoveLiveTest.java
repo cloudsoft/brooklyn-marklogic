@@ -1,13 +1,13 @@
 package io.cloudsoft.marklogic.forests;
 
-import io.cloudsoft.marklogic.AbstractMarklogicFullClusterLiveTest;
+import io.cloudsoft.marklogic.AbstractMarkLogicFullClusterLiveTest;
 import io.cloudsoft.marklogic.databases.Database;
 
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-public class ForestMoveLiveTest extends AbstractMarklogicFullClusterLiveTest {
+public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
 
     // TODO: Delete?
     //  @Test(groups = {"Live"})

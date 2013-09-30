@@ -18,11 +18,11 @@ import brooklyn.location.Location;
 import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
 import brooklyn.util.collections.MutableMap;
-import io.cloudsoft.marklogic.AbstractMarklogicFullClusterLiveTest;
+import io.cloudsoft.marklogic.AbstractMarkLogicFullClusterLiveTest;
 
 public class MarkLogicNodeImplLiveTest extends BrooklynMgmtContextTestSupport {
 
-    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarklogicFullClusterLiveTest.class);
+    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarkLogicFullClusterLiveTest.class);
 
     public static final String PROVIDER = "aws-ec2";
     public static final String REGION_NAME = "us-east-1";

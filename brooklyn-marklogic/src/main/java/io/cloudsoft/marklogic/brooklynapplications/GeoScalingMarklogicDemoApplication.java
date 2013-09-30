@@ -29,9 +29,9 @@ import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
+public class GeoScalingMarkLogicDemoApplication extends AbstractApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GeoScalingMarklogicDemoApplication.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GeoScalingMarkLogicDemoApplication.class);
     private final String user = System.getProperty("user.name");
 
     private String appServiceName = "DemoService";
@@ -56,7 +56,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
                 .configure("smartSubdomainName", "brooklyn"));
 
         marklogicGeoDns = getEntityManager().createEntity(EntitySpec.create(GeoscalingDnsService.class)
-                .displayName("Marklogic GeoScaling DNS")
+                .displayName("MarkLogic GeoScaling DNS")
                 .configure("username", checkNotNull(config.getFirst("brooklyn.geoscaling.username"), "username"))
                 .configure("password", checkNotNull(config.getFirst("brooklyn.geoscaling.password"), "password"))
                 .configure("primaryDomainName", checkNotNull(config.getFirst("brooklyn.geoscaling.primaryDomain"), "primaryDomain"))
@@ -103,7 +103,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
 
     @Override
     public void postStart(Collection<? extends Location> locations) {
-        LOG.info("=========================== GeoScalingMarklogicDemoApplication: Starting postStart =========================== ");
+        LOG.info("=========================== GeoScalingMarkLogicDemoApplication: Starting postStart =========================== ");
 
         super.postStart(locations);
 
@@ -139,7 +139,7 @@ public class GeoScalingMarklogicDemoApplication extends AbstractApplication {
         LOG.info("webGeoDns hostname: " + webGeoDns.getHostname());
         LOG.info("marklogicGenoDns hostname: " + marklogicGeoDns.getHostname());
 
-        LOG.info("=========================== GeoScalingMarklogicDemoApplication: Finished postStart =========================== ");
+        LOG.info("=========================== GeoScalingMarkLogicDemoApplication: Finished postStart =========================== ");
     }
 
 

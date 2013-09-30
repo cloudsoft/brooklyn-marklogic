@@ -31,9 +31,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractMarklogicFullClusterLiveTest {
+public abstract class AbstractMarkLogicFullClusterLiveTest {
 
-    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarklogicFullClusterLiveTest.class);
+    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarkLogicFullClusterLiveTest.class);
     public final String user = System.getProperty("user.name");
 
     public static final String PROVIDER = "aws-ec2";

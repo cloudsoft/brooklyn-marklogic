@@ -83,7 +83,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeSshDriver.class);
 
-    private static boolean loggedDefaultingMarklogicHome = false;
+    private static boolean loggedDefaultingMarkLogicHome = false;
 
     public final static AtomicInteger counter = new AtomicInteger(2);
     private final int nodeId;
@@ -182,9 +182,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String home = System.getenv("BROOKLYN_MARKLOGIC_HOME");
         if (home == null) {
             home = System.getProperty("user.dir");
-            if (!loggedDefaultingMarklogicHome) {
+            if (!loggedDefaultingMarkLogicHome) {
                 LOG.warn("BROOKLYN_MARKLOGIC_HOME not found in environment, defaulting to [{}]", home);
-                loggedDefaultingMarklogicHome = true;
+                loggedDefaultingMarkLogicHome = true;
             }
         }
         return new File(home);
@@ -369,7 +369,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if (isInitialHost) {
             LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
         } else {
-            LOG.info("Finished customize of Marklogic additional host {}", getHostname());
+            LOG.info("Finished customize of MarkLogic additional host {}", getHostname());
         }
     }
 
