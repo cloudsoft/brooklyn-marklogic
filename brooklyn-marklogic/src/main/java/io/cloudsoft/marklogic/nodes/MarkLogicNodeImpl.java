@@ -2,6 +2,7 @@ package io.cloudsoft.marklogic.nodes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import brooklyn.config.render.RendererHints;
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
@@ -42,6 +43,10 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     private FunctionFeed serviceUp;
 
     private final Object attributeSetMutex = new Object();
+
+    static {
+        RendererHints.register(URL, new RendererHints.NamedActionWithUrl("Open"));
+    }
 
     @Override
     public void init() {
