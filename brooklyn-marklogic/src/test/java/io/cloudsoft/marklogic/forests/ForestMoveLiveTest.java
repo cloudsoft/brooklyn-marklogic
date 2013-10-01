@@ -42,7 +42,7 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
             LOG.info("5-------------------------------------------");
 
 
-            forests.enableForest(primaryForest.getName(), false);
+            forests.disableForest(primaryForest.getName());
 
             LOG.info("6-------------------------------------------");
 
@@ -64,17 +64,17 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
             LOG.info("9-------------------------------------------");
 
 
-            forests.enableForest(primaryForest.getName(), true);
+            forests.enableForest(primaryForest.getName());
 
             LOG.info("10-------------------------------------------");
 
             primaryForest.awaitStatus("sync replicating");
             replicaForest.awaitStatus("open");
 
-            forests.enableForest(replicaForest.getName(), false);
+            forests.disableForest(replicaForest.getName());
             LOG.info("11-------------------------------------------");
 
-            forests.enableForest(replicaForest.getName(), true);
+            forests.enableForest(replicaForest.getName());
             LOG.info("12-------------------------------------------");
 
             primaryForest.awaitStatus("open");
@@ -165,13 +165,13 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         databases.attachForestToDatabase(forest.getName(), database.getName());
         forest.awaitStatus("open");
 
-        forests.enableForest(forest.getName(), false);
+        forests.disableForest(forest.getName());
         forest.awaitStatus("unmounted");
 
         forests.unmountForest(forest.getName());
         forests.setForestHost(forest.getName(), dNode3.getHostName());
         forests.mountForest(forest.getName());
-        forests.enableForest(forest.getName(), true);
+        forests.enableForest(forest.getName());
         forest.awaitStatus("open");
 
         assertEquals(dNode3.getHostName(), forest.getHostname());

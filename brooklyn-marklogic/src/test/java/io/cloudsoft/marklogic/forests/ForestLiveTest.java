@@ -26,10 +26,10 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest forest = createForest(dNode1);
         forest.awaitStatus("open");
 
-        forests.enableForest(forest.getName(), false);
+        forests.disableForest(forest.getName());
         forest.awaitStatus("disabled");
 
-        forests.enableForest(forest.getName(), true);
+        forests.enableForest(forest.getName());
         forest.awaitStatus("open");
     }
 
@@ -78,12 +78,12 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         databases.attachForestToDatabase(forest.getName(), database.getName());
         forest.awaitStatus("open");
 
-        forests.enableForest(forest.getName(), false);
+        forests.disableForest(forest.getName());
         forest.awaitStatus("unmounted");
 
         forests.unmountForest(forest.getName());
         forests.mountForest(forest.getName());
-        forests.enableForest(forest.getName(), true);
+        forests.enableForest(forest.getName());
         forest.awaitStatus("open");
 
         assertEquals(dNode1.getHostName(), forest.getHostname());

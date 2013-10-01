@@ -144,7 +144,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
                                 }
 
                                 String forestStatus = status.substring(beginIndex, endIndex);
-                                LOG.debug("Status of forest {} is: {}", getName(), forestStatus);
+                                LOG.trace("Status of forest {} is: {}", getName(), forestStatus);
                                 return forestStatus;
                             }
                         })

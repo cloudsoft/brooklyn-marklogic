@@ -60,9 +60,9 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         dNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
                 .displayName("D-Nodes")
                 .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
-                .configure(MarkLogicGroup.CLUSTER, this)
                 .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
                 .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
+                .configure(MarkLogicGroup.CLUSTER, this)
         );
 
         databases = addChild(EntitySpec.create(Databases.class)

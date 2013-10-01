@@ -241,7 +241,16 @@ public class ForestsImpl extends AbstractEntity implements Forests {
     }
 
     @Override
-    public void enableForest(String forestName, boolean enabled) {
+    public void disableForest(String forestName) {
+        setForestStatus(forestName, false);
+    }
+
+    @Override
+    public void enableForest(String forestName) {
+        setForestStatus(forestName, true);
+    }
+
+    private void setForestStatus(String forestName, boolean enabled) {
         if (enabled) {
             LOG.info("Enabling forest {}", forestName);
         } else {
@@ -249,25 +258,25 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         }
 
         if (getGroup() == null) {
-            throw new RuntimeException("Group is null, not possible");
+            throw new RuntimeException(String.format("Group is null. Not possible to %s forest: %s",
+                    enabled ? "enable" : "disable", forestName));
         }
+
         MarkLogicNode node = getGroup().getAnyUpMember();
         if (node == null) {
             LOG.info("Group: " + getGroup().getGroupName());
             LOG.info("Group.size: " + getGroup().getCurrentSize());
-            for (Entity entity : getGroup().getChildren()) {
-                if (entity instanceof MarkLogicNode) {
-                    MarkLogicNode child = (MarkLogicNode) entity;
-                    LOG.info("child.hostname:" + child.getHostName() + " isUp: " + child.isUp());
-                }
+            for (MarkLogicNode child : getGroup()) {
+                LOG.info("child.hostname:" + child.getHostName() + " isUp: " + child.isUp());
             }
             throw new IllegalStateException("No up members found in group: " + getGroup().getGroupName());
         }
-        node.enableForest(forestName, enabled);
 
         if (enabled) {
+            node.enableForest(forestName);
             LOG.info("Finished enabling forest {}", forestName);
         } else {
+            node.disableForest(forestName);
             LOG.info("Finished disabling forest {}", forestName);
         }
     }
@@ -314,6 +323,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void start(Collection<? extends Location> locations) {
+        LOG.info("{} starting in {}", this, locations);
         final List<? extends Entity> startableChildren = getStartableChildren();
 
         if (!startableChildren.isEmpty()) {
@@ -378,6 +388,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void stop() {
+        LOG.info("{} stopping", this);
         final List<? extends Entity> startableChildren = getStartableChildren();
         if (startableChildren.isEmpty())
             return;
@@ -390,7 +401,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void unmountForest(String forestName) {
-
         Forest forest = getForestOrFail(forestName);
         MarkLogicNode node = getNodeOrFail(forest.getHostname());
         LOG.info("Unmounting Forest {} on node {}", forestName, node.getHostName());
@@ -436,7 +446,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         List<Forest> replicaForests = getReplicasForMaster(primaryForestName);
 
         if (replicaForests.size() == 0) {
-            enableForest(primaryForest.getName(), false);
+            disableForest(primaryForest.getName());
             sleepSome();
             primaryForest.awaitStatus("unmounted");
             sleepSome();
@@ -450,7 +460,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             mountForest(primaryForest.getName());
             sleepSome();
 
-            enableForest(primaryForest.getName(), true);
+            enableForest(primaryForest.getName());
             primaryForest.awaitStatus("open", "sync replicating");
         } else if (replicaForests.size() == 1) {
             Forest replicaForest = replicaForests.get(0);
@@ -459,7 +469,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             replicaForest.awaitStatus("sync replicating");
             sleepSome();
 
-            enableForest(primaryForest.getName(), false);
+            disableForest(primaryForest.getName());
             primaryForest.awaitStatus("unmounted");
             replicaForest.awaitStatus("open");
 
@@ -474,14 +484,14 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             mountForest(primaryForest.getName());
             sleepSome();
 
-            enableForest(primaryForest.getName(), true);
+            enableForest(primaryForest.getName());
             primaryForest.awaitStatus("sync replicating");
             replicaForest.awaitStatus("open");
 
-            enableForest(replicaForest.getName(), false);
+            disableForest(replicaForest.getName());
             sleepSome();
 
-            enableForest(replicaForest.getName(), true);
+            enableForest(replicaForest.getName());
             sleepSome();
 
             primaryForest.awaitStatus("open");

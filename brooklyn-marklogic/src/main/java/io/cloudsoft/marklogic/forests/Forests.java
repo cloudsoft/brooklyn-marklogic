@@ -36,8 +36,11 @@ public interface Forests extends Entity, Startable, Iterable<Forest> {
 
     @Effector(description = "Enables a forest")
     void enableForest(
-            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,
-            @EffectorParam(name = "enabled", description = "If the forest should be enabled") boolean enabled);
+            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
+
+    @Effector(description = "Disables a forest")
+    void disableForest(
+            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
 
     void setForestHost(String forestName, String hostname);
 

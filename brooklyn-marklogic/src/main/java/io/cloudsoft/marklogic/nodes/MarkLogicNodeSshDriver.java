@@ -500,11 +500,23 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void enableForest(String forestName, boolean enabled) {
-        LOG.debug("Enabling forest {} {}", forestName, enabled);
-        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of("forestName", forestName, "enabled", enabled));
+    public void enableForest(String forestName) {
+        LOG.debug("Enabling forest: {}", forestName);
+        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "enabled", true));
         executeScript("enableForest", script);
-        LOG.debug("Finished Enabling forest {} {}", forestName, enabled);
+        LOG.debug("Finished enabling forest: {}", forestName);
+    }
+
+    @Override
+    public void disableForest(String forestName) {
+        LOG.debug("Disabling forest: {}", forestName);
+        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "enabled", false));
+        executeScript("enableForest", script);
+        LOG.debug("Finished disabling forest: {}", forestName);
     }
 
     @Override
@@ -582,7 +594,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public String getForestStatus(String forestName) {
-        LOG.debug("Getting status for forest {}", forestName);
+        LOG.trace("Getting status for forest {}", forestName);
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
