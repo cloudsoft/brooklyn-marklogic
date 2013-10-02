@@ -32,20 +32,28 @@ public interface Forests extends Entity, Startable, Iterable<Forest> {
             @EffectorParam(name = "rebalancer_enabled", description = "Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @EffectorParam(name = "failover_enabled", description = "Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 
+    void attachReplicaForest(Forest primary, Forest replica);
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
     @Effector(description = "Enables a forest")
     void enableForest(
             @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
 
+    void enableForest(Forest forest);
+
     @Effector(description = "Disables a forest")
     void disableForest(
             @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
 
+    void disableForest(Forest forest);
+
+    void setForestHost(Forest forest, String hostname);
     void setForestHost(String forestName, String hostname);
 
+    void unmountForest(Forest forest);
     void unmountForest(String forestName);
 
+    void mountForest(Forest forest);
     void mountForest(String forestName);
 
     @Effector(description = "Moves a forest from one host to another")
@@ -53,9 +61,11 @@ public interface Forests extends Entity, Startable, Iterable<Forest> {
             @EffectorParam(name = "forest", description = "The name of the forest") String forestName,
             @EffectorParam(name = "host", description = "The new hostname") String hostName);
 
+    void moveForest(Forest forest, String hostName);
+
     void rebalance();
 
     @Effector(description = "Move all forests from this node (this is useful for removing a node within the cluster)")
     void moveAllForestFromNode(
-            @EffectorParam(name = "hostName", description = "The name of the host node which should loose all its forests.") String hostName);
+            @EffectorParam(name = "hostName", description = "The name of the host node which should lose all its forests.") String hostName);
 }

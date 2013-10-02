@@ -212,7 +212,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         replicaForest.awaitStatus("open");
 
         forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
 
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");

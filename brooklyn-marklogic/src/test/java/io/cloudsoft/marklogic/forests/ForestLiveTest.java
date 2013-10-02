@@ -26,10 +26,10 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest forest = createForest(dNode1);
         forest.awaitStatus("open");
 
-        forests.disableForest(forest.getName());
+        forests.disableForest(forest);
         forest.awaitStatus("disabled");
 
-        forests.enableForest(forest.getName());
+        forests.enableForest(forest);
         forest.awaitStatus("open");
     }
 
@@ -42,7 +42,7 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest primaryForest = createForest(dNode1);
         primaryForest.awaitStatus("open");
 
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
         assertEquals(dNode1.getHostName(), primaryForest.getHostname());
     }
@@ -58,7 +58,7 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
 
         Forest replicaForest = createForest(dNode2, primaryForest.getName());
 
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
@@ -75,15 +75,15 @@ public class ForestLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest forest = createForest(dNode1);
         forest.awaitStatus("open");
 
-        databases.attachForestToDatabase(forest.getName(), database.getName());
+        databases.attachForestToDatabase(forest, database);
         forest.awaitStatus("open");
 
-        forests.disableForest(forest.getName());
+        forests.disableForest(forest);
         forest.awaitStatus("unmounted");
 
-        forests.unmountForest(forest.getName());
-        forests.mountForest(forest.getName());
-        forests.enableForest(forest.getName());
+        forests.unmountForest(forest);
+        forests.mountForest(forest);
+        forests.enableForest(forest);
         forest.awaitStatus("open");
 
         assertEquals(dNode1.getHostName(), forest.getHostname());

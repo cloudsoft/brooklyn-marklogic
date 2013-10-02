@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 
 public class ForestImpl extends AbstractEntity implements Forest {
 
@@ -167,5 +168,14 @@ public class ForestImpl extends AbstractEntity implements Forest {
             statusFeed.stop();
             statusFeed = null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("name", getName())
+                .add("id", getId())
+                .add("status", getStatus())
+                .toString();
     }
 }

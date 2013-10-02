@@ -30,10 +30,10 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
             LOG.info("2-------------------------------------------");
 
 
-            forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
+            forests.attachReplicaForest(primaryForest, replicaForest);
             LOG.info("3-------------------------------------------");
 
-            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+            databases.attachForestToDatabase(primaryForest, database);
             LOG.info("4-------------------------------------------");
 
             primaryForest.awaitStatus("open");
@@ -42,39 +42,39 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
             LOG.info("5-------------------------------------------");
 
 
-            forests.disableForest(primaryForest.getName());
+            forests.disableForest(primaryForest);
 
             LOG.info("6-------------------------------------------");
 
             primaryForest.awaitStatus("unmounted");
             replicaForest.awaitStatus("open");
 
-            forests.unmountForest(primaryForest.getName());
+            forests.unmountForest(primaryForest);
 
             LOG.info("7-------------------------------------------");
 
 
-            forests.setForestHost(primaryForest.getName(), dNode3.getHostName());
+            forests.setForestHost(primaryForest, dNode3.getHostName());
 
             LOG.info("8-------------------------------------------");
 
 
-            forests.mountForest(primaryForest.getName());
+            forests.mountForest(primaryForest);
 
             LOG.info("9-------------------------------------------");
 
 
-            forests.enableForest(primaryForest.getName());
+            forests.enableForest(primaryForest);
 
             LOG.info("10-------------------------------------------");
 
             primaryForest.awaitStatus("sync replicating");
             replicaForest.awaitStatus("open");
 
-            forests.disableForest(replicaForest.getName());
+            forests.disableForest(replicaForest);
             LOG.info("11-------------------------------------------");
 
-            forests.enableForest(replicaForest.getName());
+            forests.enableForest(replicaForest);
             LOG.info("12-------------------------------------------");
 
             primaryForest.awaitStatus("open");
@@ -100,10 +100,10 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest primaryForest = createForest(dNode1);
         primaryForest.awaitStatus("open");
 
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
 
-        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
+        forests.moveForest(primaryForest, dNode3.getHostName());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals(dNode3.getHostName(), primaryForest.getHostname());
@@ -119,11 +119,11 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         primaryForest.awaitStatus("open");
 
         Forest replicaForest = createForest(dNode2, primaryForest.getName());
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveForest(primaryForest.getName(), dNode3.getHostName());
+        forests.moveForest(primaryForest, dNode3.getHostName());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals("sync replicating", replicaForest.getStatus());
@@ -142,11 +142,11 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
 
         Forest replicaForest = createForest(dNode2, primaryForest.getName());
 
-        databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+        databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveForest(replicaForest.getName(), dNode3.getHostName());
+        forests.moveForest(replicaForest, dNode3.getHostName());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals("sync replicating", replicaForest.getStatus());
@@ -162,16 +162,16 @@ public class ForestMoveLiveTest extends AbstractMarkLogicFullClusterLiveTest {
         Forest forest = createForest(dNode1);
         forest.awaitStatus("open");
 
-        databases.attachForestToDatabase(forest.getName(), database.getName());
+        databases.attachForestToDatabase(forest, database);
         forest.awaitStatus("open");
 
-        forests.disableForest(forest.getName());
+        forests.disableForest(forest);
         forest.awaitStatus("unmounted");
 
-        forests.unmountForest(forest.getName());
-        forests.setForestHost(forest.getName(), dNode3.getHostName());
-        forests.mountForest(forest.getName());
-        forests.enableForest(forest.getName());
+        forests.unmountForest(forest);
+        forests.setForestHost(forest, dNode3.getHostName());
+        forests.mountForest(forest);
+        forests.enableForest(forest);
         forest.awaitStatus("open");
 
         assertEquals(dNode3.getHostName(), forest.getHostname());

@@ -23,6 +23,7 @@ import brooklyn.location.Location;
 import brooklyn.management.Task;
 import brooklyn.util.task.BasicTask;
 import brooklyn.util.task.ScheduledTask;
+import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
@@ -75,6 +76,7 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         return database;
     }
 
+    // TODO: Assume should check database exists and is member of group
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
         LOG.info("Attaching forest {} to database {}", forestName, databaseName);
@@ -86,6 +88,11 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
         node.attachForestToDatabase(forestName, databaseName);
 
         LOG.info("Finished attach forest {} to database {}", forestName, databaseName);
+    }
+
+    @Override
+    public void attachForestToDatabase(Forest forest, Database database) {
+        attachForestToDatabase(forest.getName(), database.getName());
     }
 
     public MarkLogicGroup getGroup() {

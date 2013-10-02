@@ -122,7 +122,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
           //  primaryForest.awaitStatus("open");
           //  replicaForest.awaitStatus("open");
            // forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
-            databases.attachForestToDatabase(primaryForest.getName(), database.getName());
+            databases.attachForestToDatabase(primaryForest, database);
 
             LOG.info("Waiting for {} to have status 'open'", primaryForest);
             primaryForest.awaitStatus("open");
