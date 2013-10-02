@@ -17,7 +17,54 @@ curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add
         -H "Accept-Encoding: gzip,deflate,sdch" \
         -H "Accept-Language: en-US,en;q=0.8" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        --data "section=group&ok.x=14&ok.y=11&ok=ok&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Agroup-name=<#noparse>${GROUP_NAME}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Agroup-id=<#noparse>${GROUP_ID}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Alist-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Alist-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-cache-size=64&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Acompressed-tree-read-size=32&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aexpanded-tree-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aexpanded-tree-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-cache-size=128&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-value-cache-size=64&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Atriple-value-cache-partitions=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aemail-address=admin%40ec2-23-22-209-58.compute-1.amazonaws.com&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asmtp-relay=localhost&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asmtp-timeout=60&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahttp-user-agent=MarkLogic+Server&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahttp-timeout=60&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-timeout=10&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahost-timeout=30&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ahost-initial-timeout=240&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aretry-timeout=180&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Amodule-cache-timeout=300&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asystem-log-level=notice&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Afile-log-level=info&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Arotate-log-files=daily&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Akeep-log-files=7&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Afailover-enable=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-enabled=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-allow-sslv3=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-allow-tls=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Axdqp-ssl-ciphers=ALL%3A%21LOW%3A%40STRENGTH&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aevents-activated=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Abackground-io-limit=0&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-enabled=true&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aperformance-metering-enabled=false&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ameters-database=<#noparse>${METERS_DATABASE_D}</#noparse>&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Aperformance-metering-period=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-raw=1&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-hourly=7&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-daily=31&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Ametering-retain-monthly=365&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-domain=s3.amazonaws.com&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-protocol=http&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3As3-server-side-encryption=none&%2Fgr%3Agroups%2Fgr%3Agroup%2Fgr%3Asecurity-database=<#noparse>${SECURITY_DATABASE_ID}</#noparse>"
+        -d section=group \
+        -d ok=ok \
+        -d /gr:groups/gr:group/gr:group-name=<#noparse>${GROUP_NAME}</#noparse> \
+        -d /gr:groups/gr:group/gr:group-id=<#noparse>${GROUP_ID}</#noparse> \
+        -d /gr:groups/gr:group/gr:list-cache-size=128 \
+        -d /gr:groups/gr:group/gr:list-cache-partitions=1 \
+        -d /gr:groups/gr:group/gr:compressed-tree-cache-size=64 \
+        -d /gr:groups/gr:group/gr:compressed-tree-cache-partitions=1 \
+        -d /gr:groups/gr:group/gr:compressed-tree-read-size=32 \
+        -d /gr:groups/gr:group/gr:expanded-tree-cache-size=128 \
+        -d /gr:groups/gr:group/gr:expanded-tree-cache-partitions=1 \
+        -d /gr:groups/gr:group/gr:triple-cache-size=128 \
+        -d /gr:groups/gr:group/gr:triple-cache-partitions=1 \
+        -d /gr:groups/gr:group/gr:triple-value-cache-size=64 \
+        -d /gr:groups/gr:group/gr:triple-value-cache-partitions=1 \
+        -d /gr:groups/gr:group/gr:email-address=admin%40ec2-23-22-209-58.compute-1.amazonaws.com \
+        -d /gr:groups/gr:group/gr:smtp-relay=localhost \
+        -d /gr:groups/gr:group/gr:smtp-timeout=60 \
+        -d /gr:groups/gr:group/gr:http-user-agent=MarkLogic+Server \
+        -d /gr:groups/gr:group/gr:http-timeout=60 \
+        -d /gr:groups/gr:group/gr:xdqp-timeout=10 \
+        -d /gr:groups/gr:group/gr:host-timeout=30 \
+        -d /gr:groups/gr:group/gr:host-initial-timeout=240 \
+        -d /gr:groups/gr:group/gr:retry-timeout=180 \
+        -d /gr:groups/gr:group/gr:module-cache-timeout=300 \
+        -d /gr:groups/gr:group/gr:system-log-level=notice \
+        -d /gr:groups/gr:group/gr:file-log-level=info \
+        -d /gr:groups/gr:group/gr:rotate-log-files=daily \
+        -d /gr:groups/gr:group/gr:keep-log-files=7 \
+        -d /gr:groups/gr:group/gr:failover-enable=true \
+        -d /gr:groups/gr:group/gr:xdqp-ssl-enabled=false \
+        -d /gr:groups/gr:group/gr:xdqp-ssl-allow-sslv3=true \
+        -d /gr:groups/gr:group/gr:xdqp-ssl-allow-tls=true \
+        -d /gr:groups/gr:group/gr:xdqp-ssl-ciphers=ALL:%21LOW:%40STRENGTH \
+        -d /gr:groups/gr:group/gr:events-activated=false \
+        -d /gr:groups/gr:group/gr:background-io-limit=0 \
+        -d /gr:groups/gr:group/gr:metering-enabled=true \
+        -d /gr:groups/gr:group/gr:performance-metering-enabled=false \
+        -d /gr:groups/gr:group/gr:meters-database=<#noparse>${METERS_DATABASE_D}</#noparse> \
+        -d /gr:groups/gr:group/gr:performance-metering-period=1 \
+        -d /gr:groups/gr:group/gr:metering-retain-raw=1 \
+        -d /gr:groups/gr:group/gr:metering-retain-hourly=7 \
+        -d /gr:groups/gr:group/gr:metering-retain-daily=31 \
+        -d /gr:groups/gr:group/gr:metering-retain-monthly=365 \
+        -d /gr:groups/gr:group/gr:s3-domain=s3.amazonaws.com \
+        -d /gr:groups/gr:group/gr:s3-protocol=http \
+        -d /gr:groups/gr:group/gr:s3-server-side-encryption=none \
+        -d /gr:groups/gr:group/gr:security-database=<#noparse>${SECURITY_DATABASE_ID}</#noparse>
 
 echo ==============================================================================
 echo                 FINISHED CREATING GROUP ${group}
