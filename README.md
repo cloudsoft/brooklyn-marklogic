@@ -27,3 +27,10 @@ We are actively working on additional features for more control and flexibility 
   Scaling down may involve mounting the EBS volumes for a node's forests on other existing nodes.
   Scaling up may involve mounting existing volumes that are currently attached to existing nodes, to balance the load.
 * Support other cloud providers, and support Bring-Your-Own-Nodes (e.g. where you have a list of IPs for pre-existing machines).
+
+================
+
+&copy; Cloudsoft Corporation 2013. All rights reserved.
+
+Use of this software is subject to the Cloudsoft EULA, provided in LICENSE.txt and at http://www.cloudsoftcorp.com/cloudsoft-developer-license
+
