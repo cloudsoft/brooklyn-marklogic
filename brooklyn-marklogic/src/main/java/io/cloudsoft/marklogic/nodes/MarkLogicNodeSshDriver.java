@@ -21,6 +21,7 @@ import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.VolumeInfo;
+import io.cloudsoft.marklogic.util.Zip;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -34,11 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static brooklyn.util.ssh.BashCommands.dontRequireTtyForSudo;
 import static brooklyn.util.ssh.BashCommands.sudo;
@@ -82,10 +80,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeSshDriver.class);
+    private static final AtomicInteger counter = new AtomicInteger(2);
 
     private static boolean loggedDefaultingMarkLogicHome = false;
-
-    public final static AtomicInteger counter = new AtomicInteger(2);
     private final int nodeId;
 
     // Use device suffixes h through p; reuse where possible
@@ -272,66 +269,14 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         try {
             File zipFile = File.createTempFile("upload", "zip");
             zipFile.deleteOnExit();
-            zip(dir, zipFile);
+            Zip.zip(dir, zipFile);
             LOG.debug("Copying {} to {} as {}", new Object[]{zipFile, getLocation(), "./upload.zip"});
             getLocation().copyTo(zipFile, "./upload.zip");
             zipFile.delete();
         } catch (IOException e) {
             throw Exceptions.propagate(e);
         }
-
         LOG.info("Finished upload of {} to {}", dir, getHostname());
-
-    }
-
-    public static void zip(File directory, File zipfile) throws IOException {
-        LOG.info("Making zip file containing {} in {}", checkNotNull(directory, "directory"), checkNotNull(zipfile, "zipfile"));
-        URI base = directory.toURI();
-        Deque<File> queue = new LinkedList<File>();
-        queue.push(directory);
-        OutputStream out = new FileOutputStream(zipfile);
-        Closeable res = out;
-        try {
-            ZipOutputStream zout = new ZipOutputStream(out);
-            res = zout;
-            while (!queue.isEmpty()) {
-                directory = queue.pop();
-                for (File kid : directory.listFiles()) {
-                    String name = base.relativize(kid.toURI()).getPath();
-                    if (kid.isDirectory()) {
-                        queue.push(kid);
-                        name = name.endsWith("/") ? name : name + "/";
-                        zout.putNextEntry(new ZipEntry(name));
-                    } else if (!kid.getName().equals(".DS_Store")) {
-                        zout.putNextEntry(new ZipEntry(name));
-                        copy(kid, zout);
-                        zout.closeEntry();
-                    }
-                }
-            }
-        } finally {
-            res.close();
-        }
-    }
-
-    private static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        while (true) {
-            int readCount = in.read(buffer);
-            if (readCount < 0) {
-                break;
-            }
-            out.write(buffer, 0, readCount);
-        }
-    }
-
-    private static void copy(File file, OutputStream out) throws IOException {
-        InputStream in = new FileInputStream(file);
-        try {
-            copy(in, out);
-        } finally {
-            in.close();
-        }
     }
 
     private static final AtomicInteger delayOnJoin = new AtomicInteger();
@@ -678,7 +623,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void unmountForest(Forest forest) {
-        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+        if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
             final Ec2VolumeManager ec2VolumeManager = new Ec2VolumeManager();
