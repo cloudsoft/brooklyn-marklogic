@@ -465,12 +465,12 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void moveForest(String primaryForestName, String hostName) {
-        LOG.info("Moving forest {} to host {}", primaryForestName, hostName);
 
         Forest primaryForest = getForestOrFail(primaryForestName);
         List<Forest> replicaForests = getReplicasForMaster(primaryForestName);
 
-        if (replicaForests.size() == 0) {
+        LOG.info("Moving forest {} from {} to {}", new Object[]{primaryForestName, primaryForest.getHostname(), hostName});
+        if (replicaForests.isEmpty()) {
             disableForest(primaryForest);
             sleepSome();
             primaryForest.awaitStatus("unmounted");

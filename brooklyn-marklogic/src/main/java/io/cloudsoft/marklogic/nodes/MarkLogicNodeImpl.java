@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import brooklyn.config.render.RendererHints;
 import brooklyn.entity.basic.BrooklynConfigKeys;
+import brooklyn.entity.basic.Lifecycle;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
@@ -81,13 +82,18 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     private void onServiceUp(boolean up) {
+        if (up && Lifecycle.STOPPING.equals(getAttribute(SERVICE_STATE))) {
+            LOG.warn("{} got erroneous notification of SERVICE_UP when it is in Lifecycle.STOPPING. Ignoring and not attempting to move forests to the node.");
+            return;
+        }
         if (up) {
             LOG.info("MarkLogic node is up: {}", this);
-            if (getCluster() != null) {
-                // TODO: Need an explanation of this.
+            // Finds a forest to move to the new node
+            if (getCluster() != null && !getNodeType().equals(NodeType.E_NODE)) {
                 Forests forests = getCluster().getForests();
                 Forest targetForest = null;
                 for (Forest forest : forests) {
+                    // Choose a non-MarkLogic forest that isn't a replica.
                     if (forest.createdByBrooklyn() && forest.getMaster() == null) {
                         targetForest = forest;
                         break;
@@ -96,6 +102,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
                 if (targetForest != null)
                     forests.moveForest(targetForest.getName(), getHostName());
+            } else {
+                String reason = (getCluster() == null)
+                        ? "Cluster is null"
+                        : "Node type is: " + getNodeType().name();
+                LOG.info("Skipped move of forests onto new node {}: {}", this, reason);
             }
         } else {
             LOG.info("MarkLogic node is down: {}", this);

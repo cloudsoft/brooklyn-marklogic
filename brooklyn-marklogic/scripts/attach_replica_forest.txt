@@ -7,7 +7,7 @@ echo ===========================================================================
 # as replica to the other.
 
 curl -L -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${primaryForest.name}/properties \
-    --header Content-Type:application/xml \
+    --header "Content-Type:application/xml" \
     --data \
 '<forest-properties xmlns="http://marklogic.com/manage">
     <forest-replicas>

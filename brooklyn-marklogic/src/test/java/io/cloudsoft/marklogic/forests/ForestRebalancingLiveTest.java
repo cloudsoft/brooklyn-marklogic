@@ -5,7 +5,7 @@ import io.cloudsoft.marklogic.databases.Database;
 
 import org.testng.annotations.Test;
 
-import static com.mongodb.util.MyAsserts.assertTrue;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class ForestRebalancingLiveTest extends AbstractMarkLogicFullClusterLiveTest {
