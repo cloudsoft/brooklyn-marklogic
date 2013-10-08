@@ -206,12 +206,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
+                .configure(Forest.MASTER, primaryForest.getName())
                 .configure(Forest.FAILOVER_ENABLED, true));
 
         primaryForest.awaitStatus("open");
-        replicaForest.awaitStatus("open");
-
-        forests.attachReplicaForest(primaryForest.getName(), replicaForest.getName());
         databases.attachForestToDatabase(primaryForest, database);
 
         primaryForest.awaitStatus("open");
