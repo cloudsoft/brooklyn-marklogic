@@ -4,5 +4,5 @@ if [ -z "${BROOKLYN_MARKLOGIC_HOME}" ] ; then
 fi
 
 export BROOKLYN_CLASSPATH=${BROOKLYN_MARKLOGIC_HOME}/conf/:${BROOKLYN_MARKLOGIC_HOME}/lib/*
-brooklyn launch --app io.cloudsoft.marklogic.brooklynapplications.MarkLogicDemoApplication --location named:marklogic-us-east-1
+brooklyn launch --app io.cloudsoft.marklogic.brooklynapplications.MarkLogicTestApplication --location named:marklogic-us-east-1
 
