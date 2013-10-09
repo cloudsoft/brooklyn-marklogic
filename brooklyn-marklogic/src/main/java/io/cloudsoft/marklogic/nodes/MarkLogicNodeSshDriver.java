@@ -16,6 +16,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import io.cloudsoft.marklogic.api.MarkLogicApi;
+import io.cloudsoft.marklogic.api.impl.MarkLogicApiImpl;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
@@ -84,6 +86,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     private static boolean loggedDefaultingMarkLogicHome = false;
     private final int nodeId;
+    private MarkLogicApi api;
 
     // Use device suffixes h through p; reuse where possible
     // Could perhaps use f-z, but Amazon received reports that some kernels might have restrictions:
@@ -223,6 +226,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public void install() {
         LOG.info("Setting up volumes of MarkLogic host {}", getHostname());
 
+        api = new MarkLogicApiImpl("http://" + getHostname(), getUser(), getPassword());
+
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             String varOptVolumeId = entity.getConfig(MarkLogicNode.VAR_OPT_VOLUME);
             Boolean isVarOptEbs = entity.getConfig(MarkLogicNode.IS_VAR_OPT_EBS);
@@ -337,16 +342,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         entity.setAttribute(MarkLogicNode.URL, format("http://%s:%s", getHostname(), 8001));
     }
 
+    @Override
     public boolean isRunning() {
-        try {
-            int exitStatus = newScript(CHECK_RUNNING)
-                    .body.append(sudo("/etc/init.d/MarkLogic status | grep running"))
-                    .execute();
-            return exitStatus == 0;
-        } catch (Exception e) {
-            LOG.error(format("Failed to determine if %s running", getLocation().getAddress()), e);
-            return false;
-        }
+        return api.getAdminApi().isServerUp();
     }
 
     @Override
@@ -507,6 +505,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+    // TODO: Replace with call to api.getForests.
     @Override
     public Set<String> scanForests() {
         LOG.debug("Scanning forests");
@@ -537,6 +536,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+    // TODO: Replace with call to getForest and extract status.
     @Override
     public String getForestStatus(String forestName) {
         LOG.trace("Getting status for forest {}", forestName);
@@ -582,8 +582,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     public void mountForest(Forest forest) {
         if ((getMachine() instanceof JcloudsSshMachineLocation)) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            VolumeManager volumeManager = newVolumeManager();
 
-            final Ec2VolumeManager ec2VolumeManager = new Ec2VolumeManager();
             if (forest.getDataDir() != null) {
                 char deviceSuffix = claimDeviceSuffix();
                 String volumeDeviceName = "/dev/sd" + deviceSuffix;
@@ -594,8 +594,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                 forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
 
-                ec2VolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
-
+                volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
             }
 
             if (forest.getFastDataDir() != null) {
@@ -609,7 +608,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
                     VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                     forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
-                    ec2VolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
+                    volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
                 }
             }
 
@@ -626,20 +625,20 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
-            final Ec2VolumeManager ec2VolumeManager = new Ec2VolumeManager();
+            VolumeManager volumeManager = newVolumeManager();
 
             if (forest.getDataDir() != null) {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                ec2VolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                ec2VolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
             }
 
             if (forest.getFastDataDir() != null) {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
 
                 if (volumeInfo != null) {
-                    ec2VolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                    ec2VolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                    volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                    volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
                 }
             }
 

@@ -83,7 +83,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     private void onServiceUp(boolean up) {
         if (up && Lifecycle.STOPPING.equals(getAttribute(SERVICE_STATE))) {
-            LOG.warn("{} got erroneous notification of SERVICE_UP when it is in Lifecycle.STOPPING. Ignoring and not attempting to move forests to the node.");
+            LOG.warn("{} got erroneous notification of SERVICE_UP when it is in Lifecycle.STOPPING. Ignoring and not attempting to move forests to the node.", this);
             return;
         }
         if (up) {
@@ -126,7 +126,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             LOG.info("Stopping MarkLogicNode (and cluster): "+getHostName()+" Not moving forests out");
         }
         super.stop();
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
+        LOG.info("MarkLogicNode terminated: {}", this);
    }
 
     public Class getDriverInterface() {
