@@ -309,7 +309,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
 
         String script = loadAndProcessTemplate(scriptName, substitutions);
-        executeScript(INSTALLING, script, MutableMap.of("nonStandardLayout", "true"));
+        executeScript(CUSTOMIZING, script, MutableMap.of("nonStandardLayout", "true"));
 
         if (isInitialHost) {
             LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
@@ -351,7 +351,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void stop() {
-        newScript(LAUNCHING)
+        newScript(STOPPING)
                 .failOnNonZeroResultCode()
                 .body.append(sudo("/etc/init.d/MarkLogic stop"))
                 .execute();
