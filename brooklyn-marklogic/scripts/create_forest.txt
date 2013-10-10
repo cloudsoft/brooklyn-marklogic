@@ -21,7 +21,7 @@ echo changed ownership of fastDataDir
 </#if>
 
 <#if forest.master??>
-curl -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forest.master}/properties \
+curl -L -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forest.master}/properties \
     --header Content-Type:application/xml \
     --data \
 '<forest-properties xmlns="http://marklogic.com/manage">

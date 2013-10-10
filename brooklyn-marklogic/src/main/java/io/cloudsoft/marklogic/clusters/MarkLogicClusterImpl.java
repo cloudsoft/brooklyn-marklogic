@@ -3,6 +3,7 @@ package io.cloudsoft.marklogic.clusters;
 import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
 
+import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forests;

@@ -300,7 +300,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             scriptName = "customize_initial_host.txt";
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
-            MarkLogicNode node = cluster.getAnyNodeOrWait();
+            MarkLogicNode node = cluster.getAnyUpNodeOrWait();
             
             try {
                 Thread.sleep(delayOnJoin.incrementAndGet()*30*1000);
