@@ -22,7 +22,6 @@ import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.AbstractController;
 import brooklyn.entity.proxy.nginx.NginxController;
-import brooklyn.entity.proxying.EntitySpecs;
 import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
 import brooklyn.entity.webapp.JavaWebAppService;
@@ -46,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicGoogleComputeEngineDemoApplication.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicDemoApplication.class);
 
     private final String user = System.getProperty("user.name");
 
@@ -85,6 +84,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
     @Override
     public void init() {
+        boolean deployWeb = false;
 
         EntitySpec<NginxController> loadBalancerSpec = EntitySpec.create(NginxController.class)
                 .displayName("LoadBalancer")
@@ -96,7 +96,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
             // FIXME hack to open cdh+nginx ports (because on GCE shared by network for all nodes)
             // (but is that now fixed by Richard)?
             loadBalancerSpec.configure(NginxController.PROVISIONING_PROPERTIES, ImmutableMap.<String, Object>of(
-                    "inboundPorts", ImmutableList.of(8000, 8001, 8002, 8011, 22, 80, 443)));
+                    "inboundPorts", ImmutableList.of(8000, 8001, 8002, 8011, 22, 80, 443, 8080, 9990)));
         }
 
         EntitySpec<MarkLogicCluster> clusterSpec = EntitySpec.create(MarkLogicCluster.class)
@@ -127,7 +127,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         markLogicCluster = addChild(clusterSpec);
 
-        if (!isGoogleComputeEngineDemo) {
+        if (deployWeb && !isGoogleComputeEngineDemo) {
             addWebApp();
         }
     }
@@ -251,7 +251,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
                 .application(
-                        EntitySpecs.appSpec(MarkLogicGoogleComputeEngineDemoApplication.class)
+                        EntitySpec.create(MarkLogicDemoApplication.class)
                                 .displayName("MarkLogic demo"))
                 .webconsolePort(port)
                 .location(location)
