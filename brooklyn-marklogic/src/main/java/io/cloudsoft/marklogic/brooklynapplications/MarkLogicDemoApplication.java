@@ -1,8 +1,8 @@
 package io.cloudsoft.marklogic.brooklynapplications;
 
 import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
-import static brooklyn.entity.proxying.EntitySpecs.spec;
 import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
+
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -18,7 +18,6 @@ import java.util.Map;
 
 import org.jclouds.googlecomputeengine.GoogleComputeEngineApiMetadata;
 
-import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.proxy.AbstractController;
@@ -38,124 +37,123 @@ import brooklyn.util.CommandLineUtil;
 import brooklyn.util.config.ConfigBag;
 import brooklyn.util.text.Identifiers;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-
-import static brooklyn.entity.java.JavaEntityMethods.javaSysProp;
-import static brooklyn.event.basic.DependentConfiguration.attributeWhenReady;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicDemoApplication.class);
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(MarkLogicGoogleComputeEngineDemoApplication.class);
+
     private final String user = System.getProperty("user.name");
 
     private final int appServicePort = 8011;
     private final String password = "hap00p";
     private final String username = "admin";
-    
+
     private ControlledDynamicWebAppCluster web;
     private MarkLogicCluster markLogicCluster;
+    private boolean isGoogleComputeEngineDemo;
 
     @Override
     public void start(Collection<? extends Location> locations) {
         for (Location loc : locations) {
             if (isJcloudsLocation(loc, "google-compute-engine")) {
-                ConfigBag rawConfig = ((JcloudsLocation)loc).getRawLocalConfigBag();
-                for (Map.Entry<Object,Object> entry : GoogleComputeEngineApiMetadata.defaultProperties().entrySet()) {
-                    rawConfig.putStringKey((String)entry.getKey(), entry.getValue());
+                isGoogleComputeEngineDemo = true;
+                LOG.info("Running demo for Google Compute Engine");
+                ConfigBag rawConfig = ((JcloudsLocation) loc).getRawLocalConfigBag();
+                for (Map.Entry<Object, Object> entry : GoogleComputeEngineApiMetadata.defaultProperties().entrySet()) {
+                    rawConfig.putStringKey((String) entry.getKey(), entry.getValue());
                 }
                 rawConfig.putStringKey("groupId", "brooklyn-marklogic");
                 //rawConfig.putStringKey("locationId", "us-central1-a");
                 rawConfig.putStringKey("region", "us-central1-a");
                 //rawConfig.putStringKey("endpoint", "https://www.googleapis.com/compute/v1beta15");
+            } else {
+                LOG.debug("Running standard demo");
             }
         }
         super.start(locations);
     }
 
     private boolean isJcloudsLocation(Location loc, String provider) {
-        return (loc instanceof JcloudsLocation) && ((JcloudsLocation)loc).getProvider().equals(provider);
+        return (loc instanceof JcloudsLocation) && ((JcloudsLocation) loc).getProvider().equals(provider);
     }
 
     @Override
     public void init() {
-        boolean startWebApp = false;
-        int volumeSize = 10;
-        int backupVolumeSize = 10;
 
-        // For Rackspace (note the bigger volumes, as min size is 100)
-        //     int volumeSize = 100;
-        //     int backupVolumeSize = 100;
+        EntitySpec<NginxController> loadBalancerSpec = EntitySpec.create(NginxController.class)
+                .displayName("LoadBalancer")
+                .configure("port", 80)
+                //todo: temporary hack to feed the app port to nginx.
+                .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT);
 
-        // For AWS
-        markLogicCluster = addChild(EntitySpec.create(MarkLogicCluster.class)
-                .displayName("MarkLogic Cluster")
-                .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-                .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
-                .configure(MarkLogicNode.VOLUME_SIZE, volumeSize)
+        if (isGoogleComputeEngineDemo) {
+            // FIXME hack to open cdh+nginx ports (because on GCE shared by network for all nodes)
+            // (but is that now fixed by Richard)?
+            loadBalancerSpec.configure(NginxController.PROVISIONING_PROPERTIES, ImmutableMap.<String, Object>of(
+                    "inboundPorts", ImmutableList.of(8000, 8001, 8002, 8011, 22, 80, 443)));
+        }
+
+        EntitySpec<MarkLogicCluster> clusterSpec = EntitySpec.create(MarkLogicCluster.class)
+            .displayName("MarkLogic Cluster")
+            .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
+            .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+            .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, loadBalancerSpec);
+
+        if (!isGoogleComputeEngineDemo) {
+            // Minimum volume size in Rackspace is 100Gb
+            int volumeSize = 100;
+            int backupVolumeSize = 100;
+            clusterSpec.configure(MarkLogicNode.VOLUME_SIZE, volumeSize)
                 .configure(MarkLogicNode.BACKUP_VOLUME_SIZE, backupVolumeSize)
                 .configure(MarkLogicNode.IS_FORESTS_EBS, true)
+                .configure(MarkLogicNode.IS_REPLICA_EBS, true)
                 .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                 .configure(MarkLogicNode.IS_BACKUP_EBS, false)
-                .configure(MarkLogicNode.IS_REPLICA_EBS, true)
-                .configure(MarkLogicNode.IS_FASTDIR_EBS, false)
-                .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, EntitySpec.create(NginxController.class)
-                        .displayName("LoadBalancer")
-                        .configure("port", 80)
-                                //todo: temporary hack to feed the app port to nginx.
-                        .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
-                )
-        );
-
-        // For GCE
-//      markLogicCluster = addChild(spec(MarkLogicCluster.class)
-//              .displayName("MarkLogic Cluster")
-//              .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-//              .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
-//              .configure(MarkLogicNode.IS_FORESTS_EBS, false)
-//              .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
-//              .configure(MarkLogicNode.IS_BACKUP_EBS, false)
-//              .configure(MarkLogicNode.IS_REPLICA_EBS, false)
-//              .configure(MarkLogicNode.IS_FASTDIR_EBS, false)
-//              .configure(MarkLogicCluster.LOAD_BALANCER_SPEC, spec(NginxController.class)
-//                      .displayName("LoadBalancer")
-//                      .configure("port", 80)
-//                              //todo: temporary hack to feed the app port to nginx.
-//                      .configure("portNumberSensor", MarkLogicNode.APP_SERVICE_PORT)
-//                      
-//                      // FIXME hack to open cdh+nginx ports (because on GCE shared by network for all nodes)
-//                      // (but is that now fixed by Richard)?
-//                      .configure(NginxController.PROVISIONING_PROPERTIES, ImmutableMap.<String,Object>of("inboundPorts", ImmutableList.of(8000, 8001, 8002, 8011, 22, 80, 443)))
-//              )
-//      );
-
-        if (startWebApp) {
-            web = addChild(EntitySpec.create(ControlledDynamicWebAppCluster.class)
-                    .displayName("WebApp cluster")
-                    .configure("initialSize", 1)
-                    .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, EntitySpec.create(NginxController.class)
-                            .displayName("WebAppCluster Nginx")
-                            .configure("port", 8080)
-                            .configure("portNumberSensor", WebAppService.HTTP_PORT))
-                    .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, EntitySpec.create(JBoss7Server.class)
-                            .configure("initialSize", 1)
-                            .configure("httpPort", 8080)
-
-                            .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), AbstractController.HOSTNAME))
-                            .configure(javaSysProp("marklogic.port"), "" + appServicePort)
-                            .configure(javaSysProp("marklogic.password"), password)
-                            .configure(javaSysProp("marklogic.user"), username)
-                            .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war")));
-
-            web.getCluster().addPolicy(AutoScalerPolicy.builder()
-                    .metric(WebAppServiceConstants.REQUESTS_PER_SECOND_LAST)
-                    .sizeRange(1, 5)
-                    .metricRange(10, 100)
-                    .build());
+                .configure(MarkLogicNode.IS_FASTDIR_EBS, false);
+        } else {
+            // Disable all volumes when on GCE.
+            clusterSpec.configure(MarkLogicNode.IS_FORESTS_EBS, false)
+                .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
+                .configure(MarkLogicNode.IS_BACKUP_EBS, false)
+                .configure(MarkLogicNode.IS_REPLICA_EBS, false)
+                .configure(MarkLogicNode.IS_FASTDIR_EBS, false);
         }
+
+        markLogicCluster = addChild(clusterSpec);
+
+        if (!isGoogleComputeEngineDemo) {
+            addWebApp();
+        }
+    }
+
+    private void addWebApp() {
+        web = addChild(EntitySpec.create(ControlledDynamicWebAppCluster.class)
+                .displayName("WebApp cluster")
+                .configure("initialSize", 1)
+                .configure(ControlledDynamicWebAppCluster.CONTROLLER_SPEC, EntitySpec.create(NginxController.class)
+                        .displayName("WebAppCluster Nginx")
+                        .configure("port", 8080)
+                        .configure("portNumberSensor", WebAppService.HTTP_PORT))
+                .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, EntitySpec.create(JBoss7Server.class)
+                        .configure("initialSize", 1)
+                        .configure("httpPort", 8080)
+                        .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), AbstractController.HOSTNAME))
+                        .configure(javaSysProp("marklogic.port"), "" + appServicePort)
+                        .configure(javaSysProp("marklogic.password"), password)
+                        .configure(javaSysProp("marklogic.user"), username)
+                        .configure(JavaWebAppService.ROOT_WAR, "classpath:/demo-war-0.1.0-SNAPSHOT.war")));
+
+        web.getCluster().addPolicy(AutoScalerPolicy.builder()
+                .metric(WebAppServiceConstants.REQUESTS_PER_SECOND_LAST)
+                .sizeRange(1, 5)
+                .metricRange(10, 100)
+                .build());
     }
 
     @Override
@@ -181,7 +179,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         createReplicatedForest(databases, node2, node1, forests, database, "forest2");
 
         String appServiceName = "DemoService";
-        markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default",  appServicePort);
+        markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
 
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }
@@ -253,8 +251,8 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         BrooklynLauncher launcher = BrooklynLauncher.newInstance()
                 .application(
-                        EntitySpecs.appSpec(MarkLogicDemoApplication.class)
-                        .displayName("MarkLogic demo"))
+                        EntitySpecs.appSpec(MarkLogicGoogleComputeEngineDemoApplication.class)
+                                .displayName("MarkLogic demo"))
                 .webconsolePort(port)
                 .location(location)
                 .start();
