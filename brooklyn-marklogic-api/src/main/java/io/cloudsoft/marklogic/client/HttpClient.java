@@ -17,7 +17,10 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
@@ -35,7 +38,6 @@ import com.google.common.base.Throwables;
 public class HttpClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClient.class);
-    private static final ObjectMapper MAPPER = MarkLogicObjectMapper.newObjectMapper();
 
     private final URI endpoint;
     private final DefaultHttpClient httpClient = new DefaultHttpClient(new PoolingClientConnectionManager());
@@ -67,21 +69,10 @@ public class HttpClient {
         httpClient.setCredentialsProvider(credentialsProvider);
     }
 
-    private void attachEntityToRequest(HttpEntityEnclosingRequestBase request, Object entity) {
-        StringWriter writer = new StringWriter();
-        try {
-            MAPPER.writeValue(writer, entity);
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-
-        LOG.trace("Marshalled "+entity.getClass().getSimpleName()+": " + writer.toString());
-        HttpEntity httpEntity = new StringEntity(writer.toString(), ContentType.APPLICATION_JSON);
-        request.setEntity(httpEntity);
-    }
-
     public static class RequestBuilder {
+        private static final ObjectMapper MAPPER = MarkLogicObjectMapper.newObjectMapper();
         private static final AtomicInteger requestCounter = new AtomicInteger(0);
+
         private final org.apache.http.client.HttpClient client;
         private final URI endpoint;
         private final String path;
@@ -120,11 +111,14 @@ public class HttpClient {
         }
 
         public Response post() {
-            throw new UnsupportedOperationException();
+            HttpPost request = new HttpPost(makeRequestUri());
+            return doRequest(request);
         }
 
         public Response post(Object body) {
-            throw new UnsupportedOperationException();
+            HttpPost request = new HttpPost(makeRequestUri());
+            attachEntityToRequest(request, checkNotNull(body, "body"));
+            return doRequest(request);
         }
 
         public Response postForm(Map<String, ?> body) {
@@ -132,7 +126,9 @@ public class HttpClient {
         }
 
         public Response put(Object body) {
-            throw new UnsupportedOperationException();
+            HttpPut request = new HttpPut(makeRequestUri());
+            attachEntityToRequest(request, checkNotNull(body, "body"));
+            return doRequest(request);
         }
 
         public Response head() {
@@ -141,7 +137,8 @@ public class HttpClient {
         }
 
         public Response delete() {
-            throw new UnsupportedOperationException();
+            HttpDelete request = new HttpDelete(makeRequestUri());
+            return doRequest(request);
         }
 
         /** Combines endpoint constructor parameter with arguments given to builder methods. */
@@ -171,6 +168,19 @@ public class HttpClient {
             } catch (IOException e) {
                 return Responses.newExceptionResponse(e);
             }
+        }
+
+        private void attachEntityToRequest(HttpEntityEnclosingRequestBase request, Object entity) {
+            StringWriter writer = new StringWriter();
+            try {
+                MAPPER.writeValue(writer, entity);
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+
+            LOG.trace("Marshalled "+entity.getClass().getSimpleName()+": " + writer.toString());
+            HttpEntity httpEntity = new StringEntity(writer.toString(), ContentType.APPLICATION_JSON);
+            request.setEntity(httpEntity);
         }
     }
 
