@@ -2,8 +2,6 @@ package io.cloudsoft.marklogic.api.impl;
 
 import java.net.URI;
 
-import io.cloudsoft.marklogic.api.AdminApi;
-import io.cloudsoft.marklogic.api.ForestApi;
 import io.cloudsoft.marklogic.api.MarkLogicApi;
 import io.cloudsoft.marklogic.client.HttpClient;
 
