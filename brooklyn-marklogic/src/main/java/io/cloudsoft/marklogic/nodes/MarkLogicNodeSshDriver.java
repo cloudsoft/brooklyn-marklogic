@@ -104,6 +104,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         this.nodeId = counter.getAndIncrement();
     }
 
+    private boolean isVolumeManagerSupported() {
+        if (!(getMachine() instanceof JcloudsSshMachineLocation)) return false;
+        String provider = ((JcloudsSshMachineLocation) getMachine()).getParent().getProvider();
+        return "aws-ec2".equals(provider) || provider.startsWith("rackspace-");
+    }
+
     private VolumeManager newVolumeManager() {
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
@@ -580,11 +586,18 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void mountForest(Forest forest) {
-        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            LOG.debug("Mounting forest {} on {}", forest, jcloudsMachine);
             VolumeManager volumeManager = newVolumeManager();
+            Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
+            Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
-            if (forest.getDataDir() != null) {
+            if (forest.getDataDir() == null) {
+                LOG.debug("Forest data dir is null. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isForestsEbs) {
+                LOG.debug("EBS was not configured for forest data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 char deviceSuffix = claimDeviceSuffix();
                 String volumeDeviceName = "/dev/sd" + deviceSuffix;
                 String osDeviceName = "/dev/xvd" + deviceSuffix;
@@ -597,7 +610,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
             }
 
-            if (forest.getFastDataDir() != null) {
+            if (forest.getFastDataDir() == null) {
+                LOG.debug("Forest fast data dir is null. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isFastdirEbs) {
+                LOG.debug("EBS was not configured for forest fast data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
 
                 if (volumeInfo != null) {
@@ -622,20 +639,30 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void unmountForest(Forest forest) {
-        if (getMachine() instanceof JcloudsSshMachineLocation) {
+        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            LOG.debug("Unmounting forest {} on {}", forest, jcloudsMachine);
 
             VolumeManager volumeManager = newVolumeManager();
+            Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
+            Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
-            if (forest.getDataDir() != null) {
+            if (forest.getDataDir() == null) {
+                LOG.debug("Forest data dir is null. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isForestsEbs) {
+                LOG.debug("EBS was not configured for forest data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
                 volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
                 volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
             }
 
-            if (forest.getFastDataDir() != null) {
+            if (forest.getFastDataDir() == null) {
+                LOG.debug("Forest fast data dir is null. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isFastdirEbs) {
+                LOG.debug("EBS was not configured for forest fast data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
-
                 if (volumeInfo != null) {
                     volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
                     volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
