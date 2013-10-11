@@ -6,16 +6,19 @@ HOST_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhos
 echo found HOST_ID: $HOST_ID
 
 <#if forest.dataDir??>
+sudo mkdir -p ${forest.dataDir}
 sudo chown -R daemon ${forest.dataDir!""}
 echo changed ownership of dataDir
 </#if>
 
 <#if forest.largeDataDir??>
+sudo mkdir -p ${forest.largeDataDir}
 sudo chown -R daemon ${forest.largeDataDir!""}
 echo changed ownership of largeDataDir
 </#if>
 
 <#if forest.fastDataDir??>
+sudo mkdir -p ${forest.fastDataDir}
 sudo chown -R daemon ${forest.fastDataDir!""}
 echo changed ownership of fastDataDir
 </#if>
