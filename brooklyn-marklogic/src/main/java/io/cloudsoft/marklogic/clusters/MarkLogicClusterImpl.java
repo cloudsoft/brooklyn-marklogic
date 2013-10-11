@@ -1,8 +1,5 @@
 package io.cloudsoft.marklogic.clusters;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
-import static brooklyn.entity.proxying.EntitySpecs.wrapSpec;
-
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -22,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import brooklyn.enricher.basic.SensorPropagatingEnricher;
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractEntity;
-import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.proxy.AbstractController;
@@ -143,7 +139,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         try {
             if(locations.size()==1){
                Location location = locations.iterator().next();
-               setDisplayName(getDisplayName()+":"+location.getName());
+               setDisplayName(getDisplayName()+":"+location.getDisplayName());
             }
     
             Entities.invokeEffectorList(
