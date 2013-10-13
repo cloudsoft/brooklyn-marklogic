@@ -1,12 +1,23 @@
 package io.cloudsoft.marklogic.nodes;
 
-import static java.lang.String.format;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import brooklyn.config.render.RendererHints;
+import brooklyn.entity.basic.BrooklynConfigKeys;
+import brooklyn.entity.basic.Lifecycle;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
+import brooklyn.entity.basic.Lifecycle;
+import brooklyn.entity.basic.SoftwareProcess;
+import brooklyn.entity.basic.SoftwareProcessImpl;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.SensorEvent;
+import brooklyn.event.SensorEventListener;
+import brooklyn.event.feed.function.FunctionFeed;
+import brooklyn.event.feed.function.FunctionPollConfig;
 
 import java.util.Collection;
 import java.util.Set;
@@ -16,16 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import brooklyn.entity.basic.ConfigKeys;
-import brooklyn.entity.basic.SoftwareProcess;
-import brooklyn.entity.basic.SoftwareProcessImpl;
-import brooklyn.event.AttributeSensor;
-import brooklyn.event.SensorEvent;
-import brooklyn.event.SensorEventListener;
-import brooklyn.event.feed.function.FunctionFeed;
-import brooklyn.event.feed.function.FunctionPollConfig;
-
 import com.google.common.base.Functions;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -41,18 +44,24 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     private FunctionFeed serviceUp;
 
     private final Object attributeSetMutex = new Object();
-    
+
+    static {
+        RendererHints.register(URL, new RendererHints.NamedActionWithUrl("Open"));
+    }
+
     @Override
     public void init() {
         //we give it a bit longer timeout for starting up
-        setConfig(ConfigKeys.START_TIMEOUT, 240);
+        setConfig(BrooklynConfigKeys.START_TIMEOUT, 240);
 
         //todo: ugly.. we don't want to get the properties  this way, but for the time being it works.
         setConfig(WEBSITE_USERNAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-username"));
         setConfig(WEBSITE_PASSWORD, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-password"));
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
+        setConfig(LICENSE_TYPE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-type"));
         setConfig(CLUSTER_NAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
+
         String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");
         if (configuredVersion != null && !configuredVersion.isEmpty()) {
             setConfig(SoftwareProcess.SUGGESTED_VERSION, configuredVersion);
@@ -73,31 +82,51 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     private void onServiceUp(boolean up) {
+        if (up && Lifecycle.STOPPING.equals(getAttribute(SERVICE_STATE))) {
+            LOG.warn("{} got erroneous notification of SERVICE_UP when it is in Lifecycle.STOPPING. Ignoring and not attempting to move forests to the node.", this);
+            return;
+        }
         if (up) {
-            LOG.info("MarkLogicNode: " + getHostName() + " is up");
-            Forests forests = getCluster().getForests();
-            Forest targetForest = null;
-            for (Forest forest : forests.asList()) {
-                if (forest.createdByBrooklyn() && forest.getMaster() == null) {
-                    targetForest = forest;
-                    break;
+            LOG.info("MarkLogic node is up: {}", this);
+            // Finds a forest to move to the new node
+            if (getCluster() != null && !getNodeType().equals(NodeType.E_NODE)) {
+                Forests forests = getCluster().getForests();
+                Forest targetForest = null;
+                for (Forest forest : forests) {
+                    // Choose a non-MarkLogic forest that isn't a replica.
+                    if (forest.createdByBrooklyn() && forest.getMaster() == null) {
+                        targetForest = forest;
+                        break;
+                    }
                 }
-            }
 
-            if (targetForest != null)
-                forests.moveForest(targetForest.getName(), getHostName());
+                if (targetForest != null)
+                    forests.moveForest(targetForest.getName(), getHostName());
+            } else {
+                String reason = (getCluster() == null)
+                        ? "Cluster is null"
+                        : "Node type is: " + getNodeType().name();
+                LOG.info("Skipped move of forests onto new node {}: {}", this, reason);
+            }
         } else {
-            LOG.info("MarkLogicNode: " + getHostName() + " is not up");
+            LOG.info("MarkLogic node is down: {}", this);
         }
     }
 
    @Override
    public void stop() {
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
-        getCluster().getForests().moveAllForestFromNode(getHostName());
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+        Lifecycle clusterState = getCluster().getAttribute(MarkLogicCluster.SERVICE_STATE);
+        boolean moveForests = (clusterState != Lifecycle.STOPPING && clusterState != Lifecycle.STOPPED);
+
+        if (moveForests) {
+            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
+            getCluster().getForests().moveAllForestFromNode(getHostName());
+            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+        } else {
+            LOG.info("Stopping MarkLogicNode (and cluster): "+getHostName()+" Not moving forests out");
+        }
         super.stop();
-        LOG.info("Stopping MarkLogicNode: "+getHostName()+" Node now completely shutdown");
+        LOG.info("MarkLogicNode terminated: {}", this);
    }
 
     public Class getDriverInterface() {
@@ -110,12 +139,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     protected void connectSensors() {
         super.connectSensors();
-
         serviceUp = FunctionFeed.builder()
                 .entity(this)
                 .period(5000)
                 .poll(new FunctionPollConfig<Boolean, Boolean>(SERVICE_UP)
-                        .onError(Functions.constant(Boolean.FALSE))
+                        .onException(Functions.constant(Boolean.FALSE))
                         .callable(new Callable<Boolean>() {
                             public Boolean call() {
                                 return getDriver().isRunning();
@@ -128,7 +156,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     protected void disconnectSensors() {
         super.disconnectSensors();
-
         if (serviceUp != null) serviceUp.stop();
     }
 
@@ -146,7 +173,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         //from the application, but for the time being it is hard coded.
         int bindPort = getConfig(BIND_PORT);
         int foreignBindPort = getConfig(FOREIGN_BIND_PORT);
-        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(bindPort, foreignBindPort, 8000, 8001, 8002, 8011)));
+        // FIXME hack to open 80,443 (because on GCE shared by network for all nodes)
+        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(22, bindPort, foreignBindPort, 8000, 8001, 8002, 8011, 80, 443)));
     }
 
     private NodeType getNodeType() {
@@ -168,6 +196,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     @Override
     public void createForest(Forest forest) {
+        checkNotNull(forest.getName(), "Forest requires a name");
         getDriver().createForest(forest);
         addToAttributeSet(FOREST_NAMES, forest.getName());
     }
@@ -230,13 +259,18 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
-        getDriver().attachReplicaForest(primaryForestName, replicaForestName);
+    public void attachReplicaForest(Forest primaryForest, Forest replicaForest) {
+        getDriver().attachReplicaForest(primaryForest, replicaForest);
     }
 
     @Override
-    public void enableForest(String forestName, boolean enabled) {
-        getDriver().enableForest(forestName, enabled);
+    public void disableForest(String forestName) {
+        getDriver().disableForest(forestName);
+    }
+
+    @Override
+    public void enableForest(String forestName) {
+        getDriver().enableForest(forestName);
     }
 
     @Override
@@ -282,5 +316,14 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             newvals.remove(oldval);
             setAttribute(attribute, newvals);
         }
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+            .add("host", getHostName())
+            .add("group", getGroupName())
+            .add("type", getNodeType().name())
+            .toString();
     }
 }

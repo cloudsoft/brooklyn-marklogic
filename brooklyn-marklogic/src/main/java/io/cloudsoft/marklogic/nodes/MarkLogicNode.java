@@ -22,7 +22,7 @@ import static brooklyn.entity.basic.ConfigKeys.*;
 import static brooklyn.event.basic.Sensors.newStringSensor;
 
 /**
- * A node in a MarkLogic cluster.
+ * A single node in a MarkLogic {@link MarkLogicCluster cluster}.
  */
 @ImplementedBy(MarkLogicNodeImpl.class)
 public interface MarkLogicNode extends SoftwareProcess {
@@ -58,6 +58,11 @@ public interface MarkLogicNode extends SoftwareProcess {
     ConfigKey<String> LICENSE_KEY = newStringConfigKey(
             "marklogic.licenseKey",
             "The license key to register the MarkLogic Server");
+
+    ConfigKey<String> LICENSE_TYPE = newStringConfigKey(
+            "marklogic.licenseType",
+            "The type of agreement the licensee has with MarkLogic, e.g. development or evaluation",
+            "development");
 
     ConfigKey<String> LICENSEE = newStringConfigKey(
             "marklogic.licensee",
@@ -142,8 +147,7 @@ public interface MarkLogicNode extends SoftwareProcess {
     PortAttributeSensorAndConfigKey APP_SERVICE_PORT = new PortAttributeSensorAndConfigKey(
             "http.port", "HTTP port", ImmutableList.of(8011));
 
-    @Effector
-    void createForest(@EffectorParam(name = "forest") Forest forest);
+    void createForest(Forest forest);
 
     String getHostName();
 
@@ -167,9 +171,11 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     MarkLogicCluster getCluster();
 
-    void attachReplicaForest(String primaryForestName, String replicaForestName);
+    void attachReplicaForest(Forest primaryForest, Forest replicaForest);
 
-    void enableForest(String forestName, boolean enabled);
+    void enableForest(String forestName);
+
+    void disableForest(String forestName);
 
     void setForestHost(String forestName, String hostname);
 

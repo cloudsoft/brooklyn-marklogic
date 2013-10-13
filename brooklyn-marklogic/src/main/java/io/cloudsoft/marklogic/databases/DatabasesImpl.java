@@ -1,54 +1,60 @@
 package io.cloudsoft.marklogic.databases;
 
-import brooklyn.entity.Entity;
-import brooklyn.entity.basic.AbstractGroupImpl;
-import brooklyn.entity.proxying.BasicEntitySpec;
-import brooklyn.location.Location;
-import brooklyn.management.Task;
-import brooklyn.util.task.BasicTask;
-import brooklyn.util.task.ScheduledTask;
-import com.google.common.base.Throwables;
-import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.lang.String.format;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static brooklyn.entity.proxying.EntitySpecs.spec;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
+
+import brooklyn.entity.basic.AbstractGroupImpl;
+import brooklyn.entity.basic.Entities;
+import brooklyn.entity.proxying.EntitySpec;
+import brooklyn.location.Location;
+import brooklyn.management.Task;
+import brooklyn.util.task.BasicTask;
+import brooklyn.util.task.ScheduledTask;
+import io.cloudsoft.marklogic.forests.Forest;
+import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 public class DatabasesImpl extends AbstractGroupImpl implements Databases {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabasesImpl.class);
     private final Object mutex = new Object();
 
-      private boolean databaseExists(String databaseName) {
-        for (Entity member : getChildren()) {
-            if (member instanceof Database) {
-                Database db = (Database) member;
-                if (databaseName.equals(db.getName())) {
-                    return true;
-                }
-            }
-        }
+    @Override
+    public Iterator<Database> iterator() {
+        // Can Databases have children that aren't instances of Database?
+        return FluentIterable.from(getChildren())
+                .filter(Database.class)
+                .iterator();
+    }
 
-        return false;
+    private boolean databaseExists(final String databaseName) {
+        Predicate<Database> nameMatcher = new Predicate<Database>() {
+            @Override public boolean apply(Database input) {
+                return databaseName.equals(input.getName());
+            }};
+        return Iterables.any(this, nameMatcher);
     }
 
     @Override
     public Database createDatabase(String name) {
-        return createDatabaseWithSpec(spec(Database.class).configure(Database.NAME, name));
+        return createDatabaseWithSpec(EntitySpec.create(Database.class).configure(Database.NAME, name));
     }
 
     @Override
-    public Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec) {
+    public Database createDatabaseWithSpec(EntitySpec<Database> databaseSpec) {
         String databaseName = (String) databaseSpec.getConfig().get(Database.NAME);
         LOG.info("Creating database {}", databaseName);
         MarkLogicNode node = getGroup().getAnyUpMember();
@@ -63,23 +69,30 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
             }
 
             database = addChild(databaseSpec);
+            Entities.manage(database);
         }
-          node.createDatabase(database);
+        node.createDatabase(database);
         LOG.info("Successfully created database: " + database.getName());
         return database;
     }
 
+    // TODO: Assume should check database exists and is member of group
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
         LOG.info("Attaching forest {} to database {}", forestName, databaseName);
 
         MarkLogicNode node = getGroup().getAnyUpMember();
-        if(node == null){
+        if (node == null){
             throw new IllegalStateException("No available member found in group: "+getGroup().getGroupName());
         }
         node.attachForestToDatabase(forestName, databaseName);
 
         LOG.info("Finished attach forest {} to database {}", forestName, databaseName);
+    }
+
+    @Override
+    public void attachForestToDatabase(Forest forest, Database database) {
+        attachForestToDatabase(forest.getName(), database.getName());
     }
 
     public MarkLogicGroup getGroup() {
@@ -104,10 +117,10 @@ public class DatabasesImpl extends AbstractGroupImpl implements Databases {
                                 synchronized (mutex) {
                                     if (!databaseExists(databaseName)) {
                                         LOG.info("Discovered database {}", databaseName);
-                                        addChild(BasicEntitySpec.newInstance(Database.class)
+                                        Database database = addChild(EntitySpec.newInstance(Database.class)
                                                 .displayName(databaseName)
-                                                .configure(Database.NAME, databaseName)
-                                        );
+                                                .configure(Database.NAME, databaseName));
+                                        Entities.manage(database);
                                     }
                                 }
                             }

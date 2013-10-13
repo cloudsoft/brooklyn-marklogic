@@ -1,0 +1,13 @@
+<included>
+
+    <!-- Overrides Brooklyn's standard logback-debug.xml to quieten down jclouds. -->
+
+    <logger name="brooklyn" level="DEBUG"/>
+    <logger name="brooklyn.SSH" level="DEBUG"/>
+    <logger name="brooklyn.location.basic.jclouds" level="DEBUG"/>
+    <logger name="brooklyn.util.internal.ssh" level="DEBUG"/>
+
+    <logger name="org.jclouds" level="INFO"/>
+    <logger name="jclouds" level="INFO"/>
+
+</included>

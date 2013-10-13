@@ -29,11 +29,13 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
 
     void attachForestToDatabase(String forestName, String databaseName);
 
-    void attachReplicaForest(String primaryForestName, String replicaForestName);
+    void attachReplicaForest(Forest primaryForest, Forest replicaForest);
 
-    void enableForest(String forestName, boolean enabled);
+    void enableForest(String forestName);
 
-     void setForestHost(String forestName, String hostName);
+    void disableForest(String forestName);
+
+    void setForestHost(String forestName, String hostName);
 
     void unmountForest(Forest forest);
 

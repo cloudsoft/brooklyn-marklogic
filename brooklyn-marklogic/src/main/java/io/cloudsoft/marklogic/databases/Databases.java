@@ -4,15 +4,19 @@ import brooklyn.config.ConfigKey;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.AbstractGroup;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
+import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 
+/**
+ * Manages the {@link Database databases} in a {@link io.cloudsoft.marklogic.clusters.MarkLogicCluster cluster}.
+ */
 @ImplementedBy(DatabasesImpl.class)
-public interface Databases extends AbstractGroup, Startable {
+public interface Databases extends AbstractGroup, Startable, Iterable<Database> {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(MarkLogicGroup.class, "marklogic.databases.group", "The group");
 
@@ -20,10 +24,12 @@ public interface Databases extends AbstractGroup, Startable {
     Database createDatabase(
             @EffectorParam(name = "name", description = "The name of the database") String name);
 
-    Database createDatabaseWithSpec(BasicEntitySpec<Database, ?> databaseSpec);
+    Database createDatabaseWithSpec(EntitySpec<Database> databaseSpec);
 
     @Effector(description = "Attaches a forest to a database.")
     void attachForestToDatabase(
             @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,
             @EffectorParam(name = "databaseName", description = "The name of the database") String databaseName);
+
+    void attachForestToDatabase(Forest forest, Database database);
 }

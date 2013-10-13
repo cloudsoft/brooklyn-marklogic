@@ -2,20 +2,29 @@ package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
+import brooklyn.location.blockstore.ec2.Ec2VolumeManager;
+import brooklyn.location.blockstore.openstack.OpenstackVolumeManager;
+import brooklyn.location.blockstore.VolumeManager;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
-import brooklyn.location.volumes.EbsVolumeManager;
-import brooklyn.location.volumes.RackspaceVolumeManager;
-import brooklyn.location.volumes.VolumeManager;
 import brooklyn.util.collections.MutableMap;
+import brooklyn.util.exceptions.Exceptions;
 import brooklyn.util.text.Strings;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import io.cloudsoft.marklogic.api.MarkLogicApi;
+import io.cloudsoft.marklogic.api.impl.MarkLogicApiImpl;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.VolumeInfo;
+import io.cloudsoft.marklogic.util.Zip;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,14 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-import static brooklyn.util.ssh.CommonCommands.dontRequireTtyForSudo;
-import static brooklyn.util.ssh.CommonCommands.sudo;
+import static brooklyn.util.ssh.BashCommands.dontRequireTtyForSudo;
+import static brooklyn.util.ssh.BashCommands.sudo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
@@ -76,11 +82,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeSshDriver.class);
+    private static final AtomicInteger counter = new AtomicInteger(2);
 
-    private static boolean loggedDefaultingMarklogicHome = false;
-
-    public final static AtomicInteger counter = new AtomicInteger(2);
+    private static boolean loggedDefaultingMarkLogicHome = false;
     private final int nodeId;
+    private MarkLogicApi api;
 
     // Use device suffixes h through p; reuse where possible
     // Could perhaps use f-z, but Amazon received reports that some kernels might have restrictions:
@@ -98,6 +104,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         this.nodeId = counter.getAndIncrement();
     }
 
+    private boolean isVolumeManagerSupported() {
+        if (!(getMachine() instanceof JcloudsSshMachineLocation)) return false;
+        String provider = ((JcloudsSshMachineLocation) getMachine()).getParent().getProvider();
+        return "aws-ec2".equals(provider) || provider.startsWith("rackspace-");
+    }
+
     private VolumeManager newVolumeManager() {
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
@@ -106,9 +118,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String provider = jcloudsLocation.getProvider();
 
             if ("aws-ec2".equals(provider)) {
-                return new EbsVolumeManager();
+                return new Ec2VolumeManager();
             } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")) {
-                return new RackspaceVolumeManager();
+                return new OpenstackVolumeManager();
             } else {
                 throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
             }
@@ -122,6 +134,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return (MarkLogicNodeImpl) super.getEntity();
     }
 
+    @Override
     public String getDownloadFilename() {
         // TODO To support other platforms, need to customize this based on OS
         return "MarkLogic-" + getVersion() + ".x86_64.rpm";
@@ -159,6 +172,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return entity.getConfig(MarkLogicNode.LICENSEE);
     }
 
+    public String getLicenseType() {
+        return entity.getConfig(MarkLogicNode.LICENSE_TYPE);
+    }
+
     public String getClusterName() {
         return entity.getConfig(MarkLogicNode.CLUSTER_NAME);
     }
@@ -171,16 +188,40 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String home = System.getenv("BROOKLYN_MARKLOGIC_HOME");
         if (home == null) {
             home = System.getProperty("user.dir");
-            if (!loggedDefaultingMarklogicHome) {
+            if (!loggedDefaultingMarkLogicHome) {
                 LOG.warn("BROOKLYN_MARKLOGIC_HOME not found in environment, defaulting to [{}]", home);
-                loggedDefaultingMarklogicHome = true;
+                loggedDefaultingMarkLogicHome = true;
             }
         }
         return new File(home);
     }
 
+    private String loadAndProcessTemplate(String template) {
+        return loadAndProcessTemplate(template, ImmutableMap.<String, Object>of());
+    }
+
+    private String loadAndProcessTemplate(String template, Map<String, Object> substitutions) {
+        File script = new File(getScriptDirectory(), template);
+        return processTemplate(script, substitutions);
+    }
+
     public File getScriptDirectory() {
         return new File(getBrooklynMarkLogicHome(), "scripts");
+    }
+
+    private void executeScript(String name, String script) {
+        executeScript(name, script, ImmutableMap.of());
+    }
+
+    private void executeScript(String name, String script, Map<?, ?> scriptFlags) {
+        List<String> commands = new LinkedList<String>();
+        commands.add(dontRequireTtyForSudo());
+        commands.add(script);
+        newScript(scriptFlags, name)
+                .failOnNonZeroResultCode()
+                .setFlag("allocatePTY", true)
+                .body.append(commands)
+                .execute();
     }
 
     public File getUploadDirectory() {
@@ -190,6 +231,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     @Override
     public void install() {
         LOG.info("Setting up volumes of MarkLogic host {}", getHostname());
+
+        api = new MarkLogicApiImpl("http://" + getHostname(), getUser(), getPassword());
 
         if (getMachine() instanceof JcloudsSshMachineLocation) {
             String varOptVolumeId = entity.getConfig(MarkLogicNode.VAR_OPT_VOLUME);
@@ -219,100 +262,35 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
 
         LOG.info("Starting installation of MarkLogic host {}", getHostname());
-
         uninstall();
         uploadFiles();
-
-        String script = processTemplate(new File(getScriptDirectory(), "install.txt"));
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("install.txt");
+        executeScript(INSTALLING, script, MutableMap.of("nonStandardLayout", Boolean.TRUE));
         LOG.info("Finished installation of MarkLogic host {}", getHostname());
     }
 
     private void uninstall() {
-        String installScript = processTemplate(new File(getScriptDirectory(), "uninstall.txt"));
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(installScript);
-        newScript("uninstall")
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
+        String script = loadAndProcessTemplate("uninstall.txt");
+        executeScript("uninstall", script);
     }
 
     private void uploadFiles() {
-        LOG.info("Starting upload to {}", getHostname());
+        File dir = getUploadDirectory();
+        LOG.info("Starting upload of {} to {}", dir, getHostname());
         try {
-            File dir = getUploadDirectory();
             File zipFile = File.createTempFile("upload", "zip");
             zipFile.deleteOnExit();
-            zip(dir, zipFile);
+            Zip.zip(dir, zipFile);
+            LOG.debug("Copying {} to {} as {}", new Object[]{zipFile, getLocation(), "./upload.zip"});
             getLocation().copyTo(zipFile, "./upload.zip");
             zipFile.delete();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw Exceptions.propagate(e);
         }
-
-        LOG.info("Finished upload to {}", getHostname());
-
+        LOG.info("Finished upload of {} to {}", dir, getHostname());
     }
 
-    public static void zip(File directory, File zipfile) throws IOException {
-        URI base = directory.toURI();
-        Deque<File> queue = new LinkedList<File>();
-        queue.push(directory);
-        OutputStream out = new FileOutputStream(zipfile);
-        Closeable res = out;
-        try {
-            ZipOutputStream zout = new ZipOutputStream(out);
-            res = zout;
-            while (!queue.isEmpty()) {
-                directory = queue.pop();
-                for (File kid : directory.listFiles()) {
-                    String name = base.relativize(kid.toURI()).getPath();
-                    if (kid.isDirectory()) {
-                        queue.push(kid);
-                        name = name.endsWith("/") ? name : name + "/";
-                        zout.putNextEntry(new ZipEntry(name));
-                    } else if (!kid.getName().equals(".DS_Store")) {
-                        zout.putNextEntry(new ZipEntry(name));
-                        copy(kid, zout);
-                        zout.closeEntry();
-                    }
-                }
-            }
-        } finally {
-            res.close();
-        }
-    }
-
-    private static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        while (true) {
-            int readCount = in.read(buffer);
-            if (readCount < 0) {
-                break;
-            }
-            out.write(buffer, 0, readCount);
-        }
-    }
-
-    private static void copy(File file, OutputStream out) throws IOException {
-        InputStream in = new FileInputStream(file);
-        try {
-            copy(in, out);
-        } finally {
-            in.close();
-        }
-    }
-
+    private static final AtomicInteger delayOnJoin = new AtomicInteger();
 
     @Override
     public void customize() {
@@ -320,34 +298,34 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         boolean isInitialHost = cluster == null || cluster.claimToBecomeInitialHost();
         getEntity().setConfig(MarkLogicNode.IS_INITIAL_HOST, isInitialHost);
 
-        File scriptFile;
-        Map<String, Object> substitutions = new HashMap<String, Object>();
+        String scriptName;
+        Map<String, Object> substitutions = Maps.newHashMap();
+
         if (isInitialHost) {
             LOG.info("Starting customize of MarkLogic initial host {}", getHostname());
-            scriptFile = new File(getScriptDirectory(), "customize_initial_host.txt");
-            substitutions = new HashMap<String, Object>();
+            scriptName = "customize_initial_host.txt";
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
-            MarkLogicNode node = cluster.getAnyNodeOrWait();
+            MarkLogicNode node = cluster.getAnyUpNodeOrWait();
+            
+            try {
+                Thread.sleep(delayOnJoin.incrementAndGet()*30*1000);
+            } catch (InterruptedException e) {
+                throw Exceptions.propagate(e);
+            }
+            
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
-            scriptFile = new File(getScriptDirectory(), "customize_additional_host.txt");
+            scriptName = "customize_additional_host.txt";
             substitutions.put("clusterHostName", node.getHostName());
         }
 
-        String script = processTemplate(scriptFile, substitutions);
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript(MutableMap.of("nonStandardLayout", "true"), INSTALLING)
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
+        String script = loadAndProcessTemplate(scriptName, substitutions);
+        executeScript(CUSTOMIZING, script, MutableMap.of("nonStandardLayout", "true"));
 
         if (isInitialHost) {
             LOG.info("Finished customize of MarkLogic initial host {}", getHostname());
         } else {
-            LOG.info("Finished customize of Marklogic additional host {}", getHostname());
+            LOG.info("Finished customize of MarkLogic additional host {}", getHostname());
         }
     }
 
@@ -370,21 +348,14 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         entity.setAttribute(MarkLogicNode.URL, format("http://%s:%s", getHostname(), 8001));
     }
 
+    @Override
     public boolean isRunning() {
-        try {
-            int exitStatus = newScript(CHECK_RUNNING)
-                    .body.append(sudo("/etc/init.d/MarkLogic status | grep running"))
-                    .execute();
-            return exitStatus == 0;
-        } catch (Exception e) {
-            LOG.error(format("Failed to determine if %s running", getLocation().getAddress()), e);
-            return false;
-        }
+        return api.getAdminApi().isServerUp();
     }
 
     @Override
     public void stop() {
-        newScript(LAUNCHING)
+        newScript(STOPPING)
                 .failOnNonZeroResultCode()
                 .body.append(sudo("/etc/init.d/MarkLogic stop"))
                 .execute();
@@ -417,189 +388,97 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             }
         }
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forest", forest);
-        File scriptFile = new File(getScriptDirectory(), "create_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_forest.txt", MutableMap.<String, Object>of("forest", forest));
+        executeScript("createForest", script);
         LOG.debug("Finished creating forest {}", forest.getName());
     }
 
     @Override
     public void createDatabase(Database database) {
         LOG.debug("Starting create database {}", database.getName());
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("database", database);
-        File scriptFile = new File(getScriptDirectory(), "create_database.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("create_database")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-
+        String script = loadAndProcessTemplate("create_database.txt", MutableMap.<String, Object>of("database", database));
+        executeScript("createDatabase", script);
         LOG.debug("Finished create database {}", database.getName());
     }
 
     @Override
     public void createAppServer(RestAppServer appServer) {
         LOG.debug("Starting create appServer{} ", appServer.getName());
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("appserver", appServer);
-        File scriptFile = new File(getScriptDirectory(), "create_appserver.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createRestAppServer")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_appserver.txt", MutableMap.<String, Object>of("appserver", appServer));
+        executeScript("createRestAppServer", script);
         LOG.debug("Finished creating appServer {}", appServer.getName());
     }
 
     @Override
     public void createGroup(String name) {
         LOG.debug("Starting create group {}", name);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("group", name);
-        File scriptFile = new File(getScriptDirectory(), "create_group.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("createGroup")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("create_group.txt", MutableMap.<String, Object>of("group", name));
+        executeScript("createGroup", script);
         LOG.debug("Finished creating group {}", name);
     }
 
     @Override
     public void assignHostToGroup(String hostAddress, String groupName) {
         LOG.debug("Assigning host '" + hostAddress + "'+ to group " + groupName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("groupName", groupName, "hostName", hostAddress);
-        File scriptFile = new File(getScriptDirectory(), "assign_host_to_group.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("assignHostToGroup")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("assign_host_to_group.txt", MutableMap.<String, Object>of(
+                "groupName", groupName,
+                "hostName", hostAddress));
+        executeScript("assignHostToGroup", script);
         LOG.debug("Finished Assigning host '" + hostAddress + "'+ to group " + groupName);
     }
 
     @Override
     public void attachForestToDatabase(String forestName, String databaseName) {
-        LOG.debug("Attach forest {} to database {}", forestName, databaseName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "databaseName", databaseName);
-        File scriptFile = new File(getScriptDirectory(), "attach_forest_to_database.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("attachForestToDatabase")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        LOG.debug("Attaching forest {} to database {}", forestName, databaseName);
+        String script = loadAndProcessTemplate("attach_forest_to_database.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "databaseName", databaseName));
+        executeScript("attachForestToDatabase", script);
         LOG.debug("Finished attaching forest {} to database {}", forestName, databaseName);
     }
 
     @Override
-    public void attachReplicaForest(String primaryForestName, String replicaForestName) {
-
-        LOG.debug("Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("primaryForestName", primaryForestName, "replicaForestName", replicaForestName);
-        File scriptFile = new File(getScriptDirectory(), "attach_replica_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("attachReplicaForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-        LOG.debug("Finished Attach replica forest {} to forest {}", replicaForestName, primaryForestName);
+    public void attachReplicaForest(Forest primaryForest, Forest replicaForest) {
+        LOG.debug("Attaching replica forest {} to forest {}", replicaForest.getName(), primaryForest.getName());
+        String script = loadAndProcessTemplate("attach_replica_forest.txt", MutableMap.<String, Object>of(
+                "primaryForest", primaryForest,
+                "replicaForest", replicaForest));
+        executeScript("attachReplicaForest", script);
+        LOG.debug("Finished attaching replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
 
     }
 
     @Override
-    public void enableForest(String forestName, boolean enabled) {
-        LOG.debug("Enabling forest {} {}", forestName, enabled);
+    public void enableForest(String forestName) {
+        LOG.debug("Enabling forest: {}", forestName);
+        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "enabled", true));
+        executeScript("enableForest", script);
+        LOG.debug("Finished enabling forest: {}", forestName);
+    }
 
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "enabled", enabled);
-        File scriptFile = new File(getScriptDirectory(), "enable_forest.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("enableForest")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
-        LOG.debug("Finished Enabling forest {} {}", forestName, enabled);
+    @Override
+    public void disableForest(String forestName) {
+        LOG.debug("Disabling forest: {}", forestName);
+        String script = loadAndProcessTemplate("enable_forest.txt", MutableMap.<String, Object>of(
+                "forestName", forestName,
+                "enabled", false));
+        executeScript("enableForest", script);
+        LOG.debug("Finished disabling forest: {}", forestName);
     }
 
     @Override
     public void setForestHost(String forestName, String hostName) {
         LOG.debug("Setting forest {} host {}", forestName, hostName);
-
-        Map<String, Object> extraSubstitutions = MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName);
-        File scriptFile = new File(getScriptDirectory(), "forest_set_host.txt");
-        String script = processTemplate(scriptFile, extraSubstitutions);
-
-        List<String> commands = new LinkedList<String>();
-        commands.add(dontRequireTtyForSudo());
-        commands.add(script);
-        newScript("setForestHost")
-                .failOnNonZeroResultCode()
-                .setFlag("allocatePTY", true)
-                .body.append(commands)
-                .execute();
-
+        String script = loadAndProcessTemplate("forest_set_host.txt", MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName));
+        executeScript("setForestHost", script);
         LOG.debug("Finished setting forest {} host {}", forestName, hostName);
     }
 
-
     @Override
     public Set<String> scanAppServices() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException("scanAppServices has not been implemented");
     }
 
     @Override
@@ -621,11 +500,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String result = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
 
-            Set<String> forests = new HashSet();
+            Set<String> forests = Sets.newHashSet();
             String[] split = result.split("\n");
-            for (int k = 0; k < split.length - 1; k++) {
-                forests.add(split[k]);
-            }
+            Collections.addAll(forests, split);
             return forests;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -634,6 +511,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+    // TODO: Replace with call to api.getForests.
     @Override
     public Set<String> scanForests() {
         LOG.debug("Scanning forests");
@@ -653,11 +531,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             String result = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
 
-            Set<String> forests = new HashSet();
+            Set<String> forests = new HashSet<String>();
             String[] split = result.split("\n");
-            for (int k = 0; k < split.length - 1; k++) {
-                forests.add(split[k]);
-            }
+            Collections.addAll(forests, split);
             return forests;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -666,9 +542,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
+    // TODO: Replace with call to getForest and extract status.
     @Override
     public String getForestStatus(String forestName) {
-        LOG.debug("Getting status for forest {}", forestName);
+        LOG.trace("Getting status for forest {}", forestName);
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
@@ -693,6 +570,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
+        checkState(getMachine() instanceof JcloudsSshMachineLocation,
+                "createAttachAndMountVolume only valid for instances of " + JcloudsSshMachineLocation.class.getName());
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
         char deviceSuffix = claimDeviceSuffix();
@@ -707,11 +586,18 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void mountForest(Forest forest) {
-        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            LOG.debug("Mounting forest {} on {}", forest, jcloudsMachine);
+            VolumeManager volumeManager = newVolumeManager();
+            Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
+            Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
-            final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
-            if (forest.getDataDir() != null) {
+            if (forest.getDataDir() == null) {
+                LOG.debug("Forest data dir is null. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isForestsEbs) {
+                LOG.debug("EBS was not configured for forest data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 char deviceSuffix = claimDeviceSuffix();
                 String volumeDeviceName = "/dev/sd" + deviceSuffix;
                 String osDeviceName = "/dev/xvd" + deviceSuffix;
@@ -721,11 +607,14 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                 forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
 
-                ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
-
+                volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
             }
 
-            if (forest.getFastDataDir() != null) {
+            if (forest.getFastDataDir() == null) {
+                LOG.debug("Forest fast data dir is null. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isFastdirEbs) {
+                LOG.debug("EBS was not configured for forest fast data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
 
                 if (volumeInfo != null) {
@@ -736,45 +625,55 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
                     VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
                     forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
-                    ebsVolumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
+                    volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
                 }
             }
 
             //if(forest.getLargeDataDir()!=null){
-            //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+            //    ec2VolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
-            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());
         }
     }
 
     @Override
     public void unmountForest(Forest forest) {
-        if ((getMachine() instanceof JcloudsSshMachineLocation)) {
+        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
+            LOG.debug("Unmounting forest {} on {}", forest, jcloudsMachine);
 
-            final EbsVolumeManager ebsVolumeManager = new EbsVolumeManager();
+            VolumeManager volumeManager = newVolumeManager();
+            Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
+            Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
-            if (forest.getDataDir() != null) {
+            if (forest.getDataDir() == null) {
+                LOG.debug("Forest data dir is null. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isForestsEbs) {
+                LOG.debug("EBS was not configured for forest data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
             }
 
-            if (forest.getFastDataDir() != null) {
+            if (forest.getFastDataDir() == null) {
+                LOG.debug("Forest fast data dir is null. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else if (!isFastdirEbs) {
+                LOG.debug("EBS was not configured for forest fast data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
+            } else {
                 VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
-
                 if (volumeInfo != null) {
-                    ebsVolumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                    ebsVolumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                    volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
+                    volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
                 }
             }
 
             //if(forest.getLargeDataDir()!=null){
-            //    ebsVolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
+            //    ec2VolumeManager.unmountFilesystem(jcloudsMachine,forest.getLargeDataDir());
             //}
         } else {
-            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParentLocation());
+            LOG.warn("Volumes currently not supported for machine {} in location {}", getMachine(), getMachine().getParent());
         }
     }
 
