@@ -86,7 +86,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                     .configure(ControlledDynamicWebAppCluster.MEMBER_SPEC, EntitySpec.create(JBoss7Server.class)
                             .configure("initialSize", 1)
                             .configure("httpPort", 8080)
-                            .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), AbstractController.HOSTNAME))
+                            .configure(javaSysProp("marklogic.host"), attributeWhenReady(markLogicCluster.getLoadBalancer(), Attributes.HOSTNAME))
                             .configure(javaSysProp("marklogic.port"), "" + appServicePort)
                             .configure(javaSysProp("marklogic.password"), password)
                             .configure(javaSysProp("marklogic.user"), username)

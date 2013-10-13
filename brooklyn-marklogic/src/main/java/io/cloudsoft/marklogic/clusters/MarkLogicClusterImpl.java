@@ -1,5 +1,6 @@
 package io.cloudsoft.marklogic.clusters;
 
+import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import io.cloudsoft.marklogic.appservers.AppServices;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -158,7 +159,7 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
 
     void connectSensors() {
         if (loadBalancer != null) {
-            SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, NginxController.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
+            SensorPropagatingEnricher.newInstanceListeningTo(loadBalancer, Attributes.HOSTNAME, SERVICE_UP, NginxController.ROOT_URL)
                     .addToEntityAndEmitAll(this);
         }
     }
