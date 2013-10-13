@@ -33,7 +33,7 @@ To run in Rackspace, you should give these properties:
 brooklyn.location.named.marklogic-rackspace-uk=jclouds:rackspace-cloudservers-uk
 brooklyn.location.named.marklogic-rackspace-uk.identity=<rackspace identity>
 brooklyn.location.named.marklogic-rackspace-uk.credential=<rackspace credential>
-brooklyn.location.named.marklogic-rackspace-uk.imageNameRegex=CentOS 6.0
+brooklyn.location.named.marklogic-rackspace-uk.imageNameRegex=CentOS 6.4
 brooklyn.location.named.marklogic-rackspace-uk.minRam=2000
 brooklyn.location.named.marklogic-rackspace-uk.openIptables=true
 ```
