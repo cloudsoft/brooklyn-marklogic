@@ -4,17 +4,89 @@ echo ===========================================================================
 
 DATABASE_NAME=${database.name}
 
-DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate_id.xqy)
+DATABASE_ID=$(curl -L --digest -u ${driver.user}:${driver.password} http://localhost:8001/generate_id.xqy)
 echo found DATABASE_ID: $DATABASE_ID
 
-SECURITY_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Security")
+SECURITY_DATABASE_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Security")
 echo SECURITY_DATABASE_ID = $SECURITY_DATABASE_ID
 
-SCHEMA_DATABASE_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Schemas")
+SCHEMA_DATABASE_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/database_get_id.xqy?database=Schemas")
 echo SCHEMA_DATABASE_ID = $SCHEMA_DATABASE_ID
 
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-database-go.xqy" \
-      --data "section=database&ok.x=27&ok.y=6&ok=ok&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Adatabase-id=<#noparse>${DATABASE_ID}</#noparse>&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Adatabase-name=<#noparse>${DATABASE_NAME}</#noparse>&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aenabled=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Asecurity-database=<#noparse>${SECURITY_DATABASE_ID}</#noparse>&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aschema-database=<#noparse>${SCHEMA_DATABASE_ID}</#noparse>&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atriggers-database=0&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aretired-forest-count=0&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Alanguage=en&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Astemmed-searches=basic&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aword-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aword-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-phrase-searches=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-reverse-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atriple-index=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-case-sensitive-searches=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-diacritic-sensitive-searches=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-element-word-searches=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aelement-word-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-element-phrase-searches=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aelement-value-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aattribute-value-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afield-value-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afield-value-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Athree-character-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Athree-character-word-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-element-character-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atrailing-wildcard-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atrailing-wildcard-word-positions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Afast-element-trailing-wildcard-searches=false&new-word-lexicon-0=&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atwo-character-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aone-character-searches=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Auri-lexicon=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Acollection-lexicon=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aassignment-policy%2Fdb%3Aassignment-policy-name=bucket&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Arebalancer-enable=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Arebalancer-throttle=5&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Areindexer-enable=true&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Areindexer-throttle=5&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Areindexer-timestamp=0&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Adirectory-creation=manual&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amaintain-last-modified=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amaintain-directory-last-modified=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ainherit-permissions=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ainherit-collections=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ainherit-quality=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-limit=32768&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-list-size=64&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-tree-size=16&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-range-index-size=2&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-reverse-index-size=2&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ain-memory-triple-index-size=2&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Alarge-size-threshold=1024&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Alocking=fast&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ajournaling=${database.journaling}&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ajournal-size=128&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Ajournal-count=2&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Apreallocate-journals=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Apreload-mapped-data=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Apreload-replica-mapped-data=false&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Arange-index-optimize=facet-time&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Apositions-list-max-size=256&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aformat-compatibility=automatic&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aindex-detection=automatic&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Aexpunge-locks=automatic&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Atf-normalization=scaled-log&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amerge-priority=lower&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amerge-max-size=32768&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amerge-min-size=1024&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amerge-min-ratio=2&%2Fdb%3Adatabases%2Fdb%3Adatabase%2Fdb%3Amerge-timestamp=0"
+curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-database-go.xqy" \
+    -d section=database \
+    -d ok=ok \
+    -d new-word-lexicon-0= \
+    -d /db:databases/db:database/db:enabled=true \
+    -d /db:databases/db:database/db:database-id=<#noparse>${DATABASE_ID}</#noparse> \
+    -d /db:databases/db:database/db:database-name=<#noparse>${DATABASE_NAME}</#noparse> \
+    -d /db:databases/db:database/db:security-database=<#noparse>${SECURITY_DATABASE_ID}</#noparse> \
+    -d /db:databases/db:database/db:schema-database=<#noparse>${SCHEMA_DATABASE_ID}</#noparse> \
+    -d /db:databases/db:database/db:triggers-database=0 \
+    -d /db:databases/db:database/db:retired-forest-count=0 \
+    -d /db:databases/db:database/db:language=en \
+    -d /db:databases/db:database/db:stemmed-searches=basic \
+    -d /db:databases/db:database/db:word-searches=false \
+    -d /db:databases/db:database/db:word-positions=false \
+    -d /db:databases/db:database/db:fast-phrase-searches=true \
+    -d /db:databases/db:database/db:fast-reverse-searches=false \
+    -d /db:databases/db:database/db:triple-index=false \
+    -d /db:databases/db:database/db:fast-case-sensitive-searches=true \
+    -d /db:databases/db:database/db:fast-diacritic-sensitive-searches=true \
+    -d /db:databases/db:database/db:fast-element-word-searches=true \
+    -d /db:databases/db:database/db:element-word-positions=false \
+    -d /db:databases/db:database/db:fast-element-phrase-searches=true \
+    -d /db:databases/db:database/db:element-value-positions=false \
+    -d /db:databases/db:database/db:attribute-value-positions=false \
+    -d /db:databases/db:database/db:field-value-searches=false \
+    -d /db:databases/db:database/db:field-value-positions=false \
+    -d /db:databases/db:database/db:three-character-searches=false \
+    -d /db:databases/db:database/db:three-character-word-positions=false \
+    -d /db:databases/db:database/db:fast-element-character-searches=false \
+    -d /db:databases/db:database/db:trailing-wildcard-searches=false \
+    -d /db:databases/db:database/db:trailing-wildcard-word-positions=false \
+    -d /db:databases/db:database/db:fast-element-trailing-wildcard-searches=false \
+    -d /db:databases/db:database/db:two-character-searches=false \
+    -d /db:databases/db:database/db:one-character-searches=false \
+    -d /db:databases/db:database/db:uri-lexicon=true \
+    -d /db:databases/db:database/db:collection-lexicon=false \
+    -d /db:databases/db:database/db:assignment-policy/db:assignment-policy-name=bucket \
+    -d /db:databases/db:database/db:rebalancer-enable=true \
+    -d /db:databases/db:database/db:rebalancer-throttle=5 \
+    -d /db:databases/db:database/db:reindexer-enable=true \
+    -d /db:databases/db:database/db:reindexer-throttle=5 \
+    -d /db:databases/db:database/db:reindexer-timestamp=0 \
+    -d /db:databases/db:database/db:directory-creation=manual \
+    -d /db:databases/db:database/db:maintain-last-modified=false \
+    -d /db:databases/db:database/db:maintain-directory-last-modified=false \
+    -d /db:databases/db:database/db:inherit-permissions=false \
+    -d /db:databases/db:database/db:inherit-collections=false \
+    -d /db:databases/db:database/db:inherit-quality=false \
+    -d /db:databases/db:database/db:in-memory-limit=32768 \
+    -d /db:databases/db:database/db:in-memory-list-size=64 \
+    -d /db:databases/db:database/db:in-memory-tree-size=16 \
+    -d /db:databases/db:database/db:in-memory-range-index-size=2 \
+    -d /db:databases/db:database/db:in-memory-reverse-index-size=2 \
+    -d /db:databases/db:database/db:in-memory-triple-index-size=2 \
+    -d /db:databases/db:database/db:large-size-threshold=1024 \
+    -d /db:databases/db:database/db:locking=fast \
+    -d /db:databases/db:database/db:journaling=${database.journaling} \
+    -d /db:databases/db:database/db:journal-size=128 \
+    -d /db:databases/db:database/db:journal-count=2 \
+    -d /db:databases/db:database/db:preallocate-journals=false \
+    -d /db:databases/db:database/db:preload-mapped-data=false \
+    -d /db:databases/db:database/db:preload-replica-mapped-data=false \
+    -d /db:databases/db:database/db:range-index-optimize=facet-time \
+    -d /db:databases/db:database/db:positions-list-max-size=256 \
+    -d /db:databases/db:database/db:format-compatibility=automatic \
+    -d /db:databases/db:database/db:index-detection=automatic \
+    -d /db:databases/db:database/db:expunge-locks=automatic \
+    -d /db:databases/db:database/db:tf-normalization=scaled-log \
+    -d /db:databases/db:database/db:merge-priority=lower \
+    -d /db:databases/db:database/db:merge-max-size=32768 \
+    -d /db:databases/db:database/db:merge-min-size=1024 \
+    -d /db:databases/db:database/db:merge-min-ratio=2 \
+    -d /db:databases/db:database/db:merge-timestamp=0
 
 echo ==============================================================================
 echo           Finished creating MarkLogic Database ${database.name}

@@ -1,0 +1,175 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>brooklyn-marklogic-api</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>io.cloudsoft.marklogic</groupId>
+        <artifactId>brooklyn-marklogic-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <name>Brooklyn MarkLogic REST API Implementation</name>
+
+    <properties>
+        <includedTestGroups/>
+        <excludedTestGroups>Integration,Live,WIP</excludedTestGroups>
+
+        <httpclient.version>4.2.5</httpclient.version>
+        <jackson.version>2.2.2</jackson.version>
+        <mockwebserver.version>20130706</mockwebserver.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
+        <!-- TODO: Should probably use JAX-B to talk to an XML database.. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>sun-jaxb</groupId>-->
+            <!--<artifactId>jaxb-api</artifactId>-->
+            <!--<version>2.1.4</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.2.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.brooklyn</groupId>
+            <artifactId>brooklyn-test-support</artifactId>
+            <version>${brooklyn.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.mockwebserver</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>${mockwebserver.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- JAXB xjc plugin that invokes the xjc compiler to compile XML schema into Java classes.-->
+            <!-- <plugin> -->
+                <!-- <groupId>org.codehaus.mojo</groupId> -->
+                <!-- <artifactId>jaxb2-maven-plugin</artifactId> -->
+                <!-- <executions> -->
+                    <!-- <execution> -->
+                        <!-- <goals> -->
+                            <!-- <goal>xjc</goal> -->
+                        <!-- </goals> -->
+                    <!-- </execution> -->
+                <!-- </executions> -->
+                <!-- <configuration> -->
+                    <!-- <schemaDirectory>${basedir}/src/main/resources</schemaDirectory> -->
+                    <!-- <packageName>xyz</packageName> -->
+                    <!-- <outputDirectory>${basedir}/target/generated-sources</outputDirectory> -->
+                <!-- </configuration> -->
+            <!-- </plugin> -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>brooklyn.test.LoggingVerboseReporter</value>
+                        </property>
+                    </properties>
+                    <enableAssertions>true</enableAssertions>
+                    <groups>${includedTestGroups}</groups>
+                    <excludedGroups>${excludedTestGroups}</excludedGroups>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <systemPropertyVariables>
+                        <verbose>-1</verbose>
+                    </systemPropertyVariables>
+                    <printSummary>true</printSummary>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>Integration</id>
+            <properties>
+                <includedTestGroups>Integration</includedTestGroups>
+                <excludedTestGroups>Live,WIP</excludedTestGroups>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <executions>
+                            <execution>
+                                <id>run-tests</id>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>Live</id>
+            <properties>
+                <includedTestGroups>Live</includedTestGroups>
+                <excludedTestGroups>Integration,WIP</excludedTestGroups>
+            </properties>
+        </profile>
+        <profile>
+            <id>WIP</id>
+            <properties>
+                <includedTestGroups>WIP</includedTestGroups>
+                <excludedTestGroups>Integration,Live</excludedTestGroups>
+            </properties>
+        </profile>
+    </profiles>
+</project>

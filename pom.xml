@@ -18,7 +18,16 @@
         <brooklyn.version>0.6.0-SNAPSHOT</brooklyn.version>
         <jclouds.version>1.6.0</jclouds.version>
         <testng.version>6.7</testng.version>
+        <guava.version>14.0.1</guava.version>
+        <slf4j.version>1.6.1</slf4j.version>
     </properties>
+
+    <modules>
+        <module>brooklyn-marklogic</module>
+        <module>brooklyn-marklogic-api</module>
+        <module>demo-war</module>
+        <module>dist</module>
+    </modules>
 
     <repositories>
         <repository>
@@ -43,12 +52,6 @@
     </repositories>
 
     <build>
-        <testSourceDirectory>src/test/java</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -166,9 +169,4 @@
         </profile>
     </profiles>
 
-    <modules>
-        <module>demo-war</module>
-        <module>brooklyn-marklogic</module>
-        <module>dist</module>
-    </modules>
 </project>

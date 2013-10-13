@@ -1,11 +1,22 @@
 echo ==============================================================================
-echo         Attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo         Attaching replica forest ${replicaForest.name} to primary forest ${primaryForest.name}
 echo ==============================================================================
 
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/attach_replica.xqy" \
-  -d fname=${primaryForestName} \
-  -d repname=${replicaForestName}
+# With the EA3 release this functionality isn't working. It is only possible to assign a non existing forest to primary
+# and the non existing forest will be created on the fly. So you can't create 2 normal forests, and then assign one
+# as replica to the other.
+
+curl -L -i -X PUT --digest -u ${driver.user}:${driver.password}  http://localhost:8002/manage/v2/forests/${primaryForest.name}/properties \
+    --header "Content-Type:application/xml" \
+    --data \
+'<forest-properties xmlns="http://marklogic.com/manage">
+    <forest-replicas>
+        <forest-replica>
+            <replica-name>${replicaForest.name}</replica-name>
+        </forest-replica>
+    </forest-replicas>
+</forest-properties>'
 
 echo ==============================================================================
-echo         Finished attaching replica forest ${replicaForestName} to primary forest ${primaryForestName}
+echo         Finished attaching replica forest ${replicaForest.name} to primary forest ${primaryForest.name}
 echo ==============================================================================

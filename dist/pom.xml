@@ -32,6 +32,12 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>io.cloudsoft.marklogic</groupId>
+            <artifactId>demo-war</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.6.4</version>
@@ -56,7 +62,6 @@
                                 <descriptor>src/main/config/build-distribution-archive.xml</descriptor>
                             </descriptors>
                             <finalName>brooklyn-marklogic-${project.version}</finalName>
-                            <useProjectArtifact>false</useProjectArtifact>
                         </configuration>
                     </execution>
                 </executions>

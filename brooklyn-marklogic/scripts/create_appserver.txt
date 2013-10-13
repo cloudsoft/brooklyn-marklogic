@@ -2,7 +2,7 @@ echo ===========================================================================
 echo            Creating MarkLogic AppServer ${appserver.name}
 echo ==============================================================================
 
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/create_rest_appserver.xqy" \
+curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/create_rest_appserver.xqy" \
    -d database=${appserver.databaseName} \
    -d port=${appserver.port} \
    -d group=${appserver.groupName} \

@@ -1,29 +1,25 @@
 package io.cloudsoft.marklogic.forests;
 
+import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
+
+import java.util.List;
+
 import brooklyn.config.ConfigKey;
 import brooklyn.entity.Entity;
 import brooklyn.entity.annotation.Effector;
 import brooklyn.entity.annotation.EffectorParam;
-import brooklyn.entity.proxying.BasicEntitySpec;
+import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
-import io.cloudsoft.marklogic.nodes.MarkLogicNode;
-import io.cloudsoft.marklogic.nodes.MarkLogicNodeImpl;
-
-import java.util.List;
-
-import static brooklyn.entity.basic.ConfigKeys.newConfigKey;
 
 @ImplementedBy(ForestsImpl.class)
-public interface Forests extends Entity, Startable {
+public interface Forests extends Entity, Startable, Iterable<Forest> {
 
     ConfigKey<MarkLogicGroup> GROUP = newConfigKey(
             MarkLogicGroup.class, "marklogic.forests.group", "The group");
 
-    Forest createForestWithSpec(BasicEntitySpec<Forest, ?> forestSpec);
+    Forest createForestWithSpec(EntitySpec<Forest> forestSpec);
 
     @Effector(description = "Creates a new forest")
     Forest createForest(
@@ -36,17 +32,28 @@ public interface Forests extends Entity, Startable {
             @EffectorParam(name = "rebalancer_enabled", description = "Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @EffectorParam(name = "failover_enabled", description = "Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 
+    void attachReplicaForest(Forest primary, Forest replica);
     void attachReplicaForest(String primaryForestName, String replicaForestName);
 
     @Effector(description = "Enables a forest")
     void enableForest(
-            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName,
-            @EffectorParam(name = "enabled", description = "If the forest should be enabled") boolean enabled);
+            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
 
+    void enableForest(Forest forest);
+
+    @Effector(description = "Disables a forest")
+    void disableForest(
+            @EffectorParam(name = "forestName", description = "The name of the forest") String forestName);
+
+    void disableForest(Forest forest);
+
+    void setForestHost(Forest forest, String hostname);
     void setForestHost(String forestName, String hostname);
 
+    void unmountForest(Forest forest);
     void unmountForest(String forestName);
 
+    void mountForest(Forest forest);
     void mountForest(String forestName);
 
     @Effector(description = "Moves a forest from one host to another")
@@ -54,11 +61,11 @@ public interface Forests extends Entity, Startable {
             @EffectorParam(name = "forest", description = "The name of the forest") String forestName,
             @EffectorParam(name = "host", description = "The new hostname") String hostName);
 
-    List<Forest> asList();
+    void moveForest(Forest forest, String hostName);
 
     void rebalance();
 
     @Effector(description = "Move all forests from this node (this is useful for removing a node within the cluster)")
     void moveAllForestFromNode(
-            @EffectorParam(name = "hostName", description = "The name of the host node which should loose all its forests.") String hostName);
+            @EffectorParam(name = "hostName", description = "The name of the host node which should lose all its forests.") String hostName);
 }

@@ -5,17 +5,17 @@ import brooklyn.entity.Entity;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
-import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
-import brooklyn.event.basic.BasicConfigKey;
-import brooklyn.event.basic.Sensors;
-import brooklyn.util.flags.SetFromFlag;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import static brooklyn.entity.basic.ConfigKeys.*;
 import static brooklyn.event.basic.Sensors.newLongSensor;
 import static brooklyn.event.basic.Sensors.newStringSensor;
 
+/**
+ * A forest is a repository for documents. Forests are managed by a single host - in Brooklyn a
+ * {@link io.cloudsoft.marklogic.nodes.MarkLogicNode MarkLogicNode}. Hosts may have many forests.
+ */
 @ImplementedBy(ForestImpl.class)
 public interface Forest extends Entity, Startable {
 
@@ -88,7 +88,14 @@ public interface Forest extends Entity, Startable {
             "The id of the forest");
 
 
+    /**
+     * Exposed for use by {@link io.cloudsoft.marklogic.nodes.MarkLogicNodeSshDriver#mountForest} and
+     * {@link io.cloudsoft.marklogic.nodes.MarkLogicNodeSshDriver#unmountForest unmountForest}.
+     */
     <T> T setAttribute(AttributeSensor<T> attribute, T value);
+
+    /** Exposed for use by {@link ForestsImpl#attachReplicaForest} and {@link ForestsImpl#setForestHost(String, String)}. */
+    <T> T setConfig(ConfigKey<T> key, T val);
 
     Long getForestId();
 
@@ -113,8 +120,6 @@ public interface Forest extends Entity, Startable {
     String getStatus();
 
     void awaitStatus(String... expectedState);
-
-    <T> T setConfig(ConfigKey<T> key, T val);
 
     boolean createdByBrooklyn();
 }

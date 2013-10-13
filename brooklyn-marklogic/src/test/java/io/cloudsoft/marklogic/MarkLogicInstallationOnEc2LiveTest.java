@@ -22,7 +22,6 @@ import brooklyn.util.collections.MutableMap;
 
 import com.google.common.collect.ImmutableMap;
 
-@Test(groups = {"Live"})
 public class MarkLogicInstallationOnEc2LiveTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(MarkLogicInstallationOnEc2LiveTest.class);
@@ -38,19 +37,18 @@ public class MarkLogicInstallationOnEc2LiveTest {
 
     protected TestApplication app;
     protected Location jcloudsLocation;
-    private MarkLogicNode markLogicNode;
 
     @DataProvider(name = "regionImageIdLoginUser")
     public Object[][] regionImageIdLoginUser() {
         return new Object[][]{
                 // Amazon Linux AMI
-                {US_EAST_REGION_NAME, "ami-3275ee5b", "ec2-user"}, {EU_WEST_REGION_NAME, "ami-44939930", "ec2-user"},
+                {US_EAST_REGION_NAME, "ami-3275ee5b"}, {EU_WEST_REGION_NAME, "ami-44939930"},
                 // Centos 5.6
-                {US_EAST_REGION_NAME, "ami-49e32320", null}, {EU_WEST_REGION_NAME, "ami-da3003ae", null},
+                {US_EAST_REGION_NAME, "ami-49e32320"}, {EU_WEST_REGION_NAME, "ami-da3003ae"},
                 // Centos 6.3
-                {US_EAST_REGION_NAME, "ami-7d7bfc14", null}, {EU_WEST_REGION_NAME, "ami-0ca7a878", null},
+                {US_EAST_REGION_NAME, "ami-7d7bfc14"}, {EU_WEST_REGION_NAME, "ami-0ca7a878"},
                 // RHEL 6
-                {US_EAST_REGION_NAME, "ami-b30983da", null}, {EU_WEST_REGION_NAME, "ami-c07b75b4", null}
+                {US_EAST_REGION_NAME, "ami-b30983da"}, {EU_WEST_REGION_NAME, "ami-c07b75b4"}
         };
     }
 
@@ -70,12 +68,17 @@ public class MarkLogicInstallationOnEc2LiveTest {
         app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
     }
 
-    @Test(dataProvider = "regionImageIdLoginUser")
-    public void testMarkLogicNodeOnEC2(String regionName, String amiId, String loginUser) throws Exception {
+    @AfterMethod(alwaysRun = true)
+    public void tearDown() throws Exception {
+        if (app != null) Entities.destroyAll(app.getManagementContext());
+    }
+
+    @Test(groups = {"Live"}, dataProvider = "regionImageIdLoginUser")
+    public void testMarkLogicNodeOnEC2(String regionName, String amiId) throws Exception {
         String imageId = String.format("%s/%s", regionName, amiId);
-        Map<?, ?> flags = ImmutableMap.of("imageId", imageId,
-                "hardwareId", MEDIUM_HARDWARE_ID,
-                "loginUser", loginUser == null ? "root" : loginUser);
+        Map<?, ?> flags = ImmutableMap.of(
+                "imageId", imageId,
+                "hardwareId", MEDIUM_HARDWARE_ID);
         runTest(flags, PROVIDER, regionName);
     }
 
@@ -92,10 +95,5 @@ public class MarkLogicInstallationOnEc2LiveTest {
         //
         //app.start(ImmutableList.of(loc));
         //EntityTestUtils.assertAttributeEqualsEventually(markLogicNode, SoftwareProcess.SERVICE_UP, true);
-    }
-
-    @AfterMethod(alwaysRun = true)
-    public void tearDown() throws Exception {
-        if (app != null) Entities.destroyAll(app);
     }
 }

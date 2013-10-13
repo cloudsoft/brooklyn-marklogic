@@ -2,45 +2,70 @@ echo ===========================================================================
 echo                 CREATING FOREST ${forest.name}
 echo ==============================================================================
 
-HOST_ID=$(curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
+HOST_ID=$(curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/host_get_id.xqy?host=${driver.hostname}")
 echo found HOST_ID: $HOST_ID
 
 <#if forest.dataDir??>
+sudo mkdir -p ${forest.dataDir}
 sudo chown -R daemon ${forest.dataDir!""}
+echo changed ownership of dataDir
 </#if>
 
 <#if forest.largeDataDir??>
+sudo mkdir -p ${forest.largeDataDir}
 sudo chown -R daemon ${forest.largeDataDir!""}
+echo changed ownership of largeDataDir
 </#if>
 
 <#if forest.fastDataDir??>
+sudo mkdir -p ${forest.fastDataDir}
 sudo chown -R daemon ${forest.fastDataDir!""}
+echo changed ownership of fastDataDir
 </#if>
 
-echo Creating MarkLogic forrest
-curl --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
-   -d forest-0-forest-name=${forest.name} \
-   -d forest-0-host=$HOST_ID \
-   -d forest-0-updates-allowed=${forest.updatesAllowed} \
-   -d forest-0-enabled=true \
-   -d forest-0-rebalancer-enable=${forest.rebalancerEnabled?string} \
-   -d forest-0-failover-enable=${forest.failoverEnabled?string} \
-   -d forest-0-data-directory=${forest.dataDir!""} \
-   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
-   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
+<#if forest.master??>
+curl -L -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests/${forest.master}/properties \
+    --header Content-Type:application/xml \
+    --data \
+'<forest-properties xmlns="http://marklogic.com/manage">
+    <forest-replicas>
+        <forest-replica>
+            <replica-name>${forest.name}</replica-name>
+            <host>${forest.hostname}</host>
+            <data-directory>${forest.dataDir!""}</data-directory>
+            <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
+            <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
+        </forest-replica>
+    </forest-replicas>
+</forest-properties>'
 
-#curl -i -X POST --digest -u ${driver.user}:${driver.password} --header Content-Type:application/xml http://localhost:8002/manage/v2/forests --data \
-#'<forest xmlns="http://marklogic.com/manage">
-#    <forest-name>${forest.name}</forest-name>
-#    <host>$HOST_ID</host>
-#    <database></database>
-#    <data-directory>${forest.dataDir!""}</data-directory>
-#    <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
-#    <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
-#    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
-#    <availability>online</availability>
-#    <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
-#</forest>'
+<#else>
+
+#curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
+#   -d forest-0-forest-name=${forest.name} \
+#   -d forest-0-host=$HOST_ID \
+#   -d forest-0-updates-allowed=${forest.updatesAllowed} \
+#   -d forest-0-enabled=true \
+#   -d forest-0-rebalancer-enable=${forest.rebalancerEnabled?string} \
+#   -d forest-0-failover-enable=${forest.failoverEnabled?string} \
+#   -d forest-0-data-directory=${forest.dataDir!""} \
+#   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
+#   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
+
+curl -L -i -X POST --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests \
+    --header Content-Type:application/xml \
+    --data \
+'<forest-create xmlns="http://marklogic.com/manage">
+    <forest-name>${forest.name}</forest-name>
+    <host>${driver.hostname}</host>
+    <data-directory>${forest.dataDir!""}</data-directory>
+    <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
+    <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
+    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
+    <availability>online</availability>
+    <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
+</forest-create>'
+</#if>
 
 echo ==============================================================================
 echo                 FINISHED CREATING FOREST ${forest.name}
