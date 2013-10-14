@@ -31,6 +31,7 @@ curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add
     -d /db:databases/db:database/db:fast-phrase-searches=true \
     -d /db:databases/db:database/db:fast-reverse-searches=false \
     -d /db:databases/db:database/db:triple-index=false \
+    -d /db:databases/db:database/db:triple-positions=false \
     -d /db:databases/db:database/db:fast-case-sensitive-searches=true \
     -d /db:databases/db:database/db:fast-diacritic-sensitive-searches=true \
     -d /db:databases/db:database/db:fast-element-word-searches=true \
