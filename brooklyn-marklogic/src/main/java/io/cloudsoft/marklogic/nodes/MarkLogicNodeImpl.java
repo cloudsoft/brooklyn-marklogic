@@ -114,7 +114,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
    @Override
-   public void stop() {
+   public void doStop() {
         Lifecycle clusterState = getCluster().getAttribute(MarkLogicCluster.SERVICE_STATE);
         boolean moveForests = (clusterState != Lifecycle.STOPPING && clusterState != Lifecycle.STOPPED);
 
@@ -125,7 +125,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         } else {
             LOG.info("Stopping MarkLogicNode (and cluster): "+getHostName()+" Not moving forests out");
         }
-        super.stop();
+        super.doStop();
         LOG.info("MarkLogicNode terminated: {}", this);
    }
 
