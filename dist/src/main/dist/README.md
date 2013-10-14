@@ -14,7 +14,8 @@ brooklyn.marklogic.licensee=<your marklogic licensee name>
 brooklyn.marklogic.license-key=<your marklogic license key>
 brooklyn.marklogic.license-type=<(development) the type of the license. use evaluation if part of the early access program>
 brooklyn.marklogic.cluster=<a name for your clusters>
-brooklyn.marklogic.version=-7.0-20130911
+brooklyn.marklogic.version=7.0-20131006
+# Necessary to download the MarkLogic installer
 brooklyn.marklogic.website-username=<your marklogic website login name>
 brooklyn.marklogic.website-password=<your marklogic website password>
 ```
