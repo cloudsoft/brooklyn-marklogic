@@ -10,7 +10,6 @@ import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
-import brooklyn.entity.basic.Lifecycle;
 import brooklyn.entity.basic.SoftwareProcess;
 import brooklyn.entity.basic.SoftwareProcessImpl;
 import brooklyn.event.AttributeSensor;
@@ -119,11 +118,11 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         boolean moveForests = (clusterState != Lifecycle.STOPPING && clusterState != Lifecycle.STOPPED);
 
         if (moveForests) {
-            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Moving all forests out");
-            getCluster().getForests().moveAllForestFromNode(getHostName());
-            LOG.info("Stopping MarkLogicNode: "+getHostName()+" Finished Moving all forests out, continue to stop");
+            LOG.info("Stopping {}: Moving all forests out", this);
+            getCluster().getForests().moveAllForestsFromNode(this);
+            LOG.info("Stopping {}: Moved all forests from node, continue to stop", this);
         } else {
-            LOG.info("Stopping MarkLogicNode (and cluster): "+getHostName()+" Not moving forests out");
+            LOG.info("Stopping MarkLogicNode (and cluster) {} Not moving forests out", this);
         }
         super.doStop();
         LOG.info("MarkLogicNode terminated: {}", this);

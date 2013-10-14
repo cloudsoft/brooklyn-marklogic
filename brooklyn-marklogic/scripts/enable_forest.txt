@@ -10,5 +10,5 @@ curl -L -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost
 </forest-properties>'
 
 echo ==============================================================================
-echo         Finished enabling forest ${forestName} ${enabled?string}
+echo      Finished setting forest ${forestName} status to ${enabled?string}
 echo ==============================================================================
