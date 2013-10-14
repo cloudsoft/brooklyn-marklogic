@@ -22,7 +22,7 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicFullClusterLiveT
         databases.attachForestToDatabase(forest, database);
         forest.awaitStatus("open");
 
-        forests.moveAllForestFromNode(dNode1.getHostName());
+        forests.moveAllForestsFromNode(dNode1);
 
         String hostName = forest.getHostname();
         assertTrue(hostName.equals(dNode2.getHostName())||hostName.equals(dNode3.getHostName()));
@@ -47,7 +47,7 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicFullClusterLiveT
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveAllForestFromNode(dNode1.getHostName());
+        forests.moveAllForestsFromNode(dNode1);
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals(dNode3.getHostName(), primaryForest.getHostname());
@@ -74,7 +74,7 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicFullClusterLiveT
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveAllForestFromNode(dNode2.getHostName());
+        forests.moveAllForestsFromNode(dNode2);
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals(dNode1.getHostName(), primaryForest.getHostname());

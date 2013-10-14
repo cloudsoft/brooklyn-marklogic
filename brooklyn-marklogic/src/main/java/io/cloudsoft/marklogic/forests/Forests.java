@@ -12,6 +12,7 @@ import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
+import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 
 @ImplementedBy(ForestsImpl.class)
 public interface Forests extends Entity, Startable, Iterable<Forest> {
@@ -66,6 +67,8 @@ public interface Forests extends Entity, Startable, Iterable<Forest> {
     void rebalance();
 
     @Effector(description = "Move all forests from this node (this is useful for removing a node within the cluster)")
-    void moveAllForestFromNode(
+    void moveAllForestsFromNode(
             @EffectorParam(name = "hostName", description = "The name of the host node which should lose all its forests.") String hostName);
+
+    void moveAllForestsFromNode(MarkLogicNode node);
 }
