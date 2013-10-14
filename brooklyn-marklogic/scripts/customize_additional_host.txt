@@ -1,39 +1,39 @@
-function waitForMarkLogicUp(){
-  sleep 30
-  #for i in {1..60}
-  #do
-  #   if [ "curl --silent http://localhost:8001" ];
-  #   then
-  #      return
-  #   else
-  #      echo Waiting for MarkLogic to be started
-  #      sleep 1
-  #   fi
-  #done
-  #echo "The MarkLogic was not up in 60 seconds"
-  #exit 1
-}
-
 echo ==============================================================================
 echo  CUSTOMIZING MARKLOGIC ADDITIONAL HOST
 echo ==============================================================================
 
-echo Joining cluster
-hostname
-curl -L --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/join-cluster.xqy?server=${clusterHostName}&joiner=${driver.hostname}&user=${driver.user}&pass=${driver.password}'
-echo Finished joining cluster
+echo "Getting the new server's configuration"
+curl -L 'http://localhost:8001/admin/v1/server-config' -o "/tmp/server-config.xml"
 
-echo Transferring Cluster Config
-curl -L --digest -u ${driver.user}:${driver.password} \
-   'http://${clusterHostName}:8001/transfer-cluster-config.xqy?server=${clusterHostName}&joiner=${driver.hostname}'
-echo Finished transferring Cluster config
+echo "Updating the initial host with the new configuration"
+curl -L --digest -u ${driver.user}:${driver.password} -i -X POST \
+    -H "Content-type: application/x-www-form-urlencoded" \
+    --data-urlencode "server-config@/tmp/server-config.xml" -d "group=Default" \
+    'http://${clusterHostName}:8001/admin/v1/cluster-config' -o "/tmp/cfg.zip"
 
-echo Restarting Host
-curl -L --digest -u ${driver.user}:${driver.password} 'http://localhost:8001/qa-restart.xqy'
-waitForMarkLogicUp
-echo Finished restarting Host
+TIMESTAMP=$(curl --silent 'http://localhost:8001/admin/v1/timestamp')
+
+# Now install the combined config on the new host, which will restart
+echo "Updating new host with cluster configuration"
+curl -X POST -H "Content-type: application/zip" --data-binary @/tmp/cfg.zip 'http://localhost:8001/admin/v1/cluster-config'
+
+NEWTIMESTAMP=$TIMESTAMP
+
+echo "Waiting for server timestamp to change from $TIMESTAMP"
+until [ "$NEWTIMESTAMP" != "$TIMESTAMP" ]; do
+    sleep 5
+    STATUS=$(curl -o /tmp/timestamp --digest -u ${driver.user}:${driver.password} --silent --write-out '%{http_code}\n' 'http://localhost:8001/admin/v1/timestamp')
+    if [ "$STATUS" -eq "200" ]
+    then
+        NEWTIMESTAMP=$(< /tmp/timestamp)
+        echo "Timestamp: $NEWTIMESTAMP"
+    else
+        echo "Waiting..."
+    fi
+done
+
+echo "Timestamps changed: cluster join complete."
 
 echo ==============================================================================
 echo  FINISHED CUSTOMIZING MARKLOGIC ADDITIONAL HOST
 echo ==============================================================================
-
