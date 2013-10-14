@@ -41,17 +41,6 @@ curl -L -i -X PUT --digest -u ${driver.user}:${driver.password} http://localhost
 
 <#else>
 
-#curl -L --digest -u ${driver.user}:${driver.password} "http://localhost:8001/add-forest-go.xqy"  \
-#   -d forest-0-forest-name=${forest.name} \
-#   -d forest-0-host=$HOST_ID \
-#   -d forest-0-updates-allowed=${forest.updatesAllowed} \
-#   -d forest-0-enabled=true \
-#   -d forest-0-rebalancer-enable=${forest.rebalancerEnabled?string} \
-#   -d forest-0-failover-enable=${forest.failoverEnabled?string} \
-#   -d forest-0-data-directory=${forest.dataDir!""} \
-#   -d forest-0-large-data-directory=${forest.largeDataDir!""} \
-#   -d forest-0-fast-data-directory=${forest.fastDataDir!""}
-
 curl -L -i -X POST --digest -u ${driver.user}:${driver.password} http://localhost:8002/manage/v2/forests \
     --header Content-Type:application/xml \
     --data \

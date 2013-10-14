@@ -18,12 +18,6 @@ curl -L -i -X POST -H 'Content-type: application/xml' http://localhost:8001/admi
 waitForMarkLogicUp
 echo Finished setting new credentials
 
-echo Restarting MarkLogic
-curl -L -i -X POST --digest -u ${driver.user}:${driver.password}  'http://localhost:8002/manage/v2/hosts/$ML-LOCALHOST' \
-    --data state=restart
-waitForMarkLogicUp
-echo Finished restarting MarkLogic
-
 echo ==============================================================================
 echo  FINISHED CUSTOMIZING MARKLOGIC INITIAL HOST
 echo ==============================================================================
