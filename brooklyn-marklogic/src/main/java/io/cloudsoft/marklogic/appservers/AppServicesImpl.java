@@ -1,7 +1,10 @@
 package io.cloudsoft.marklogic.appservers;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractGroupImpl;
+import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxying.EntitySpec;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
@@ -26,30 +29,20 @@ public class AppServicesImpl extends AbstractGroupImpl implements AppServices {
     @Override
     public RestAppServer createRestAppServer(String name, String database, String groupName, int port) {
         LOG.info("Creating REST appServer: " + name);
-        MarkLogicNode node = getMarkLogicNode();
-
+        MarkLogicNode node = getCluster().getAnyUpMember();
+        checkState(node != null, "Can't create a REST appserver: found no available members in the cluster");
 
         RestAppServer appServer = addChild(EntitySpec.create(RestAppServer.class)
                 .configure(RestAppServer.NAME, name)
                 .configure(RestAppServer.DATABASE_NAME, database)
                 .configure(RestAppServer.PORT, port)
-                .configure(RestAppServer.GROUP_NAME, groupName)
-        );
+                .configure(RestAppServer.GROUP_NAME, groupName));
+        Entities.manage(appServer);
 
         node.createRestAppServer(appServer);
-
-
         LOG.info("Successfully created REST appServer: " + name);
 
         return appServer;
     }
 
-    private MarkLogicNode getMarkLogicNode() {
-        MarkLogicGroup cluster = getCluster();
-        final Iterator<Entity> iterator = cluster.getMembers().iterator();
-        if (!iterator.hasNext()) {
-            throw new IllegalStateException("Can't create a database, there are no members in the cluster");
-        }
-        return (MarkLogicNode) iterator.next();
-    }
 }
