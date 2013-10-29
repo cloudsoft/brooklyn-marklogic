@@ -108,6 +108,7 @@ public interface MarkLogicNode extends SoftwareProcess {
             "Whether the fastdir should use an EBS Volume",
             true);
 
+    // TODO: Change to instance of BlockDevice
     BasicAttributeSensorAndConfigKey<String> VAR_OPT_VOLUME = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.volumes.varOpt", "EBS Volume ID for /var/opt (or null if does not already exist)", null);
 

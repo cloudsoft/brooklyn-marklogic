@@ -23,8 +23,8 @@
     <!-- [> </appender> <] -->
 
     <!-- <logger name="io.cloudsoft" level="DEBUG"/> -->
-    <logger name="jclouds" level="INFO"/>
-    <logger name="org.jclouds" level="INFO"/>
+    <logger name="jclouds" level="DEBUG"/>
+    <logger name="org.jclouds" level="DEBUG"/>
     <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/>
 
     <!-- <logger name="brooklyn.rest.util.WebResourceUtils" level="ERROR"/> -->

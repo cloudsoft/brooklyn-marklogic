@@ -6,6 +6,7 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.entity.trait.Startable;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
+import brooklyn.location.blockstore.api.MountedBlockDevice;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 
 import static brooklyn.entity.basic.ConfigKeys.*;
@@ -69,15 +70,15 @@ public interface Forest extends Entity, Startable {
             MarkLogicGroup.class,
             "marklogic.forests.group", "The group");
 
-    BasicAttributeSensorAndConfigKey<VolumeInfo> DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
-            VolumeInfo.class, "marklogic.forest.data-dir.volumeId",
-            "Specifies a volume id in which the forest's regular data is located. If null, indicates that no volume " +
-                    "has been created yet for this forest. If DATA_DIR is null then the volumeId should also be null", null);
+    BasicAttributeSensorAndConfigKey<MountedBlockDevice> DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<MountedBlockDevice>(
+            MountedBlockDevice.class, "marklogic.forest.data-dir.volumeId",
+            "Specifies a volume in which the forest's regular data is located. If null, indicates that no volume " +
+                    "has been created yet for this forest. If DATA_DIR is null then this should also be null", null);
 
-    BasicAttributeSensorAndConfigKey<VolumeInfo> FAST_DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<VolumeInfo>(
-            VolumeInfo.class, "marklogic.forest.fast-data-dir.volumeId",
-            "Specifies a volume id in which the forest's fast data is located. If null, indicates that no volume " +
-                    "has been created yet. If FAST_DATA_DIR is null then the volumeId should also be null", null);
+    BasicAttributeSensorAndConfigKey<MountedBlockDevice> FAST_DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<MountedBlockDevice>(
+            MountedBlockDevice.class, "marklogic.forest.fast-data-dir.volumeId",
+            "Specifies a volume in which the forest's fast data is located. If null, indicates that no volume " +
+                    "has been created yet. If FAST_DATA_DIR is null then this should also be null", null);
 
     AttributeSensor<String> STATUS = newStringSensor(
             "forest.status",
