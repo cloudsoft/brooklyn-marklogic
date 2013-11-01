@@ -4,6 +4,7 @@ import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.blockstore.BlockDeviceOptions;
 import brooklyn.location.blockstore.FilesystemOptions;
+import brooklyn.location.blockstore.VolumeManagers;
 import brooklyn.location.blockstore.api.MountedBlockDevice;
 import brooklyn.location.blockstore.ec2.Ec2VolumeManager;
 import brooklyn.location.blockstore.gce.GoogleComputeEngineVolumeManager;
@@ -561,15 +562,17 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 .sizeInGb(volumeSize)
                 .tags(tags);
         FilesystemOptions filesystemConfig = new FilesystemOptions(mountPoint);
-        return newVolumeManager().createAttachAndMountVolume(jcloudsMachine, deviceConfig, filesystemConfig);
+        return VolumeManagers.newVolumeManager(getMachine())
+                .createAttachAndMountVolume(jcloudsMachine, deviceConfig, filesystemConfig);
     }
 
     @Override
     public void mountForest(Forest forest) {
-        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
+        if (VolumeManagers.isVolumeManagerSupportedForLocation(getMachine())) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             LOG.debug("Mounting forest {} on {}", forest, jcloudsMachine);
-            VolumeManager volumeManager = newVolumeManager();
+
+            VolumeManager volumeManager = VolumeManagers.newVolumeManager(jcloudsMachine);
             Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
             Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
@@ -618,11 +621,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void unmountForest(Forest forest) {
-        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
+        if (VolumeManagers.isVolumeManagerSupportedForLocation(getMachine())) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             LOG.debug("Unmounting forest {} on {}", forest, jcloudsMachine);
 
-            VolumeManager volumeManager = newVolumeManager();
+            VolumeManager volumeManager = VolumeManagers.newVolumeManager(jcloudsMachine);
             Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
             Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
@@ -667,35 +670,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 //        } else {
 //            throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
 //        }
-    }
-
-    // TODO: Move to blockstore project
-    private boolean isVolumeManagerSupported() {
-        if (!(getMachine() instanceof JcloudsSshMachineLocation)) return false;
-        String provider = ((JcloudsSshMachineLocation) getMachine()).getParent().getProvider();
-        return "aws-ec2".equals(provider) || provider.startsWith("rackspace-") || provider.equals("google-compute-engine");
-    }
-
-    // TODO: Move to blockstore project
-    private VolumeManager newVolumeManager() {
-        if (getMachine() instanceof JcloudsSshMachineLocation) {
-            JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
-            JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
-
-            String provider = jcloudsLocation.getProvider();
-
-            if ("aws-ec2".equals(provider)) {
-                return new Ec2VolumeManager();
-            } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")) {
-                return new OpenstackVolumeManager();
-            } else if (provider.equals("google-compute-engine")) {
-                return new GoogleComputeEngineVolumeManager();
-            } else {
-                throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
-            }
-        } else {
-            throw new IllegalStateException("Cannot handle volumes in non-jclouds machine location: " + getMachine());
-        }
     }
 
     private char claimDeviceSuffix() {
