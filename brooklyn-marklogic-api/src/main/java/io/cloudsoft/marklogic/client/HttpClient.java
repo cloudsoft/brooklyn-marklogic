@@ -16,12 +16,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
@@ -32,8 +32,9 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 public class HttpClient {
 
@@ -70,15 +71,14 @@ public class HttpClient {
     }
 
     public static class RequestBuilder {
-        private static final ObjectMapper MAPPER = MarkLogicObjectMapper.newObjectMapper();
         private static final AtomicInteger requestCounter = new AtomicInteger(0);
 
         private final org.apache.http.client.HttpClient client;
         private final URI endpoint;
         private final String path;
 
+        private final Multimap<String, String> parameters = ArrayListMultimap.create();
         private int port;
-        private Map<String, Object> parameters;
 
         public RequestBuilder(org.apache.http.client.HttpClient client, URI endpoint, String path) {
             this.client = checkNotNull(client, "client");
@@ -101,7 +101,7 @@ public class HttpClient {
         }
 
         public RequestBuilder queryParam(String name, Object value) {
-            this.parameters.put(name, String.valueOf(value));
+            this.parameters.put(checkNotNull(name, "name"), checkNotNull(value, "value").toString());
             return this;
         }
 
@@ -144,10 +144,13 @@ public class HttpClient {
         /** Combines endpoint constructor parameter with arguments given to builder methods. */
         private URI makeRequestUri() {
             try {
-                return new URIBuilder(endpoint)
+                URIBuilder builder = new URIBuilder(endpoint)
                         .setPath(endpoint.getPath() + path)
-                        .setPort(port)
-                        .build();
+                        .setPort(port);
+                for (Map.Entry<String, String> entry : parameters.entries()) {
+                    builder.addParameter(entry.getKey(), entry.getValue());
+                }
+                return builder.build();
             } catch (URISyntaxException e) {
                 throw Throwables.propagate(e);
             }
@@ -166,6 +169,7 @@ public class HttpClient {
                 }
                 return response;
             } catch (IOException e) {
+                LOG.error("Request #" + requestCount + " errored", e);
                 return Responses.newExceptionResponse(e);
             }
         }
@@ -173,7 +177,7 @@ public class HttpClient {
         private void attachEntityToRequest(HttpEntityEnclosingRequestBase request, Object entity) {
             StringWriter writer = new StringWriter();
             try {
-                MAPPER.writeValue(writer, entity);
+                MarkLogicObjectMapper.MAPPER.writeValue(writer, entity);
             } catch (IOException e) {
                 throw Throwables.propagate(e);
             }
