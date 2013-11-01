@@ -88,6 +88,11 @@ public interface Forest extends Entity, Startable {
             "forest.id",
             "The id of the forest");
 
+    AttributeSensor<Long> DIRECTORY_COUNT = newLongSensor("forest.count.directories");
+    AttributeSensor<Long> DOCUMENT_COUNT = newLongSensor("forest.count.documents");
+    AttributeSensor<Long> ACTIVE_FRAGMENT_COUNT = newLongSensor("forest.count.active-fragments");
+    AttributeSensor<Long> DELETED_FRAGMENT_COUNT = newLongSensor("forest.count.deleted-fragments");
+    AttributeSensor<Long> NASCENT_FRAGMENT_COUNT = newLongSensor("forest.count.nascent-fragments");
 
     /**
      * Exposed for use by {@link io.cloudsoft.marklogic.nodes.MarkLogicNodeSshDriver#mountForest} and

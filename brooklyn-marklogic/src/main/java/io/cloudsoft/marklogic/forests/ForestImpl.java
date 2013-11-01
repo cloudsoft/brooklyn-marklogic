@@ -5,8 +5,12 @@ import brooklyn.entity.basic.AbstractEntity;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.feed.function.FunctionFeed;
 import brooklyn.event.feed.function.FunctionPollConfig;
+import brooklyn.event.feed.http.HttpFeed;
+import brooklyn.event.feed.http.HttpPollConfig;
+import brooklyn.event.feed.http.HttpValueFunctions;
 import brooklyn.location.Location;
 import brooklyn.util.internal.Repeater;
+import io.cloudsoft.marklogic.dto.ForestCounts;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
@@ -19,6 +23,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
+import javax.annotation.Nullable;
+
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 
@@ -27,6 +35,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
     private static final Logger LOG = LoggerFactory.getLogger(ForestImpl.class);
 
     private FunctionFeed statusFeed;
+    private FunctionFeed countsFeed;
 
     @Override
     public String getName() {
@@ -151,6 +160,59 @@ public class ForestImpl extends AbstractEntity implements Forest {
                         })
                 )
                 .build();
+
+        Callable<ForestCounts> counts = new Callable<ForestCounts>() {
+            @Override
+            public ForestCounts call() throws Exception {
+                String forestName = getConfig(NAME);
+                return getAnyUpNode().getApi().getForestApi().getForestCounts(forestName);
+            }};
+
+        countsFeed = FunctionFeed.builder()
+                .entity(this)
+                .period(200)
+                .poll(new FunctionPollConfig<ForestCounts, Long>(DIRECTORY_COUNT)
+                        .callable(counts)
+                        .onSuccess(new Function<ForestCounts, Long>() {
+                            @Override public Long apply(ForestCounts counts) {
+                                return counts.getDirectoryCount();
+                            }
+                        })
+                        .onException(Functions.constant(-1L)))
+                .poll(new FunctionPollConfig<ForestCounts, Long>(DOCUMENT_COUNT)
+                        .callable(counts)
+                        .onSuccess(new Function<ForestCounts, Long>() {
+                            @Override public Long apply(ForestCounts counts) {
+                                return counts.getDocumentCount();
+                            }
+                        })
+                        .onException(Functions.constant(-1L)))
+                .poll(new FunctionPollConfig<ForestCounts, Long>(ACTIVE_FRAGMENT_COUNT)
+                        .callable(counts)
+                        .onSuccess(new Function<ForestCounts, Long>() {
+                            @Override public Long apply(ForestCounts counts) {
+                                return counts.getActiveFragmentCount();
+                            }
+                        })
+                        .onException(Functions.constant(-1L)))
+                .poll(new FunctionPollConfig<ForestCounts, Long>(DELETED_FRAGMENT_COUNT)
+                        .callable(counts)
+                        .onSuccess(new Function<ForestCounts, Long>() {
+                            @Override public Long apply(ForestCounts counts) {
+                                return counts.getDeletedFragmentCount();
+                            }
+                        })
+                        .onException(Functions.constant(-1L)))
+                .poll(new FunctionPollConfig<ForestCounts, Long>(NASCENT_FRAGMENT_COUNT)
+                        .callable(counts)
+                        .onSuccess(new Function<ForestCounts, Long>() {
+                            @Override public Long apply(ForestCounts counts) {
+                                return counts.getNascentFragmentCount();
+                            }
+                        })
+                        .onException(Functions.constant(-1L)))
+                .build();
+
     }
 
     @Override
@@ -167,6 +229,10 @@ public class ForestImpl extends AbstractEntity implements Forest {
         if (statusFeed != null) {
             statusFeed.stop();
             statusFeed = null;
+        }
+        if (countsFeed != null) {
+            countsFeed.stop();
+            countsFeed = null;
         }
     }
 

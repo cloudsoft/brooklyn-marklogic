@@ -109,6 +109,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
+    public MarkLogicApi getApi() {
+        return api;
+    }
+
+    @Override
     public MarkLogicNodeImpl getEntity() {
         return (MarkLogicNodeImpl) super.getEntity();
     }
@@ -424,7 +429,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 "replicaForest", replicaForest));
         executeScript("attachReplicaForest", script);
         LOG.debug("Finished attaching replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
-
     }
 
     @Override
@@ -453,6 +457,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String script = loadAndProcessTemplate("forest_set_host.txt", MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName));
         executeScript("setForestHost", script);
         LOG.debug("Finished setting forest {} host {}", forestName, hostName);
+    }
+
+    @Override
+    public void removeNodeFromCluster() {
+        LOG.debug("Removing node {} from cluster: {}", getEntity(), getClusterName());
+        if (api.getAdminApi().removeNodeFromCluster()) {
+            LOG.debug("Removed node {} from cluster: {}", getEntity(), getClusterName());
+        } else {
+            LOG.warn("Failed to remove node from cluster. Check API log for details.");
+        }
     }
 
     @Override

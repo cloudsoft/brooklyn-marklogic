@@ -1,6 +1,7 @@
 package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.SoftwareProcessDriver;
+import io.cloudsoft.marklogic.api.MarkLogicApi;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -40,4 +41,8 @@ public interface MarkLogicNodeDriver extends SoftwareProcessDriver {
     void unmountForest(Forest forest);
 
     void mountForest(Forest forest);
+
+    void removeNodeFromCluster();
+
+    MarkLogicApi getApi();
 }
