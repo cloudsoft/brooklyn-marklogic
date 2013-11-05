@@ -122,6 +122,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
             LOG.info("Stopping {}: Moving all forests out", this);
             getCluster().getForests().moveAllForestsFromNode(this);
             LOG.info("Stopping {}: Moved all forests from node, continue to stop", this);
+            getDriver().removeNodeFromCluster();
         } else {
             LOG.info("Stopping MarkLogicNode (and cluster) {} Not moving forests out", this);
         }
