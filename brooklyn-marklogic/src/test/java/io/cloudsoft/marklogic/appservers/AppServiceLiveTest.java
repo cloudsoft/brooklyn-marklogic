@@ -1,13 +1,11 @@
 package io.cloudsoft.marklogic.appservers;
 
-import io.cloudsoft.marklogic.databases.Database;
 import org.testng.annotations.Test;
 
 import io.cloudsoft.marklogic.SingleNodeLiveTest;
-import java.util.concurrent.atomic.AtomicLong;
+import io.cloudsoft.marklogic.databases.Database;
 
 public class AppServiceLiveTest extends SingleNodeLiveTest {
-    public final static AtomicLong ID_GENERATOR = new AtomicLong();
 
     @Test(groups = {"Live"})
     public void testCreateRestAppService() throws Exception {
@@ -17,7 +15,8 @@ public class AppServiceLiveTest extends SingleNodeLiveTest {
         String appServiceName = user + "-app" + ID_GENERATOR.incrementAndGet();
 
         Database database = createDatabase();
-        appServices.createRestAppServer(appServiceName, database.getName(), "Default", port);
+        appServices.createAppServer(
+                AppServerKind.HTTP, appServiceName, database, "Default", port);
 
         //todo: we should do a connect to the given url to make sure something is running there.
         //but the port is not open in firewall

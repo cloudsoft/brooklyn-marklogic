@@ -6,7 +6,7 @@ import brooklyn.config.render.RendererHints;
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import brooklyn.entity.basic.Lifecycle;
 import io.cloudsoft.marklogic.api.MarkLogicApi;
-import io.cloudsoft.marklogic.appservers.RestAppServer;
+import io.cloudsoft.marklogic.appservers.AppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -169,12 +169,14 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         // TODO If want to use a pre-existing security group instead, can add to
         //      obtainProvisioningFlags() something like:
         //      .put("securityGroups", groupName)
-        //TODO: the 8011 port has been added so we can register an application on that port. In the future this needs to come
-        //from the application, but for the time being it is hard coded.
+        //TODO: Ports 8006 and 8011 have been added so we can register app services on them.
+        // In the future this needs to come from the application, but for the time being it is hard coded.
         int bindPort = getConfig(BIND_PORT);
         int foreignBindPort = getConfig(FOREIGN_BIND_PORT);
         // FIXME hack to open 80,443 (because on GCE shared by network for all nodes)
-        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(), ImmutableList.of(22, bindPort, foreignBindPort, 8000, 8001, 8002, 8011, 80, 443)));
+        return ImmutableSet.copyOf(Iterables.concat(super.getRequiredOpenPorts(),
+                ImmutableList.of(22, bindPort, foreignBindPort,
+                        8000, 8001, 8002, 8006, 8011, 80, 443)));
     }
 
     private NodeType getNodeType() {
@@ -207,7 +209,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     }
 
     @Override
-    public void createRestAppServer(RestAppServer appServer) {
+    public void createAppServer(AppServer appServer) {
         getDriver().createAppServer(appServer);
     }
 

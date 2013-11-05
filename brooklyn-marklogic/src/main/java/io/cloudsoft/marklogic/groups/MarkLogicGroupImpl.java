@@ -5,6 +5,7 @@ import brooklyn.entity.group.DynamicClusterImpl;
 import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.DependentConfiguration;
+import brooklyn.location.Location;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.nodes.NodeType;
@@ -41,7 +42,7 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
      * so that those nodes will block their launch until the master node's hostname is available.
      */
     @Override
-    protected Entity createNode(Map flags) {
+    protected Entity createNode(Location location, Map flags) {
         return addChild(EntitySpec.create(MarkLogicNode.class)
                 .configure(MarkLogicNode.GROUP, getGroupName())
                 .configure(MarkLogicNode.NODE_TYPE, getNodeType())

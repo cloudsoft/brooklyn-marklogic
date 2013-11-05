@@ -165,7 +165,11 @@ public class ForestImpl extends AbstractEntity implements Forest {
             @Override
             public ForestCounts call() throws Exception {
                 String forestName = getConfig(NAME);
-                return getAnyUpNode().getApi().getForestApi().getForestCounts(forestName);
+                MarkLogicNode availableNode = getAnyUpNode();
+                if (availableNode == null) {
+                    throw new Exception("No nodes found to get forest counts. (Benevolent if node is shutting down.)");
+                }
+                return availableNode.getApi().getForestApi().getForestCounts(forestName);
             }};
 
         countsFeed = FunctionFeed.builder()
