@@ -31,35 +31,46 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractMarkLogicFullClusterLiveTest {
+import com.google.common.base.Optional;
 
-    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarkLogicFullClusterLiveTest.class);
+public abstract class AbstractMarkLogicLiveTest {
+
+    public static final Logger LOG = LoggerFactory.getLogger(AbstractMarkLogicLiveTest.class);
     public final String user = System.getProperty("user.name");
 
-    public static final String PROVIDER = "aws-ec2";
-    public static final String REGION_NAME = "us-east-1";
-    public static final String TINY_HARDWARE_ID = "t1.micro";
-    public static final String SMALL_HARDWARE_ID = "m1.small";
-    public static final String MEDIUM_HARDWARE_ID = "m1.medium";
+    public final String PROVIDER = "aws-ec2";
+    public final String REGION_NAME = "us-east-1";
+    public final String TINY_HARDWARE_ID = "t1.micro";
+    public final String SMALL_HARDWARE_ID = "m1.small";
+    public final String MEDIUM_HARDWARE_ID = "m1.medium";
 
-    public static BrooklynProperties brooklynProperties;
-    public static ManagementContext ctx;
+    public BrooklynProperties brooklynProperties;
+    public ManagementContext ctx;
 
-    public static final AtomicInteger ID_GENERATOR = new AtomicInteger();
-    public static AppServices appServices;
-    public static MarkLogicGroup egroup;
-    public static TestApplication app;
-    public static Location jcloudsLocation;
-    public static Forests forests;
-    public static MarkLogicCluster markLogicCluster;
-    public static Databases databases;
-    public static MarkLogicGroup dgroup;
-    public static MarkLogicNode dNode1;
-    public static MarkLogicNode dNode2;
-    public static MarkLogicNode dNode3;
+    public final AtomicInteger ID_GENERATOR = new AtomicInteger();
+    public AppServices appServices;
+    public MarkLogicGroup egroup;
+    public TestApplication app;
+    public Location jcloudsLocation;
+    public Forests forests;
+    public MarkLogicCluster markLogicCluster;
+    public Databases databases;
+    public MarkLogicGroup dgroup;
+    public MarkLogicNode dNode1;
+    public MarkLogicNode dNode2;
+    public MarkLogicNode dNode3;
+
+    // Default to running in full-cluster mode
+    public int getNumberOfDNodes() {
+        return 3;
+    }
+
+    public int getNumberOfENodes() {
+        return 1;
+    }
 
     @BeforeClass(alwaysRun = true)
-    public static void beforeClass() throws Exception {
+    public void beforeClass() throws Exception {
         try {
             ctx = new LocalManagementContext();
             brooklynProperties = (BrooklynProperties) ctx.getConfig();
@@ -76,8 +87,8 @@ public abstract class AbstractMarkLogicFullClusterLiveTest {
 
             app = ApplicationBuilder.newManagedApp(TestApplication.class, ctx);
             markLogicCluster = app.createAndManageChild(EntitySpec.create(MarkLogicCluster.class)
-                    .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, 3)
-                    .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, 1)
+                    .configure(MarkLogicCluster.INITIAL_D_NODES_SIZE, getNumberOfDNodes())
+                    .configure(MarkLogicCluster.INITIAL_E_NODES_SIZE, getNumberOfENodes())
                     .configure(MarkLogicNode.IS_FORESTS_EBS, true)
                     .configure(MarkLogicNode.IS_VAR_OPT_EBS, false)
                     .configure(MarkLogicNode.IS_BACKUP_EBS, false)
@@ -104,9 +115,12 @@ public abstract class AbstractMarkLogicFullClusterLiveTest {
             forests = markLogicCluster.getForests();
             dgroup = markLogicCluster.getDNodeGroup();
             egroup = markLogicCluster.getENodeGroup();
-            dNode1 = dgroup.getAnyUpMember();
-            dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
-            dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
+            if (getNumberOfDNodes() >= 1)
+                dNode1 = dgroup.getAnyUpMember();
+            if (getNumberOfDNodes() >= 2)
+                dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
+            if (getNumberOfDNodes() >= 3)
+                dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
         } catch (Exception e) {
             LOG.error("Failed to setup cluster", e);
             throw e;
@@ -114,7 +128,7 @@ public abstract class AbstractMarkLogicFullClusterLiveTest {
     }
 
     @AfterClass(alwaysRun = true)
-    public static void afterClass() throws Exception {
+    public void afterClass() throws Exception {
         if (app != null) {
             //for (Entity entity : forests.getChildren()) {
             //    if (entity instanceof Forest) {

@@ -47,21 +47,33 @@ public class MarkLogicClusterImpl extends AbstractEntity implements MarkLogicClu
         //we give it a bit longer timeout for starting up
         setConfig(BrooklynConfigKeys.START_TIMEOUT, 240);
 
-        eNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
-                .displayName("E-Nodes")
-                .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_E_NODES_SIZE))
-                .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "E-Nodes")
-                .configure(MarkLogicGroup.CLUSTER, this)
-        );
+        if (getConfig(INITIAL_D_NODES_SIZE) == 0 || getConfig(INITIAL_E_NODES_SIZE) == 0) {
+            LOG.info("Cluster running in mixed e/d-node mode");
+            int size = Math.max(getConfig(INITIAL_D_NODES_SIZE), getConfig(INITIAL_E_NODES_SIZE));
+            dNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
+                    .displayName("E+D-Nodes")
+                    .configure(MarkLogicGroup.INITIAL_SIZE, size)
+                    .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_D_NODE)
+                    .configure(MarkLogicGroup.GROUP_NAME, "E+D-Nodes")
+                    .configure(MarkLogicGroup.CLUSTER, this));
+            eNodeGroup = dNodeGroup;
+        } else {
+            eNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
+                    .displayName("E-Nodes")
+                    .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_E_NODES_SIZE))
+                    .configure(MarkLogicGroup.NODE_TYPE, NodeType.E_NODE)
+                    .configure(MarkLogicGroup.GROUP_NAME, "E-Nodes")
+                    .configure(MarkLogicGroup.CLUSTER, this)
+            );
 
-        dNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
-                .displayName("D-Nodes")
-                .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
-                .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
-                .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
-                .configure(MarkLogicGroup.CLUSTER, this)
-        );
+            dNodeGroup = addChild(EntitySpec.create(MarkLogicGroup.class)
+                    .displayName("D-Nodes")
+                    .configure(MarkLogicGroup.INITIAL_SIZE, getConfig(INITIAL_D_NODES_SIZE))
+                    .configure(MarkLogicGroup.NODE_TYPE, NodeType.D_NODE)
+                    .configure(MarkLogicGroup.GROUP_NAME, "D-Nodes")
+                    .configure(MarkLogicGroup.CLUSTER, this)
+            );
+        }
 
         databases = addChild(EntitySpec.create(Databases.class)
                 .displayName("Databases")

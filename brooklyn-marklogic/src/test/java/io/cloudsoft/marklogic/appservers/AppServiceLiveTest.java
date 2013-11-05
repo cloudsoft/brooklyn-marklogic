@@ -1,12 +1,12 @@
 package io.cloudsoft.marklogic.appservers;
 
-import io.cloudsoft.marklogic.AbstractMarkLogicFullClusterLiveTest;
 import io.cloudsoft.marklogic.databases.Database;
 import org.testng.annotations.Test;
 
+import io.cloudsoft.marklogic.SingleNodeLiveTest;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class AppServiceLiveTest extends AbstractMarkLogicFullClusterLiveTest {
+public class AppServiceLiveTest extends SingleNodeLiveTest {
     public final static AtomicLong ID_GENERATOR = new AtomicLong();
 
     @Test(groups = {"Live"})
