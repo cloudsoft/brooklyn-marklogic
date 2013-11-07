@@ -8,12 +8,11 @@ import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.event.AttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensor;
 import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
-import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import com.google.common.collect.ImmutableList;
 
 import io.cloudsoft.marklogic.api.MarkLogicApi;
-import io.cloudsoft.marklogic.appservers.RestAppServer;
+import io.cloudsoft.marklogic.appservers.AppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -154,7 +153,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     String getHostName();
 
-    void createRestAppServer(RestAppServer appServer);
+    void createAppServer(AppServer appServer);
 
     void createGroup(String groupName);
 

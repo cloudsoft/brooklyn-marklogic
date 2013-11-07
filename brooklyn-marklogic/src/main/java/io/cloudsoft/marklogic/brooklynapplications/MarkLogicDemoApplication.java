@@ -13,7 +13,6 @@ import com.google.common.collect.Lists;
 
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Attributes;
-import brooklyn.entity.proxy.AbstractController;
 import brooklyn.entity.proxy.nginx.NginxController;
 import brooklyn.entity.proxying.EntitySpec;
 import brooklyn.entity.webapp.ControlledDynamicWebAppCluster;
@@ -26,6 +25,7 @@ import brooklyn.location.Location;
 import brooklyn.policy.autoscaling.AutoScalerPolicy;
 import brooklyn.util.CommandLineUtil;
 import brooklyn.util.text.Identifiers;
+import io.cloudsoft.marklogic.appservers.AppServerKind;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -41,7 +41,9 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
     private final String user = System.getProperty("user.name");
 
+    private final int mlcpPort = 8006;
     private final int appServicePort = 8011;
+
     private final String password = "hap00p";
     private final String username = "admin";
 
@@ -123,8 +125,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         createReplicatedForest(databases, node1, node2, forests, database, "forest1");
         createReplicatedForest(databases, node2, node1, forests, database, "forest2");
 
-        String appServiceName = "DemoService";
-        markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
+        markLogicCluster.getAppServices().createAppServer(
+                AppServerKind.HTTP, "DemoService", database, "Default", appServicePort);
+        markLogicCluster.getAppServices().createAppServer(
+                AppServerKind.XDBC, "MLCPService", database, "Default", mlcpPort);
 
         LOG.info("=========================== MarkLogicDemoApp: Finished postStart =========================== ");
     }

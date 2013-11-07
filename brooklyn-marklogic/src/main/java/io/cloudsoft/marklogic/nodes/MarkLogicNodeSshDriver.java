@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 
 import io.cloudsoft.marklogic.api.MarkLogicApi;
 import io.cloudsoft.marklogic.api.impl.MarkLogicApiImpl;
-import io.cloudsoft.marklogic.appservers.RestAppServer;
+import io.cloudsoft.marklogic.appservers.AppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
@@ -385,10 +385,10 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     @Override
-    public void createAppServer(RestAppServer appServer) {
+    public void createAppServer(AppServer appServer) {
         LOG.debug("Starting create appServer{} ", appServer.getName());
         String script = loadAndProcessTemplate("create_appserver.txt", MutableMap.<String, Object>of("appserver", appServer));
-        executeScript("createRestAppServer", script);
+        executeScript("createAppServer", script);
         LOG.debug("Finished creating appServer {}", appServer.getName());
     }
 

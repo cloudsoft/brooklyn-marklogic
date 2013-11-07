@@ -13,6 +13,7 @@ import brooklyn.entity.webapp.WebAppService;
 import brooklyn.entity.webapp.jboss.JBoss7Server;
 import brooklyn.location.Location;
 import brooklyn.util.text.Identifiers;
+import io.cloudsoft.marklogic.appservers.AppServerKind;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
@@ -132,7 +133,8 @@ public class GeoScalingMarkLogicDemoApplication extends AbstractApplication {
                 );
 
                 databases.attachForestToDatabase(forest, database);
-                markLogicCluster.getAppServices().createRestAppServer(appServiceName, database.getName(), "Default", appServicePort);
+                markLogicCluster.getAppServices().createAppServer(
+                        AppServerKind.HTTP, appServiceName, database, "Default", appServicePort);
             }
         }
 

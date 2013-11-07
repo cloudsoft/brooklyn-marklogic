@@ -48,7 +48,7 @@
             <version>${guava.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jclouds</groupId>
+            <groupId>org.apache.jclouds</groupId>
             <artifactId>jclouds-compute</artifactId>
             <version>${jclouds.version}</version>
         </dependency>
