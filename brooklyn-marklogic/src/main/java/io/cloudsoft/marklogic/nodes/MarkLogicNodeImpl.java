@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import brooklyn.config.render.RendererHints;
 import brooklyn.entity.basic.BrooklynConfigKeys;
 import brooklyn.entity.basic.Lifecycle;
+import io.cloudsoft.marklogic.api.MarkLogicApi;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
@@ -296,7 +297,12 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     public String getUser() {
         return getConfig(USER);
     }
-    
+
+    @Override
+    public MarkLogicApi getApi() {
+        return getDriver().getApi();
+    }
+
     private <T> void addToAttributeSet(AttributeSensor<Set<T>> attribute, T newval) {
         Set<T> newvals = Sets.newLinkedHashSet();
         newvals.add(newval);

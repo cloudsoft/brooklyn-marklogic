@@ -79,11 +79,9 @@ public class Responses {
         private static final Logger LOG = LoggerFactory.getLogger(ValidResponse.class);
 
         private final HttpResponse response;
-        private final ObjectMapper mapper;
 
         public ValidResponse(HttpResponse httpResponse) {
             this.response = httpResponse;
-            this.mapper = null;
         }
 
         @Override
@@ -115,15 +113,15 @@ public class Responses {
 
         @Override
         public <T> T get(Class<T> type) {
-            T object = unmarshalResponseEntity(mapper.constructType(type));
+            T object = unmarshalResponseEntity(MarkLogicObjectMapper.MAPPER.constructType(type));
             consumeResponse();
             return object;
         }
 
         @Override
         public <T> List<T> getList(Class<T> listType) {
-            JavaType collectionType = mapper.getTypeFactory().constructCollectionType(List.class, listType);
-            List<T> object = unmarshalResponseEntity(mapper.constructType(collectionType));
+            JavaType collectionType = MarkLogicObjectMapper.MAPPER.getTypeFactory().constructCollectionType(List.class, listType);
+            List<T> object = unmarshalResponseEntity(MarkLogicObjectMapper.MAPPER.constructType(collectionType));
             consumeResponse();
             return object;
         }
@@ -138,10 +136,11 @@ public class Responses {
             String responseContent = getResponseContentAsString();
             if (LOG.isTraceEnabled()) LOG.trace(responseContent);
             try {
-                T unmarshalled = mapper.readValue(responseContent, type);
+                T unmarshalled = MarkLogicObjectMapper.MAPPER.readValue(responseContent, type);
                 if (LOG.isTraceEnabled()) LOG.trace("Unmarshalled: " + unmarshalled.toString());
                 return unmarshalled;
             } catch (IOException e) {
+                LOG.error("Failed to unmarshal response to {}: {}", type, responseContent);
                 throw Throwables.propagate(e);
             }
         }

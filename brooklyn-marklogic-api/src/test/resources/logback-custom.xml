@@ -8,8 +8,4 @@
     <logger name="io.cloudsoft.marklogic.api" level="DEBUG"/>
     <logger name="io.cloudsoft.marklogic.client" level="DEBUG"/>
 
-    <logger name="jclouds" level="DEBUG"/>
-    <logger name="org.jclouds" level="DEBUG"/>
-    <logger name="brooklyn.management.internal.BrooklynGarbageCollector" level="ERROR"/>
-
 </included>

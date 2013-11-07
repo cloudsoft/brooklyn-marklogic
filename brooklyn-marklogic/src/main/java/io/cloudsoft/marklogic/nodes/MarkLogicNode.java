@@ -11,6 +11,8 @@ import brooklyn.event.basic.BasicAttributeSensorAndConfigKey;
 import brooklyn.event.basic.BasicConfigKey;
 import brooklyn.event.basic.PortAttributeSensorAndConfigKey;
 import com.google.common.collect.ImmutableList;
+
+import io.cloudsoft.marklogic.api.MarkLogicApi;
 import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
@@ -108,6 +110,7 @@ public interface MarkLogicNode extends SoftwareProcess {
             "Whether the fastdir should use an EBS Volume",
             true);
 
+    // TODO: Change to instance of BlockDevice
     BasicAttributeSensorAndConfigKey<String> VAR_OPT_VOLUME = new BasicAttributeSensorAndConfigKey<String>(
             String.class, "marklogic.node.volumes.varOpt", "EBS Volume ID for /var/opt (or null if does not already exist)", null);
 
@@ -192,4 +195,9 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     @Effector
     void mount(@EffectorParam(name = "forest") Forest forest);
+
+    /**
+     * @return An instance of {@link MarkLogicApi} suitable for operations on this node.
+     */
+    MarkLogicApi getApi();
 }

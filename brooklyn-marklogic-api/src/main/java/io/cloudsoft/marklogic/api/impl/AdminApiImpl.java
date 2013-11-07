@@ -27,11 +27,6 @@ public class AdminApiImpl implements AdminApi {
     }
 
     @Override
-    public boolean setServerLicense() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public long getServerTimestamp() {
         Response response = client.newRequest("/admin/v1/timestamp")
                 .port(port)
@@ -50,4 +45,11 @@ public class AdminApiImpl implements AdminApi {
         return response.getStatusCode() == 200;
     }
 
+    @Override
+    public boolean removeNodeFromCluster() {
+        Response response = client.newRequest("/admin/v1/host-config")
+                .port(port)
+                .delete();
+        return response.getStatusCode() == 202;
+    }
 }

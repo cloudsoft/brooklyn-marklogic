@@ -1,0 +1,63 @@
+{
+    "forest-counts": {
+        "count-properties": {
+            "active-fragment-count": {
+                "units": "quantity",
+                "value": 9
+            },
+            "deleted-fragment-count": {
+                "units": "quantity",
+                "value": 29
+            },
+            "directory-count": {
+                "units": "quantity",
+                "value": 40
+            },
+            "document-count": {
+                "units": "quantity",
+                "value": 100
+            },
+            "nascent-fragment-count": {
+                "units": "quantity",
+                "value": 20
+            },
+            "stands-counts": {
+                "stand-counts": {
+                    "active-fragment-count": {
+                        "units": "quantity",
+                        "value": 9
+                    },
+                    "deleted-fragment-count": {
+                        "units": "quantity",
+                        "value": 0
+                    },
+                    "nascent-fragment-count": {
+                        "units": "quantity",
+                        "value": 0
+                    },
+                    "path": "/Users/sam/Library/Application Support/MarkLogic/Data/Forests/abc/00000001",
+                    "stand-id": "6735475781447916597"
+                }
+            }
+        },
+        "id": "12339959031384385639",
+        "meta": {
+            "current-time": "2013-10-30T17:33:49.563169Z",
+            "elapsed-time": {
+                "units": "sec",
+                "value": 0.023964
+            },
+            "uri": "/manage/v2/forests/abc?view=counts"
+        },
+        "name": "abc",
+        "related-views": {
+            "related-view": [
+                {
+                    "view-name": "default",
+                    "view-type": "item",
+                    "view-uri": "/manage/v2/forests/abc"
+                }
+            ]
+        }
+    }
+}

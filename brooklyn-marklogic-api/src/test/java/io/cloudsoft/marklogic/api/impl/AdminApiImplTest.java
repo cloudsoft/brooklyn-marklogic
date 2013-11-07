@@ -15,33 +15,16 @@ import org.testng.annotations.Test;
 
 import com.google.mockwebserver.MockResponse;
 import com.google.mockwebserver.MockWebServer;
+import com.google.mockwebserver.RecordedRequest;
 
-public class AdminApiImplTest {
+public class AdminApiImplTest extends ApiImplTest {
 
     private final String timestamp = "2013-10-04T15:11:43.825453+01:00";
-    private MockWebServer server;
-    private String baseUrl;
-    private AdminApiImpl adminApi;
 
-    @BeforeMethod(alwaysRun=true)
-    public void setUp() throws Exception {
-        server = new MockWebServer();
-        server.play();
-        baseUrl = "http://" + server.getHostName();
-        adminApi = new MarkLogicApiImpl(baseUrl, "username", "password").getAdminApi(server.getPort());
-    }
-
-    @AfterMethod(alwaysRun=true)
-    public void tearDown() throws Exception {
-        if (server != null) server.shutdown();
-    }
-
-    private void enqueueTimestampGet(boolean includeBody) {
+    private void enqueueTimestampGet() {
         MockResponse response = new MockResponse().setResponseCode(200);
-        if (includeBody) {
-            response.addHeader("content-type: text/plain");
-            response.setBody(timestamp);
-        }
+        response.addHeader("content-type: text/plain");
+        response.setBody(timestamp);
         server.enqueue(response);
     }
 
@@ -53,15 +36,23 @@ public class AdminApiImplTest {
     }
 
     @Test
-    public void testIsServerUpTrueOn200() {
-        enqueueTimestampGet(true);
+    public void testIsServerUpTrueOn200() throws InterruptedException {
+        enqueueTimestampGet();
         assertTrue(adminApi.isServerUp());
+        RecordedRequest request = server.takeRequest();
+        assertEquals(request.getPath(), "/admin/v1/timestamp");
+        assertEquals(request.getMethod(), "HEAD");
+        assertEquals(server.getRequestCount(), 1);
     }
 
     @Test
-    public void testGetServerTimestamp() {
-        enqueueTimestampGet(true);
+    public void testGetServerTimestamp() throws InterruptedException {
+        enqueueTimestampGet();
         assertEquals(adminApi.getServerTimestamp(), 1380895903825L);
+        RecordedRequest request = server.takeRequest();
+        assertEquals(request.getPath(), "/admin/v1/timestamp");
+        assertEquals(request.getMethod(), "GET");
+        assertEquals(server.getRequestCount(), 1);
     }
 
 }

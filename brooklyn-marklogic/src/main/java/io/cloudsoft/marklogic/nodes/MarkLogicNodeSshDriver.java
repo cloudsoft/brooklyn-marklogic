@@ -2,9 +2,13 @@ package io.cloudsoft.marklogic.nodes;
 
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
-import brooklyn.location.blockstore.ec2.Ec2VolumeManager;
-import brooklyn.location.blockstore.openstack.OpenstackVolumeManager;
-import brooklyn.location.blockstore.VolumeManager;
+import brooklyn.location.blockstore.BlockDeviceOptions;
+import brooklyn.location.blockstore.Devices;
+import brooklyn.location.blockstore.FilesystemOptions;
+import brooklyn.location.blockstore.VolumeManagers;
+import brooklyn.location.blockstore.api.BlockDevice;
+import brooklyn.location.blockstore.api.MountedBlockDevice;
+import brooklyn.location.blockstore.api.VolumeManager;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
 import brooklyn.util.collections.MutableMap;
@@ -22,7 +26,6 @@ import io.cloudsoft.marklogic.appservers.RestAppServer;
 import io.cloudsoft.marklogic.clusters.MarkLogicCluster;
 import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.forests.Forest;
-import io.cloudsoft.marklogic.forests.VolumeInfo;
 import io.cloudsoft.marklogic.util.Zip;
 
 import org.apache.commons.io.IOUtils;
@@ -50,7 +53,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     /*
      * TODO Comment taken from Denis' original script for how he set up his volumes.
-     * 
+     *
      * Configures the location so that any instances will have the required EBS volumes attached.
      * Also sets up the datadir for the given instance, to use that EBS volume.
      * <p/>
@@ -104,29 +107,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         this.nodeId = counter.getAndIncrement();
     }
 
-    private boolean isVolumeManagerSupported() {
-        if (!(getMachine() instanceof JcloudsSshMachineLocation)) return false;
-        String provider = ((JcloudsSshMachineLocation) getMachine()).getParent().getProvider();
-        return "aws-ec2".equals(provider) || provider.startsWith("rackspace-");
-    }
-
-    private VolumeManager newVolumeManager() {
-        if (getMachine() instanceof JcloudsSshMachineLocation) {
-            JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
-            JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
-
-            String provider = jcloudsLocation.getProvider();
-
-            if ("aws-ec2".equals(provider)) {
-                return new Ec2VolumeManager();
-            } else if (provider.startsWith("rackspace-") || provider.startsWith("cloudservers-")) {
-                return new OpenstackVolumeManager();
-            } else {
-                throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
-            }
-        } else {
-            throw new IllegalStateException("Cannot handle volumes in non-jclouds machine location: " + getMachine());
-        }
+    @Override
+    public MarkLogicApi getApi() {
+        return api;
     }
 
     @Override
@@ -244,19 +227,19 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
             if (isVarOptEbs) {
                 if (Strings.isBlank(varOptVolumeId)) {
-                    String newVolumeId = createAttachAndMountVolume("/var/opt", volumeSize, getNodeName() + "-varopt").getVolumeId();
+                    String newVolumeId = createAttachAndMountVolume("/var/opt", volumeSize, getNodeName() + "-varopt").getId();
                     entity.setAttribute(MarkLogicNode.VAR_OPT_VOLUME, newVolumeId);
                 } else {
-                    attachAndMountVolume(varOptVolumeId, "/var/opt");
+                    attachAndMountExistingVolume(varOptVolumeId, "/var/opt");
                 }
             }
 
             if (isBackupEbs) {
                 if (Strings.isBlank(backupVolumeId)) {
-                    String newVolumeId = createAttachAndMountVolume("/var/opt/backup", backupVolumeSize, getNodeName() + "-backup").getVolumeId();
+                    String newVolumeId = createAttachAndMountVolume("/var/opt/backup", backupVolumeSize, getNodeName() + "-backup").getId();
                     entity.setAttribute(MarkLogicNode.BACKUP_VOLUME, newVolumeId);
                 } else {
-                    attachAndMountVolume(backupVolumeId, "/var/opt/backup");
+                    attachAndMountExistingVolume(backupVolumeId, "/var/opt/backup");
                 }
             }
         }
@@ -307,13 +290,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
             MarkLogicNode node = cluster.getAnyUpNodeOrWait();
-            
+
             try {
                 Thread.sleep(delayOnJoin.incrementAndGet()*30*1000);
             } catch (InterruptedException e) {
                 throw Exceptions.propagate(e);
             }
-            
+
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
             scriptName = "customize_additional_host.txt";
             substitutions.put("clusterHostName", node.getHostName());
@@ -378,12 +361,12 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 //   /var/opt/mldata/$sdb_bucket_name-$node_name-replica-$vol_count
                 //   /var/opt/mldata/$sdb_bucket_name-$node_name-$vol_count
 
-                VolumeInfo volumeInfo = createAttachAndMountVolume(dataDirMountPoint, volumeSize, "forest-datadir-" + forest.getName() + "-" + getNodeId());
+                MountedBlockDevice volumeInfo = createAttachAndMountVolume(dataDirMountPoint, volumeSize, "forest-datadir-" + forest.getName() + "-" + getNodeId());
                 forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, volumeInfo);
             }
 
             if (isFastdirEbs && fastdirMountPoint != null && !fastdirMountPoint.equals(dataDirMountPoint)) {
-                VolumeInfo volumeInfo = createAttachAndMountVolume(fastdirMountPoint, volumeSize, "forest-fastdir-" + forest.getName() + "-" + getNodeId());
+                MountedBlockDevice volumeInfo = createAttachAndMountVolume(fastdirMountPoint, volumeSize, "forest-fastdir-" + forest.getName() + "-" + getNodeId());
                 forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, volumeInfo);
             }
         }
@@ -445,7 +428,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 "replicaForest", replicaForest));
         executeScript("attachReplicaForest", script);
         LOG.debug("Finished attaching replica forest {} to forest {}",  replicaForest.getName(), primaryForest.getName());
-
     }
 
     @Override
@@ -474,6 +456,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         String script = loadAndProcessTemplate("forest_set_host.txt", MutableMap.<String, Object>of("forestName", forestName, "hostName", hostName));
         executeScript("setForestHost", script);
         LOG.debug("Finished setting forest {} host {}", forestName, hostName);
+    }
+
+    @Override
+    public void removeNodeFromCluster() {
+        LOG.debug("Removing node {} from cluster: {}", getEntity(), getClusterName());
+        if (api.getAdminApi().removeNodeFromCluster()) {
+            LOG.debug("Removed node {} from cluster: {}", getEntity(), getClusterName());
+        } else {
+            LOG.warn("Failed to remove node from cluster. Check API log for details.");
+        }
     }
 
     @Override
@@ -569,27 +561,31 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
-    private VolumeInfo createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
+    private MountedBlockDevice createAttachAndMountVolume(String mountPoint, int volumeSize, String tagNameSuffix) {
         checkState(getMachine() instanceof JcloudsSshMachineLocation,
                 "createAttachAndMountVolume only valid for instances of " + JcloudsSshMachineLocation.class.getName());
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
 
         char deviceSuffix = claimDeviceSuffix();
-        String volumeDeviceName = "/dev/sd" + deviceSuffix;
-        String osDeviceName = "/dev/xvd" + deviceSuffix;
-        String filesystemType = "ext3";
         Map<String, String> tags = ImmutableMap.of("Name", "marklogic-" + getClusterName() + (tagNameSuffix != null ? "-" + tagNameSuffix : ""));
 
-        String volumeId = newVolumeManager().createAttachAndMountVolume(jcloudsMachine, volumeDeviceName, osDeviceName, mountPoint, filesystemType, volumeSize, tags);
-        return new VolumeInfo(volumeDeviceName, volumeId, osDeviceName);
+        BlockDeviceOptions deviceConfig = new BlockDeviceOptions()
+                .zone(jcloudsMachine.getNode().getLocation().getId())
+                .deviceSuffix(deviceSuffix)
+                .sizeInGb(volumeSize)
+                .tags(tags);
+        FilesystemOptions filesystemConfig = new FilesystemOptions(mountPoint);
+        return VolumeManagers.newVolumeManager(getMachine())
+                .createAttachAndMountVolume(jcloudsMachine, deviceConfig, filesystemConfig);
     }
 
     @Override
     public void mountForest(Forest forest) {
-        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
+        if (VolumeManagers.isVolumeManagerSupportedForLocation(getMachine())) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             LOG.debug("Mounting forest {} on {}", forest, jcloudsMachine);
-            VolumeManager volumeManager = newVolumeManager();
+
+            VolumeManager volumeManager = VolumeManagers.newVolumeManager(jcloudsMachine);
             Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
             Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
@@ -599,15 +595,15 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                 LOG.debug("EBS was not configured for forest data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
             } else {
                 char deviceSuffix = claimDeviceSuffix();
-                String volumeDeviceName = "/dev/sd" + deviceSuffix;
-                String osDeviceName = "/dev/xvd" + deviceSuffix;
-                String filesystemType = "ext3";
 
-                VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
-                forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, newVolumeInfo);
+                MountedBlockDevice volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
+                BlockDeviceOptions blockDeviceConfig = new BlockDeviceOptions()
+                        .zone(jcloudsMachine.getNode().getLocation().getId())
+                        .deviceSuffix(deviceSuffix);
+                FilesystemOptions filesystemConfig = new FilesystemOptions(forest.getDataDir());
 
-                volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getDataDir(), filesystemType);
+                volumeInfo = volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo, blockDeviceConfig, filesystemConfig);
+                forest.setAttribute(Forest.DATA_DIR_VOLUME_INFO, volumeInfo);
             }
 
             if (forest.getFastDataDir() == null) {
@@ -615,17 +611,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             } else if (!isFastdirEbs) {
                 LOG.debug("EBS was not configured for forest fast data dir. Not mounting forest {} on {}", forest, jcloudsMachine);
             } else {
-                VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
+                MountedBlockDevice volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
 
                 if (volumeInfo != null) {
                     char deviceSuffix = claimDeviceSuffix();
-                    String volumeDeviceName = "/dev/sd" + deviceSuffix;
-                    String osDeviceName = "/dev/xvd" + deviceSuffix;
-                    String filesystemType = "ext3";
-
-                    VolumeInfo newVolumeInfo = new VolumeInfo(volumeDeviceName, volumeInfo.getVolumeId(), osDeviceName);
-                    forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, newVolumeInfo);
-                    volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeDeviceName, osDeviceName, forest.getFastDataDir(), filesystemType);
+                    BlockDeviceOptions blockDeviceConfig = new BlockDeviceOptions()
+                            .zone(jcloudsMachine.getNode().getLocation().getId())
+                            .deviceSuffix(deviceSuffix);
+                    FilesystemOptions filesystemConfig = new FilesystemOptions(forest.getFastDataDir());
+                    volumeInfo = volumeManager.attachAndMountVolume(jcloudsMachine, volumeInfo, blockDeviceConfig, filesystemConfig);
+                    forest.setAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO, volumeInfo);
                 }
             }
 
@@ -639,11 +634,11 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     @Override
     public void unmountForest(Forest forest) {
-        if (isVolumeManagerSupported() && getMachine() instanceof JcloudsSshMachineLocation) {
+        if (VolumeManagers.isVolumeManagerSupportedForLocation(getMachine())) {
             JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
             LOG.debug("Unmounting forest {} on {}", forest, jcloudsMachine);
 
-            VolumeManager volumeManager = newVolumeManager();
+            VolumeManager volumeManager = VolumeManagers.newVolumeManager(jcloudsMachine);
             Boolean isForestsEbs = entity.getConfig(MarkLogicNode.IS_FORESTS_EBS);
             Boolean isFastdirEbs = entity.getConfig(MarkLogicNode.IS_FASTDIR_EBS);
 
@@ -652,9 +647,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             } else if (!isForestsEbs) {
                 LOG.debug("EBS was not configured for forest data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
             } else {
-                VolumeInfo volumeInfo = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
-                volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                MountedBlockDevice device = forest.getAttribute(Forest.DATA_DIR_VOLUME_INFO);
+                volumeManager.unmountFilesystemAndDetachVolume(device);
             }
 
             if (forest.getFastDataDir() == null) {
@@ -662,10 +656,9 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
             } else if (!isFastdirEbs) {
                 LOG.debug("EBS was not configured for forest fast data dir. Not unmounting forest {} on {}", forest, jcloudsMachine);
             } else {
-                VolumeInfo volumeInfo = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
-                if (volumeInfo != null) {
-                    volumeManager.unmountFilesystem(jcloudsMachine, volumeInfo.getOsDeviceName());
-                    volumeManager.detachVolume(jcloudsMachine, volumeInfo.getVolumeId(), volumeInfo.getVolumeDeviceName());
+                MountedBlockDevice device = forest.getAttribute(Forest.FAST_DATA_DIR_VOLUME_INFO);
+                if (device != null) {
+                    volumeManager.unmountFilesystemAndDetachVolume(device);
                 }
             }
 
@@ -677,20 +670,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
-    private void attachAndMountVolume(String volumeId, String mountPoint) {
+    private void attachAndMountExistingVolume(String volumeId, String mountPoint) {
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
         JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
 
-        char deviceSuffix = claimDeviceSuffix();
-        String volumeDeviceName = "/dev/sd" + deviceSuffix;
-        String osDeviceName = "/dev/xvd" + deviceSuffix;
-        String filesystemType = "ext3";
-
-        if ("aws-ec2".equals(jcloudsLocation.getProvider())) {
-            newVolumeManager().attachAndMountVolume(jcloudsMachine, volumeId, volumeDeviceName, osDeviceName, mountPoint, filesystemType);
-        } else {
-            throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
-        }
+        BlockDevice device = Devices.newBlockDevice(jcloudsLocation, volumeId);
+        VolumeManager manager = VolumeManagers.newVolumeManager(jcloudsLocation);
+        BlockDeviceOptions deviceOptions = new BlockDeviceOptions()
+                .deviceSuffix(claimDeviceSuffix());
+        FilesystemOptions volumeOptions = new FilesystemOptions(mountPoint);
+        manager.attachAndMountVolume(jcloudsMachine, device, deviceOptions, volumeOptions);
     }
 
     private char claimDeviceSuffix() {

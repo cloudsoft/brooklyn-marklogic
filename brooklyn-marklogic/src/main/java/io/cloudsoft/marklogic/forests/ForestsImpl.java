@@ -143,7 +143,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         nonDesiredHostNames.add(currentOwner.getHostName());
 
         if (forest.getMaster() != null) {
-            Forest master = getForest(forest.getMaster());
+            Forest master = getForestOrFail(forest.getMaster());
             nonDesiredHostNames.add(master.getHostname());
         }
 
@@ -546,7 +546,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
      */
     @Override
     public void moveForest(String primaryForestName, String hostName) {
-        Forest forest = getForest(primaryForestName);
+        Forest forest = getForestOrFail(primaryForestName);
         moveForest(forest, hostName);
     }
 
