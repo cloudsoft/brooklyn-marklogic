@@ -123,7 +123,7 @@ public class GeoScalingMarkLogicDemoApplication extends AbstractApplication {
                 String forestId = Identifiers.makeRandomId(8);
 
                 Forest forest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
-                        .configure(Forest.HOST, markLogicCluster.getDNodeGroup().getAnyUpMember().getHostName())
+                        .configure(Forest.HOST, markLogicCluster.getDNodeGroup().getAnyUpMember().getHostname())
                         .configure(Forest.NAME, forestId)
                         .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
                         .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)

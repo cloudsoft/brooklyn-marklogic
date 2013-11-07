@@ -16,7 +16,7 @@ public class ForestLiveTest extends AbstractMarkLogicLiveTest {
         Forest forest = createForest(dNode1);
         forest.awaitStatus("open");
 
-        assertEquals(dNode1.getHostName(), forest.getHostname());
+        assertEquals(dNode1.getHostname(), forest.getHostname());
     }
 
     @Test(groups = {"WIP"})
@@ -44,7 +44,7 @@ public class ForestLiveTest extends AbstractMarkLogicLiveTest {
 
         databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
-        assertEquals(dNode1.getHostName(), primaryForest.getHostname());
+        assertEquals(dNode1.getHostname(), primaryForest.getHostname());
     }
 
     @Test(groups = {"Live"})
@@ -62,8 +62,8 @@ public class ForestLiveTest extends AbstractMarkLogicLiveTest {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        assertEquals(dNode1.getHostName(), primaryForest.getHostname());
-        assertEquals(dNode2.getHostName(), replicaForest.getHostname());
+        assertEquals(dNode1.getHostname(), primaryForest.getHostname());
+        assertEquals(dNode2.getHostname(), replicaForest.getHostname());
     }
 
     @Test(groups = {"Live"})
@@ -86,6 +86,6 @@ public class ForestLiveTest extends AbstractMarkLogicLiveTest {
         forests.enableForest(forest);
         forest.awaitStatus("open");
 
-        assertEquals(dNode1.getHostName(), forest.getHostname());
+        assertEquals(dNode1.getHostname(), forest.getHostname());
     }
 }

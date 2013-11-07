@@ -53,7 +53,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
     @Override
     public void moveAllForestsFromNode(MarkLogicNode node) {
-        final List<Forest> forests = getBrooklynCreatedForestsOnHosts(node.getHostName());
+        final List<Forest> forests = getBrooklynCreatedForestsOnHosts(node.getHostname());
         if (forests.isEmpty()) {
             LOG.info("There are no forests on {}", node);
             return;
@@ -85,7 +85,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             unmountForestFromNode(forest, owner);
             sleepSome();
 
-            setForestHost(forest, recipient.getHostName());
+            setForestHost(forest, recipient.getHostname());
             sleepSome();
 
             mountForestOnNode(forest, recipient);
@@ -109,7 +109,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             unmountForestFromNode(forest, owner);
             sleepSome();
 
-            setForestHost(forest, recipient.getHostName());
+            setForestHost(forest, recipient.getHostname());
             sleepSome();
 
             mountForestOnNode(forest, recipient);
@@ -140,7 +140,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
      */
     private MarkLogicNode getNewHostForForest(MarkLogicNode currentOwner, Forest forest) {
         Set<String> nonDesiredHostNames = new HashSet<String>();
-        nonDesiredHostNames.add(currentOwner.getHostName());
+        nonDesiredHostNames.add(currentOwner.getHostname());
 
         if (forest.getMaster() != null) {
             Forest master = getForestOrFail(forest.getMaster());
@@ -156,7 +156,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
 
         List<MarkLogicNode> filteredUpNodes = new LinkedList<MarkLogicNode>();
         for (MarkLogicNode upNode : upNodes) {
-            if (!nonDesiredHostNames.contains(upNode.getHostName())) {
+            if (!nonDesiredHostNames.contains(upNode.getHostname())) {
                 filteredUpNodes.add(upNode);
             }
         }
@@ -169,9 +169,9 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         for (MarkLogicNode upNode : filteredUpNodes) {
             if (lowestForestCount == Integer.MAX_VALUE) {
                 bestNode = upNode;
-                lowestForestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostName()));
+                lowestForestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostname()));
             } else {
-                int forestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostName()));
+                int forestCount = Iterables.size(getBrooklynCreatedForestsOnHosts(upNode.getHostname()));
                 if (forestCount < lowestForestCount) {
                     bestNode = upNode;
                     lowestForestCount = forestCount;
@@ -206,10 +206,10 @@ public class ForestsImpl extends AbstractEntity implements Forests {
         Set<String> availableHostnames = Sets.newLinkedHashSet();
 
         for (MarkLogicNode node : getGroup()) {
-            if (hostname.equals(node.getHostName())) {
+            if (hostname.equals(node.getHostname())) {
                 return node;
             }
-            availableHostnames.add(node.getHostName());
+            availableHostnames.add(node.getHostname());
         }
 
         throw new IllegalStateException(format("Couldn't find node with hostname '%s' in group %s. Available were: %s",
@@ -349,7 +349,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             LOG.info("Group: " + getGroup().getGroupName());
             LOG.info("Group.size: " + getGroup().getCurrentSize());
             for (MarkLogicNode child : getGroup()) {
-                LOG.info("child.hostname:" + child.getHostName() + " isUp: " + child.isUp());
+                LOG.info("child.hostname:" + child.getHostname() + " isUp: " + child.isUp());
             }
             throw new IllegalStateException("No up members found in group: " + getGroup().getGroupName());
         }

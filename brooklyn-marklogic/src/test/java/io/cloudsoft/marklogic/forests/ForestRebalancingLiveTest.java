@@ -25,7 +25,7 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicLiveTest {
         forests.moveAllForestsFromNode(dNode1);
 
         String hostName = forest.getHostname();
-        assertTrue(hostName.equals(dNode2.getHostName())||hostName.equals(dNode3.getHostName()));
+        assertTrue(hostName.equals(dNode2.getHostname())||hostName.equals(dNode3.getHostname()));
         assertEquals("open", forest.getStatus());
 
         //poor mans cleanup
@@ -50,9 +50,9 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicLiveTest {
         forests.moveAllForestsFromNode(dNode1);
 
         assertEquals("open", primaryForest.getStatus());
-        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+        assertEquals(dNode3.getHostname(), primaryForest.getHostname());
         assertEquals("sync replicating", replicaForest.getStatus());
-        assertEquals(dNode2.getHostName(), replicaForest.getHostname());
+        assertEquals(dNode2.getHostname(), replicaForest.getHostname());
 
         //poor mans cleanup
         primaryForest.setParent(null);
@@ -77,9 +77,9 @@ public class ForestRebalancingLiveTest extends AbstractMarkLogicLiveTest {
         forests.moveAllForestsFromNode(dNode2);
 
         assertEquals("open", primaryForest.getStatus());
-        assertEquals(dNode1.getHostName(), primaryForest.getHostname());
+        assertEquals(dNode1.getHostname(), primaryForest.getHostname());
         assertEquals("sync replicating", replicaForest.getStatus());
-        assertEquals(dNode3.getHostName(), replicaForest.getHostname());
+        assertEquals(dNode3.getHostname(), replicaForest.getHostname());
 
         //poor mans cleanup
         primaryForest.setParent(null);

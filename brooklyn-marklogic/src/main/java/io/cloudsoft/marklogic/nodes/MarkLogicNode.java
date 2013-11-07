@@ -151,7 +151,7 @@ public interface MarkLogicNode extends SoftwareProcess {
 
     void createForest(Forest forest);
 
-    String getHostName();
+    String getHostname();
 
     void createAppServer(AppServer appServer);
 
