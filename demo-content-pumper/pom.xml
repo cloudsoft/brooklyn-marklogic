@@ -1,7 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>brooklyn-marklogic</artifactId>
+    <artifactId>demo-content-pumper</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -12,35 +13,21 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <name>Brooklyn MarkLogic</name>
+    <name>Brooklyn MarkLogic Demo Content Pumper</name>
+    <description>
+        An entity to pump data into a MarkLogic server with MLCP
+    </description>
 
     <properties>
         <includedTestGroups/>
         <excludedTestGroups>Integration,Live,WIP</excludedTestGroups>
-
-        <blockstore.version>0.1.0-SNAPSHOT</blockstore.version>
     </properties>
 
-     <dependencies>
+    <dependencies>
         <dependency>
             <groupId>io.brooklyn</groupId>
             <artifactId>brooklyn-all</artifactId>
             <version>${brooklyn.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.cloudsoft.marklogic</groupId>
-            <artifactId>brooklyn-marklogic-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.cloudsoft.marklogic</groupId>
-            <artifactId>demo-content-pumper</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.cloudsoft.blockstore</groupId>
-            <artifactId>brooklyn-blockstore</artifactId>
-            <version>${blockstore.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -51,11 +38,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-compute</artifactId>
-            <version>${jclouds.version}</version>
         </dependency>
 
         <dependency>
@@ -77,17 +59,23 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.brooklyn</groupId>
-            <artifactId>brooklyn-software-base</artifactId>
-            <version>${brooklyn.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!--Shares test resources with other modules-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -144,12 +132,6 @@
                 <excludedTestGroups>Integration,WIP</excludedTestGroups>
             </properties>
         </profile>
-        <profile>
-            <id>WIP</id>
-            <properties>
-                <includedTestGroups>WIP</includedTestGroups>
-                <excludedTestGroups>Integration,Live</excludedTestGroups>
-            </properties>
-        </profile>
     </profiles>
 </project>
+

@@ -34,6 +34,7 @@ import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.pumper.ContentPumper;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
 
@@ -53,6 +54,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     @Override
     public void init() {
         boolean deployWeb = false;
+        boolean deployContentPump = true;
 
         EntitySpec<NginxController> loadBalancerSpec = EntitySpec.create(NginxController.class)
                 .displayName("LoadBalancer")
@@ -99,6 +101,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                     .sizeRange(1, 5)
                     .metricRange(10, 100)
                     .build());
+        }
+
+        if (deployContentPump) {
+            addChild(EntitySpec.create(ContentPumper.class));
         }
     }
 
