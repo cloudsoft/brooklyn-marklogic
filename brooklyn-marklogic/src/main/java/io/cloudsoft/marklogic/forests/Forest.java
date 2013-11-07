@@ -71,12 +71,12 @@ public interface Forest extends Entity, Startable {
             "marklogic.forests.group", "The group");
 
     BasicAttributeSensorAndConfigKey<MountedBlockDevice> DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<MountedBlockDevice>(
-            MountedBlockDevice.class, "marklogic.forest.data-dir.volumeId",
+            MountedBlockDevice.class, "marklogic.forest.data-dir.volume",
             "Specifies a volume in which the forest's regular data is located. If null, indicates that no volume " +
                     "has been created yet for this forest. If DATA_DIR is null then this should also be null", null);
 
     BasicAttributeSensorAndConfigKey<MountedBlockDevice> FAST_DATA_DIR_VOLUME_INFO = new BasicAttributeSensorAndConfigKey<MountedBlockDevice>(
-            MountedBlockDevice.class, "marklogic.forest.fast-data-dir.volumeId",
+            MountedBlockDevice.class, "marklogic.forest.fast-data-dir.volume",
             "Specifies a volume in which the forest's fast data is located. If null, indicates that no volume " +
                     "has been created yet. If FAST_DATA_DIR is null then this should also be null", null);
 

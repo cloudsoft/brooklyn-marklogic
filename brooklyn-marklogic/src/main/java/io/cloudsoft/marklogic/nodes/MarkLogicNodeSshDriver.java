@@ -3,12 +3,11 @@ package io.cloudsoft.marklogic.nodes;
 import brooklyn.entity.basic.AbstractSoftwareProcessSshDriver;
 import brooklyn.location.basic.SshMachineLocation;
 import brooklyn.location.blockstore.BlockDeviceOptions;
+import brooklyn.location.blockstore.Devices;
 import brooklyn.location.blockstore.FilesystemOptions;
 import brooklyn.location.blockstore.VolumeManagers;
+import brooklyn.location.blockstore.api.BlockDevice;
 import brooklyn.location.blockstore.api.MountedBlockDevice;
-import brooklyn.location.blockstore.ec2.Ec2VolumeManager;
-import brooklyn.location.blockstore.gce.GoogleComputeEngineVolumeManager;
-import brooklyn.location.blockstore.openstack.OpenstackVolumeManager;
 import brooklyn.location.blockstore.api.VolumeManager;
 import brooklyn.location.jclouds.JcloudsLocation;
 import brooklyn.location.jclouds.JcloudsSshMachineLocation;
@@ -54,7 +53,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
     /*
      * TODO Comment taken from Denis' original script for how he set up his volumes.
-     * 
+     *
      * Configures the location so that any instances will have the required EBS volumes attached.
      * Also sets up the datadir for the given instance, to use that EBS volume.
      * <p/>
@@ -231,7 +230,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                     String newVolumeId = createAttachAndMountVolume("/var/opt", volumeSize, getNodeName() + "-varopt").getId();
                     entity.setAttribute(MarkLogicNode.VAR_OPT_VOLUME, newVolumeId);
                 } else {
-                    attachAndMountVolume(varOptVolumeId, "/var/opt");
+                    attachAndMountExistingVolume(varOptVolumeId, "/var/opt");
                 }
             }
 
@@ -240,7 +239,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
                     String newVolumeId = createAttachAndMountVolume("/var/opt/backup", backupVolumeSize, getNodeName() + "-backup").getId();
                     entity.setAttribute(MarkLogicNode.BACKUP_VOLUME, newVolumeId);
                 } else {
-                    attachAndMountVolume(backupVolumeId, "/var/opt/backup");
+                    attachAndMountExistingVolume(backupVolumeId, "/var/opt/backup");
                 }
             }
         }
@@ -291,13 +290,13 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         } else {
             LOG.info("Additional host {} waiting for MarkLogic initial host to be up", getHostname());
             MarkLogicNode node = cluster.getAnyUpNodeOrWait();
-            
+
             try {
                 Thread.sleep(delayOnJoin.incrementAndGet()*30*1000);
             } catch (InterruptedException e) {
                 throw Exceptions.propagate(e);
             }
-            
+
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
             scriptName = "customize_additional_host.txt";
             substitutions.put("clusterHostName", node.getHostName());
@@ -671,19 +670,16 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         }
     }
 
-    private void attachAndMountVolume(String volumeId, String mountPoint) {
+    private void attachAndMountExistingVolume(String volumeId, String mountPoint) {
         JcloudsSshMachineLocation jcloudsMachine = (JcloudsSshMachineLocation) getMachine();
         JcloudsLocation jcloudsLocation = jcloudsMachine.getParent();
 
-        char deviceSuffix = claimDeviceSuffix();
-
-        LOG.warn("Important bit of attachAndMountVolume is disabled");
-        // TODO: What?
-//        if (isVolumeManagerSupported()) {
-//            newVolumeManager().attachAndMountVolume(jcloudsMachine, volumeId, volumeDeviceName, osDeviceName, mountPoint, filesystemType);
-//        } else {
-//            throw new IllegalStateException("Cannot handle volumes in location " + jcloudsLocation);
-//        }
+        BlockDevice device = Devices.newBlockDevice(jcloudsLocation, volumeId);
+        VolumeManager manager = VolumeManagers.newVolumeManager(jcloudsLocation);
+        BlockDeviceOptions deviceOptions = new BlockDeviceOptions()
+                .deviceSuffix(claimDeviceSuffix());
+        FilesystemOptions volumeOptions = new FilesystemOptions(mountPoint);
+        manager.attachAndMountVolume(jcloudsMachine, device, deviceOptions, volumeOptions);
     }
 
     private char claimDeviceSuffix() {

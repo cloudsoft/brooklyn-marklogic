@@ -155,6 +155,8 @@
             </properties>
         </profile>
         <profile>
+            <!-- Tests in the localhost group expect an instance of MarkLogic to be
+                 available on localhost:8001. -->
             <id>localhost</id>
             <properties>
                 <includedTestGroups>localhost</includedTestGroups>

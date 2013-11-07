@@ -170,7 +170,7 @@ public class ForestImpl extends AbstractEntity implements Forest {
 
         countsFeed = FunctionFeed.builder()
                 .entity(this)
-                .period(200)
+                .period(5, TimeUnit.SECONDS)
                 .poll(new FunctionPollConfig<ForestCounts, Long>(DIRECTORY_COUNT)
                         .callable(counts)
                         .onSuccess(new Function<ForestCounts, Long>() {
