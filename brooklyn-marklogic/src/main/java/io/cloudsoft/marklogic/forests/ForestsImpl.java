@@ -59,7 +59,7 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             return;
         }
 
-        LOG.info("Moving %s forests from %s", forests.size(), node);
+        LOG.info("Moving {} forests from {}", forests.size(), node);
         for (Forest forest : forests) {
             MarkLogicNode targetNode = getNewHostForForest(node, forest);
             if (targetNode == null) {
