@@ -184,12 +184,8 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
     }
 
     private String loadAndProcessTemplate(String template, Map<String, Object> substitutions) {
-        File script = new File(getScriptDirectory(), template);
-        return processTemplate(script, substitutions);
-    }
-
-    public File getScriptDirectory() {
-        return new File(getBrooklynMarkLogicHome(), "scripts");
+        String path = "classpath://io/cloudsoft/marklogic/nodes/scripts/" + template;
+        return processTemplate(path, substitutions);
     }
 
     private void executeScript(String name, String script) {
@@ -299,7 +295,7 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
 
             LOG.info("Starting customize of Marklogic additional host {}", getHostname());
             scriptName = "customize_additional_host.txt";
-            substitutions.put("clusterHostName", node.getHostName());
+            substitutions.put("clusterHostName", node.getHostname());
         }
 
         String script = loadAndProcessTemplate(scriptName, substitutions);

@@ -54,7 +54,7 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
             LOG.info("7-------------------------------------------");
 
 
-            forests.setForestHost(primaryForest, dNode3.getHostName());
+            forests.setForestHost(primaryForest, dNode3.getHostname());
 
             LOG.info("8-------------------------------------------");
 
@@ -79,7 +79,7 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
 
             primaryForest.awaitStatus("open");
             replicaForest.awaitStatus("sync replicating");
-            assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+            assertEquals(dNode3.getHostname(), primaryForest.getHostname());
 
             LOG.info("13-------------------------------------------");
 
@@ -103,10 +103,10 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
         databases.attachForestToDatabase(primaryForest, database);
         primaryForest.awaitStatus("open");
 
-        forests.moveForest(primaryForest, dNode3.getHostName());
+        forests.moveForest(primaryForest, dNode3.getHostname());
 
         assertEquals("open", primaryForest.getStatus());
-        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+        assertEquals(dNode3.getHostname(), primaryForest.getHostname());
     }
 
     @Test(groups = {"Live"})
@@ -123,11 +123,11 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveForest(primaryForest, dNode3.getHostName());
+        forests.moveForest(primaryForest, dNode3.getHostname());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals("sync replicating", replicaForest.getStatus());
-        assertEquals(dNode3.getHostName(), primaryForest.getHostname());
+        assertEquals(dNode3.getHostname(), primaryForest.getHostname());
     }
 
 
@@ -146,11 +146,11 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
         primaryForest.awaitStatus("open");
         replicaForest.awaitStatus("sync replicating");
 
-        forests.moveForest(replicaForest, dNode3.getHostName());
+        forests.moveForest(replicaForest, dNode3.getHostname());
 
         assertEquals("open", primaryForest.getStatus());
         assertEquals("sync replicating", replicaForest.getStatus());
-        assertEquals(dNode3.getHostName(), replicaForest.getHostname());
+        assertEquals(dNode3.getHostname(), replicaForest.getHostname());
     }
 
     @Test(groups = {"Live"})
@@ -169,12 +169,12 @@ public class ForestMoveLiveTest extends AbstractMarkLogicLiveTest {
         forest.awaitStatus("unmounted");
 
         forests.unmountForest(forest);
-        forests.setForestHost(forest, dNode3.getHostName());
+        forests.setForestHost(forest, dNode3.getHostname());
         forests.mountForest(forest);
         forests.enableForest(forest);
         forest.awaitStatus("open");
 
-        assertEquals(dNode3.getHostName(), forest.getHostname());
+        assertEquals(dNode3.getHostname(), forest.getHostname());
     }
 
 

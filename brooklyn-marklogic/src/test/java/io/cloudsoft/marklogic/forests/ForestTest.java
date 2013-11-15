@@ -26,7 +26,6 @@ import brooklyn.management.ManagementContext;
 import brooklyn.management.internal.LocalManagementContext;
 import brooklyn.test.EntityTestUtils;
 import brooklyn.test.entity.TestApplication;
-import brooklyn.util.collections.MutableMap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -94,7 +93,7 @@ public class ForestTest {
 
         String forestName = "peter" + System.currentTimeMillis();
         MarkLogicNode node = group.getAnyUpMember();
-        forests.createForest(forestName, node.getHostName(), null, null, null, "all", true, false);
+        forests.createForest(forestName, node.getHostname(), null, null, null, "all", true, false);
 
 
         String username = node.getConfig(MarkLogicNode.USER);

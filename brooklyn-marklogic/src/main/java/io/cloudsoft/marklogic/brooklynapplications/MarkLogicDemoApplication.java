@@ -34,6 +34,7 @@ import io.cloudsoft.marklogic.forests.Forests;
 import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
+import io.cloudsoft.marklogic.pumper.ContentPumper;
 
 public class MarkLogicDemoApplication extends AbstractApplication {
 
@@ -53,6 +54,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     @Override
     public void init() {
         boolean deployWeb = false;
+        boolean deployContentPump = true;
 
         EntitySpec<NginxController> loadBalancerSpec = EntitySpec.create(NginxController.class)
                 .displayName("LoadBalancer")
@@ -100,6 +102,10 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                     .metricRange(10, 100)
                     .build());
         }
+
+        if (deployContentPump) {
+            addChild(EntitySpec.create(ContentPumper.class));
+        }
     }
 
 
@@ -114,7 +120,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
         MarkLogicGroup dgroup = markLogicCluster.getDNodeGroup();
         Databases databases = markLogicCluster.getDatabases();
         MarkLogicNode node1 = dgroup.getAnyUpMember();
-        MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
+        MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostname());
         Forests forests = markLogicCluster.getForests();
 
         Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
@@ -136,7 +142,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
     private void createReplicatedForest(Databases databases, MarkLogicNode node1, MarkLogicNode node2, Forests forests, Database database, String forestBaseName) {
         String primaryForestId = Identifiers.makeRandomId(8);
         Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
-                .configure(Forest.HOST, node1.getHostName())
+                .configure(Forest.HOST, node1.getHostname())
                 .configure(Forest.NAME, forestBaseName + "Primary")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
@@ -147,7 +153,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
         String replicaForestId = Identifiers.makeRandomId(8);
         Forest replicaForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
-                .configure(Forest.HOST, node2.getHostName())
+                .configure(Forest.HOST, node2.getHostname())
                 .configure(Forest.NAME, forestBaseName + "Replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
@@ -165,7 +171,7 @@ public class MarkLogicDemoApplication extends AbstractApplication {
 
     private void printInfo() {
         MarkLogicNode node = markLogicCluster.getENodeGroup().getAnyUpMember();
-        String hostName = node.getHostName();
+        String hostName = node.getHostname();
 
         LOG.info("MarkLogic Nginx http://" + markLogicCluster.getLoadBalancer().getAttribute(Attributes.HOSTNAME));
 //        LOG.info("Web Nginx  http://" + web.getController().getAttribute(Attributes.HOSTNAME));

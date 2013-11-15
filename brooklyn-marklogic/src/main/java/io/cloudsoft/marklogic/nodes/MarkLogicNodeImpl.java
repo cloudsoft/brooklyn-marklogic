@@ -22,7 +22,6 @@ import brooklyn.event.feed.function.FunctionPollConfig;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +37,8 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
 
     private static final Logger LOG = LoggerFactory.getLogger(MarkLogicNodeImpl.class);
 
-    private final AtomicInteger deviceNameSuffix = new AtomicInteger('h');
-    private static final String NODE_NAME = "mynodename";
-
-    private FunctionFeed serviceUp;
-
     private final Object attributeSetMutex = new Object();
+    private FunctionFeed serviceUp;
 
     static {
         RendererHints.register(URL, new RendererHints.NamedActionWithUrl("Open"));
@@ -101,7 +96,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
                 }
 
                 if (targetForest != null)
-                    forests.moveForest(targetForest.getName(), getHostName());
+                    forests.moveForest(targetForest.getName(), getHostname());
             } else {
                 String reason = (getCluster() == null)
                         ? "Cluster is null"
@@ -189,7 +184,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         return (MarkLogicNodeDriver) super.getDriver();
     }
 
-    public String getHostName() {
+    public String getHostname() {
         return getAttribute(HOSTNAME);
     }
 
@@ -329,7 +324,7 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-            .add("host", getHostName())
+            .add("host", getHostname())
             .add("group", getGroupName())
             .add("type", getNodeType().name())
             .toString();

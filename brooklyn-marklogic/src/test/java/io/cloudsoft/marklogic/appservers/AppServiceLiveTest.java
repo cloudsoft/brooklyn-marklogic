@@ -20,7 +20,7 @@ public class AppServiceLiveTest extends SingleNodeLiveTest {
 
         //todo: we should do a connect to the given url to make sure something is running there.
         //but the port is not open in firewall
-        //String url =  "http://"+egroup.getAnyStartedMember().getHostName()+":"+port;
+        //String url =  "http://"+egroup.getAnyStartedMember().getHostname()+":"+port;
         //HttpTestUtils.assertContentContainsText(url, "Hello");
     }
 }

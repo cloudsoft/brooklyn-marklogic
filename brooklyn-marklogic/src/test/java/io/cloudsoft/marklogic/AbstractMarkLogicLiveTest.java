@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Optional;
-
 public abstract class AbstractMarkLogicLiveTest {
 
     public static final Logger LOG = LoggerFactory.getLogger(AbstractMarkLogicLiveTest.class);
@@ -96,12 +94,6 @@ public abstract class AbstractMarkLogicLiveTest {
 
             //general purpose centos image
             String ami = "ami-3275ee5b";
-            //custom image based on the general purpose centos image, but with the marklogic rpm downloaded
-            // [sam] Custom AMI seems to cause jclouds problems. Lots and lots of error messages like this:
-            // jclouds.ssh ... error acquiring SFTPClient() (attempt 2 of 50): Invalid packet: indicated length
-            // 1349281121 too large
-            //String ami = "ami-c4f78aad";
-
             Map<String, ?> jcloudsFlags = MutableMap.of(
                     "imageId", REGION_NAME + "/" + ami,
                     "hardwareId", MEDIUM_HARDWARE_ID);
@@ -118,9 +110,9 @@ public abstract class AbstractMarkLogicLiveTest {
             if (getNumberOfDNodes() >= 1)
                 dNode1 = dgroup.getAnyUpMember();
             if (getNumberOfDNodes() >= 2)
-                dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostName());
+                dNode2 = dgroup.getAnyOtherUpMember(dNode1.getHostname());
             if (getNumberOfDNodes() >= 3)
-                dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostName(), dNode2.getHostName());
+                dNode3 = dgroup.getAnyOtherUpMember(dNode1.getHostname(), dNode2.getHostname());
         } catch (Exception e) {
             LOG.error("Failed to setup cluster", e);
             throw e;
@@ -150,7 +142,7 @@ public abstract class AbstractMarkLogicLiveTest {
     public Forest createForest(MarkLogicNode node, String master) {
         String forestId = Identifiers.makeRandomId(8);
         return forests.createForestWithSpec(EntitySpec.create(Forest.class)
-                .configure(Forest.HOST, node.getHostName())
+                .configure(Forest.HOST, node.getHostname())
                 .configure(Forest.NAME, user + "Forest" + ID_GENERATOR.incrementAndGet())
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)

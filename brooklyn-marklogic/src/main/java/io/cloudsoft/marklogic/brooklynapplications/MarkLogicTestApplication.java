@@ -1,6 +1,5 @@
 package io.cloudsoft.marklogic.brooklynapplications;
 
-import brooklyn.entity.Entity;
 import brooklyn.entity.basic.AbstractApplication;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.proxying.EntitySpec;
@@ -71,15 +70,15 @@ public class MarkLogicTestApplication extends AbstractApplication {
             k++;
         }
 
-        String anyHostName = dgroup.getAnyUpMember().getHostName();
+        String anyHostName = dgroup.getAnyUpMember().getHostname();
         LOG.info("MarkLogic server is available at 'http://{}:8000'", anyHostName);
         LOG.info("MarkLogic Cluster summary is available at 'http://{}:8001'", anyHostName);
         LOG.info("MarkLogic Monitoring Dashboard is available at 'http://{}:8002/dashboard'", anyHostName);
 
         try {
             MarkLogicNode node1 = dgroup.getAnyUpMember();
-            MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostName());
-            MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostName(), node2.getHostName());
+            MarkLogicNode node2 = dgroup.getAnyOtherUpMember(node1.getHostname());
+            MarkLogicNode node3 = dgroup.getAnyOtherUpMember(node1.getHostname(), node2.getHostname());
 
             LOG.info("Creating a database in {}", databases);
             Database database = databases.createDatabaseWithSpec(EntitySpec.create(Database.class)
@@ -90,7 +89,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
             LOG.info("Creating primary forest in {}", forests);
             String primaryForestId = Identifiers.makeRandomId(8);
             Forest primaryForest = forests.createForestWithSpec(EntitySpec.create(Forest.class)
-                    .configure(Forest.HOST, node1.getHostName())
+                    .configure(Forest.HOST, node1.getHostname())
                     .configure(Forest.NAME, primaryForestId)
                     .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                     .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
@@ -109,7 +108,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
             String replicaForestId = Identifiers.makeRandomId(8);
             Forest replicaForest = forests.createForestWithSpec(
                     EntitySpec.create(Forest.class)
-                            .configure(Forest.HOST, node2.getHostName())
+                            .configure(Forest.HOST, node2.getHostname())
                             .configure(Forest.NAME, replicaForestId)
                             .configure(Forest.MASTER,primaryForestId)
                             .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
@@ -134,7 +133,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 
 
             LOG.info("Moving forest {} to new node: {}", primaryForest, node3);
-            forests.moveForest(primaryForest.getName(), node3.getHostName());
+            forests.moveForest(primaryForest.getName(), node3.getHostname());
 
 //            replicaForest.awaitStatus("sync replicating");
 
@@ -145,7 +144,7 @@ public class MarkLogicTestApplication extends AbstractApplication {
 //
 //            forests.unmountForest(primaryForest.getName());
 //
-//            forests.setForestHost(primaryForest.getName(), node3.getHostName());
+//            forests.setForestHost(primaryForest.getName(), node3.getHostname());
 //
 //            forests.mountForest(primaryForest.getName());
 //

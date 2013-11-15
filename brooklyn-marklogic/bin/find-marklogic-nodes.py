@@ -40,5 +40,7 @@ def walkEntities():
 
 for entity in walkEntities():
     if isMarkLogicNode(entity):
-        print loadEntitySensors(entity)['host.name']
+        host = loadEntitySensors(entity)['host.name']
+        if host:
+            print host
 

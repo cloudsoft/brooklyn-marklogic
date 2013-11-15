@@ -1,0 +1,11 @@
+<included>
+
+    <logger name="brooklyn.SSH" level="DEBUG"/>
+    <logger name="brooklyn.util.internal.ssh" level="DEBUG"/>
+
+    <logger name="io.cloudsoft.marklogic" level="DEBUG"/>
+    <logger name="io.cloudsoft.marklogic.pumper" level="DEBUG"/>
+
+    <logger name="net.schmizz.sshj" level="ERROR"/>
+
+</included>

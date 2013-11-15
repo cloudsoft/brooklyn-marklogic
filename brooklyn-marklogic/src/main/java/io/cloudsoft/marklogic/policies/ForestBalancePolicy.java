@@ -51,7 +51,7 @@ public class ForestBalancePolicy extends MemberFailureDetectionPolicy {
             @Override
             public void onEvent(SensorEvent<HASensors.FailureDescriptor> event) {
                 MarkLogicNode node = (MarkLogicNode) event.getSource();
-                LOG.info("ForestBalancePolicy node:" + node.getHostName() + " failed");
+                LOG.info("ForestBalancePolicy node:" + node.getHostname() + " failed");
             }
         });
 
@@ -59,7 +59,7 @@ public class ForestBalancePolicy extends MemberFailureDetectionPolicy {
             @Override
             public void onEvent(SensorEvent<HASensors.FailureDescriptor> event) {
                 MarkLogicNode node = (MarkLogicNode) event.getSource();
-                LOG.info("ForestBalancePolicy node:" + node.getHostName() + " recovered");
+                LOG.info("ForestBalancePolicy node:" + node.getHostname() + " recovered");
             }
         });
 

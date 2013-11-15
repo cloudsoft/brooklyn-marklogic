@@ -76,7 +76,7 @@ public class MarkLogicGroupImpl extends DynamicClusterImpl implements MarkLogicG
             if (node.isUp()) {
                 boolean excluded = false;
                 for (String hostName : hostNames) {
-                    if (hostName.endsWith(node.getHostName())) {
+                    if (hostName.endsWith(node.getHostname())) {
                         excluded = true;
                         break;
                     }
