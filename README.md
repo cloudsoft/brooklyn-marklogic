@@ -28,7 +28,10 @@ We are keen to hear about your favourite use-cases. Contact us at info@cloudsoft
 
 ================
 
-&copy; Cloudsoft Corporation 2013. All rights reserved.
+&copy; 2013 Cloudsoft Corporation. All rights reserved.
 
-Use of this software is subject to the Cloudsoft EULA, provided in LICENSE.txt and at http://www.cloudsoftcorp.com/cloudsoft-developer-license
+Use of this software is subject to the Cloudsoft EULA, provided in LICENSE.md and at 
 
+http://www.cloudsoftcorp.com/cloudsoft-developer-license
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
