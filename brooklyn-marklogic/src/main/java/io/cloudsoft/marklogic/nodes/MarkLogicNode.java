@@ -60,11 +60,6 @@ public interface MarkLogicNode extends SoftwareProcess {
             "marklogic.licenseKey",
             "The license key to register the MarkLogic Server");
 
-    ConfigKey<String> LICENSE_TYPE = newStringConfigKey(
-            "marklogic.licenseType",
-            "The type of agreement the licensee has with MarkLogic, e.g. development or evaluation",
-            "development");
-
     ConfigKey<String> LICENSEE = newStringConfigKey(
             "marklogic.licensee",
             "The licensee to register the MarkLogic Server");

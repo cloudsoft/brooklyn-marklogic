@@ -20,15 +20,19 @@ else
     # Because of retrying, we no longer do this in the background (which previously gave concurrency for yum commands)
     triesRemaining=3
     while [ $triesRemaining -gt 0 ]; do
-      curl -L --retry 5 --continue-at - -o  ~/${driver.downloadFilename} -L -O --user ${driver.websiteUsername}:${driver.websitePassword} http://www.marklogic.com/download/${driver.downloadFilename}
-      result=$?
-      if [ $result -eq 0 ]; then
-        triesRemaining=0
-      else
-        triesRemaining=$(( $triesRemaining - 1 ))
-        echo "Error downloading ${driver.downloadFilename} ($triesRemaining attempts remaining)"
-        sleep 10
-      fi
+        curl -X POST --cookie-jar /tmp/marklogic-cookies http://developer.marklogic.com/login \
+            -d "email=${driver.websiteUsername}" \
+            -d "password=${driver.websitePassword}"
+        curl -L --retry 5 --continue-at - -o ~/${driver.downloadFilename} --cookie /tmp/marklogic-cookies \
+            http://developer.marklogic.com/download/binaries/7.0/${driver.downloadFilename}
+        result=$?
+        if [ $result -eq 0 ]; then
+            triesRemaining=0
+        else
+            triesRemaining=$(( $triesRemaining - 1 ))
+            echo "Error downloading ${driver.downloadFilename} ($triesRemaining attempts remaining)"
+            sleep 10
+        fi
     done
 fi
 
@@ -113,12 +117,16 @@ sudo -E -n -S -- /etc/init.d/MarkLogic start
 waitForMarkLogicUp
 echo Finished Starting MarkLogic
 
-echo Initializing MarkLogic
+<#if driver.licenseKey?has_content && driver.licensee?has_content>
+echo Registering license for ${driver.licensee}
 curl -L -X POST -H 'Content-type: application/xml' http://localhost:8001/admin/v1/init --data \
 '<init xmlns="http://marklogic.com/manage">
     <license-key>${driver.licenseKey}</license-key>
     <licensee>${driver.licensee}</licensee>
 </init>'
+<#else>
+echo No license key given. Developer version of MarkLogic does not require a key so continuing.
+</#if>
 
 waitForMarkLogicUp
 echo Finished initializing MarkLogic

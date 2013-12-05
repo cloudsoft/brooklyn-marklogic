@@ -19,7 +19,6 @@ import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
-import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +126,6 @@ public class GeoScalingMarkLogicDemoApplication extends AbstractApplication {
                         .configure(Forest.NAME, forestId)
                         .configure(Forest.DATA_DIR, "/var/opt/mldata/" + forestId)
                         .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + forestId)
-                        .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                         .configure(Forest.REBALANCER_ENABLED, true)
                         .configure(Forest.FAILOVER_ENABLED, true)
                 );

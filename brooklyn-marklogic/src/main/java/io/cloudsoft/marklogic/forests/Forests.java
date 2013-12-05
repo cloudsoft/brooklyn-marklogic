@@ -29,7 +29,6 @@ public interface Forests extends Entity, Startable, Iterable<Forest> {
             @EffectorParam(name = "dataDir", description = "Specifies a public directory in which the forest is located.") String dataDir,
             @EffectorParam(name = "large-data-dir", description = "Specifies a directory in which large objects are stored. If the directory is not specified, large objects will be stored under the data directory") String largeDataDir,
             @EffectorParam(name = "fast-data-dir", description = "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.") String fastDataDir,
-            @EffectorParam(name = "updates_allowed", description = "Specifies which operations are allowed on this forest. Options are: all, delete-only, read-only, flash-backup.") String updatesAllowed,
             @EffectorParam(name = "rebalancer_enabled", description = "Enable automatic rebalancing after configuration changes.") boolean rebalancerEnabled,
             @EffectorParam(name = "failover_enabled", description = "Enable assignment to a failover host if the primary host is down.") boolean failoverEnabled);
 

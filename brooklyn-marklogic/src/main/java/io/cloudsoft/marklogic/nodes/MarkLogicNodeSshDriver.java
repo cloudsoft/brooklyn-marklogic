@@ -155,10 +155,6 @@ public class MarkLogicNodeSshDriver extends AbstractSoftwareProcessSshDriver imp
         return entity.getConfig(MarkLogicNode.LICENSEE);
     }
 
-    public String getLicenseType() {
-        return entity.getConfig(MarkLogicNode.LICENSE_TYPE);
-    }
-
     public String getClusterName() {
         return entity.getConfig(MarkLogicNode.CLUSTER_NAME);
     }
