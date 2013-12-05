@@ -54,7 +54,6 @@ public class MarkLogicNodeImpl extends SoftwareProcessImpl implements MarkLogicN
         setConfig(WEBSITE_PASSWORD, getManagementContext().getConfig().getFirst("brooklyn.marklogic.website-password"));
         setConfig(LICENSE_KEY, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-key"));
         setConfig(LICENSEE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.licensee"));
-        setConfig(LICENSE_TYPE, getManagementContext().getConfig().getFirst("brooklyn.marklogic.license-type"));
         setConfig(CLUSTER_NAME, getManagementContext().getConfig().getFirst("brooklyn.marklogic.cluster"));
 
         String configuredVersion = getManagementContext().getConfig().getFirst("brooklyn.marklogic.version");

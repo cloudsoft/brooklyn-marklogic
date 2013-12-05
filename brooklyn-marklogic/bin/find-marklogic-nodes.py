@@ -34,11 +34,13 @@ def walkEntities():
             if newApp['id'] not in visited:
                 yield newApp
                 visited.add(newApp['id'])
-                if 'childrenIds' in newApp:
-                    toCheck.extend(newApp['childrenIds'])
+                if 'children' in newApp:
+                    for child in newApp['children']:
+                        toCheck.append(child['id'])
 
 
 for entity in walkEntities():
+    # print entity
     if isMarkLogicNode(entity):
         host = loadEntitySensors(entity)['host.name']
         if host:
