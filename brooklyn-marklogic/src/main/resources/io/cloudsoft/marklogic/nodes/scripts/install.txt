@@ -23,7 +23,7 @@ else
         curl -X POST --cookie-jar /tmp/marklogic-cookies http://developer.marklogic.com/login \
             -d "email=${driver.websiteUsername}" \
             -d "password=${driver.websitePassword}"
-        curl -L --retry 5 --continue-at - -o ~/${driver.downloadFilename} --cookie /tmp/marklogic-cookies \
+        curl -L --retry 5 -o ~/${driver.downloadFilename} --cookie /tmp/marklogic-cookies \
             http://developer.marklogic.com/download/binaries/7.0/${driver.downloadFilename}
         result=$?
         if [ $result -eq 0 ]; then
@@ -34,6 +34,7 @@ else
             sleep 10
         fi
     done
+    echo "Download either complete or attempts exhausted"
 fi
 
 # A temporary workaround to change the hostname of the rackspace machine. The hostname used in rackspace is not usable
