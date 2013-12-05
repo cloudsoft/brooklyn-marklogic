@@ -68,11 +68,6 @@ public class ForestImpl extends AbstractEntity implements Forest {
     }
 
     @Override
-    public UpdatesAllowed getUpdatesAllowed() {
-        return getConfig(UPDATES_ALLOWED);
-    }
-
-    @Override
     public boolean isRebalancerEnabled() {
         return getConfig(REBALANCER_ENABLED);
     }

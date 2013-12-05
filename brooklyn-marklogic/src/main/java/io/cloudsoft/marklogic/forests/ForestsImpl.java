@@ -277,7 +277,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
             String dataDir,
             String largeDataDir,
             String fastDataDir,
-            String updatesAllowedStr,
             boolean rebalancerEnabled,
             boolean failoverEnabled) {
 
@@ -287,7 +286,6 @@ public class ForestsImpl extends AbstractEntity implements Forests {
                 .configure(Forest.DATA_DIR, dataDir)
                 .configure(Forest.LARGE_DATA_DIR, largeDataDir)
                 .configure(Forest.FAST_DATA_DIR, fastDataDir)
-                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.get(updatesAllowedStr))
                 .configure(Forest.REBALANCER_ENABLED, rebalancerEnabled)
                 .configure(Forest.FAILOVER_ENABLED, failoverEnabled);
         return createForestWithSpec(forestSpec);

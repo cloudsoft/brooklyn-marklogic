@@ -93,7 +93,7 @@ public class ForestTest {
 
         String forestName = "peter" + System.currentTimeMillis();
         MarkLogicNode node = group.getAnyUpMember();
-        forests.createForest(forestName, node.getHostname(), null, null, null, "all", true, false);
+        forests.createForest(forestName, node.getHostname(), null, null, null, true, false);
 
 
         String username = node.getConfig(MarkLogicNode.USER);

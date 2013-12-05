@@ -50,7 +50,6 @@ curl -L -i -X POST --digest -u ${driver.user}:${driver.password} http://localhos
     <data-directory>${forest.dataDir!""}</data-directory>
     <large-data-directory>${forest.largeDataDir!""}</large-data-directory>
     <fast-data-directory>${forest.fastDataDir!""}</fast-data-directory>
-    <updates-allowed>${forest.updatesAllowed}</updates-allowed>
     <availability>online</availability>
     <rebalancer-enable>${forest.rebalancerEnabled?string}</rebalancer-enable>
 </forest-create>'

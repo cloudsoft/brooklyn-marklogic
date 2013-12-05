@@ -51,11 +51,6 @@ public interface Forest extends Entity, Startable {
             "marklogic.forest.fast-data-dir",
             "Specifies a directory that is smaller but faster than the data directory. The directory should be on a different storage device than the data directory.");
 
-    ConfigKey<UpdatesAllowed> UPDATES_ALLOWED = newConfigKey(
-            UpdatesAllowed.class, "marklogic.forest.updates-allowed",
-            "Specifies which operations are allowed on this forest.",
-            UpdatesAllowed.ALL);
-
     ConfigKey<Boolean> REBALANCER_ENABLED = newBooleanConfigKey(
             "marklogic.forest.rebalancer-enabled",
             "Enable automatic rebalancing after configuration changes.",
@@ -116,8 +111,6 @@ public interface Forest extends Entity, Startable {
     String getLargeDataDir();
 
     String getFastDataDir();
-
-    UpdatesAllowed getUpdatesAllowed();
 
     boolean isRebalancerEnabled();
 

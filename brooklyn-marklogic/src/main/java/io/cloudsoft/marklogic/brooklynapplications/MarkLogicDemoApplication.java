@@ -31,7 +31,6 @@ import io.cloudsoft.marklogic.databases.Database;
 import io.cloudsoft.marklogic.databases.Databases;
 import io.cloudsoft.marklogic.forests.Forest;
 import io.cloudsoft.marklogic.forests.Forests;
-import io.cloudsoft.marklogic.forests.UpdatesAllowed;
 import io.cloudsoft.marklogic.groups.MarkLogicGroup;
 import io.cloudsoft.marklogic.nodes.MarkLogicNode;
 import io.cloudsoft.marklogic.pumper.ContentPumper;
@@ -146,7 +145,6 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Forest.NAME, forestBaseName + "Primary")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + primaryForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + primaryForestId)
-                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
                 .configure(Forest.FAILOVER_ENABLED, true)
         );
@@ -157,7 +155,6 @@ public class MarkLogicDemoApplication extends AbstractApplication {
                 .configure(Forest.NAME, forestBaseName + "Replica")
                 .configure(Forest.DATA_DIR, "/var/opt/mldata/" + replicaForestId)
                 .configure(Forest.LARGE_DATA_DIR, "/var/opt/mldata/" + replicaForestId)
-                .configure(Forest.UPDATES_ALLOWED, UpdatesAllowed.ALL)
                 .configure(Forest.REBALANCER_ENABLED, true)
                 .configure(Forest.MASTER, primaryForest.getName())
                 .configure(Forest.FAILOVER_ENABLED, true));
