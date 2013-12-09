@@ -28,7 +28,7 @@ We are keen to hear about your favourite use-cases. Contact us at info@cloudsoft
 
 ================
 
-&copy; 2013 Cloudsoft Corporation. All rights reserved.
+&copy; 2013 Cloudsoft Corporation Limited. All rights reserved.
 
 Use of this software is subject to the Cloudsoft EULA, provided in LICENSE.md and at 
 
